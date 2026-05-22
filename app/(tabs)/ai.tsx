@@ -22,7 +22,12 @@ import { premiumAlert } from '../../components/PremiumAlert';
 import { Colors, Radius, Spacing } from '../../constants/theme';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useRequireAuth } from '../../hooks/useRequireAuth';
-import { deleteGeneration, generateImage } from '../../lib/ai/client';
+import {
+  deleteGeneration,
+  FREE_DAILY_LIMIT,
+  generateImage,
+  hasUnlimitedGeneration,
+} from '../../lib/ai/client';
 import { getProvider } from '../../lib/ai/registry';
 import type { AspectRatio } from '../../lib/ai/types';
 import { toast } from '../../lib/toast';
@@ -350,7 +355,10 @@ export default function AIGenerator() {
             <Text style={styles.eyebrow}>AI GENERATOR</Text>
             <Text style={[styles.title, { color: theme.text }]}>Make a wallpaper</Text>
             <Text style={styles.sub}>
-              {provider.displayName} · {todayCount()} generated today
+              {provider.displayName} ·{' '}
+              {hasUnlimitedGeneration()
+                ? 'unlimited (your key)'
+                : `${todayCount()} / ${FREE_DAILY_LIMIT} today`}
             </Text>
           </Animated.View>
 

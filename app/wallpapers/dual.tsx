@@ -153,7 +153,7 @@ export default function DualWallpapersScreen() {
           <Ionicons name="chevron-back" size={22} color={theme.text} />
         </AnimatedButton>
         <Text style={[styles.title, { color: theme.text }]} numberOfLines={1}>
-          Dual Wallpapers
+          Premium Collection
         </Text>
         <View style={styles.dot} />
       </View>

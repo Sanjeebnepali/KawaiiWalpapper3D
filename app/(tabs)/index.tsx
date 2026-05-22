@@ -93,8 +93,8 @@ export default function WallpapersHome() {
         id: 'premium-title',
         render: () => (
           <SectionTitle
-            title="Premium"
-            caption="Exclusive picks"
+            title="Best Fit"
+            caption="Picked to fit your screen"
             onSeeAll={goPremium}
           />
         ),

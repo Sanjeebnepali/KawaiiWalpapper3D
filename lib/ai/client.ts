@@ -12,7 +12,6 @@
  */
 
 import * as FileSystem from 'expo-file-system/legacy';
-import { useSettingsStore } from '../../store/settings';
 import { useShuffleStore } from '../../store/shuffle';
 import { useAIStore } from '../../store/ai';
 import { getProvider } from './registry';
@@ -32,6 +31,26 @@ import type { ImageGenRequest, ImageGenResult } from './types';
 // every concurrent caller within one app session.
 let inFlightReservations = 0;
 
+/**
+ * Free-tier daily generation limit. Users on the built-in/free path get this
+ * many generations per local day; pasting their own provider API key removes
+ * the cap entirely (see `hasUnlimitedGeneration`).
+ */
+export const FREE_DAILY_LIMIT = 3;
+
+/**
+ * True when the active provider is running on a USER-supplied API key (their
+ * own credential / quota), in which case we don't impose the free daily cap —
+ * they own the usage. The built-in default token / anonymous tier is NOT a
+ * user key, so it stays capped.
+ */
+export function hasUnlimitedGeneration(): boolean {
+  const ai = useAIStore.getState();
+  if (ai.providerId === 'huggingface' && ai.hfToken.trim().length > 0) return true;
+  if (ai.providerId === 'pollinations' && ai.pollToken.trim().length > 0) return true;
+  return false;
+}
+
 export async function generateImage(
   req: ImageGenRequest,
   signal?: AbortSignal,
@@ -39,24 +58,21 @@ export async function generateImage(
   const providerId = useAIStore.getState().providerId;
   const provider = getProvider(providerId);
 
-  // Daily quota gate. The Settings → "Max Generation Per Day" slider
-  // owns this value (5–100, step 5). Previously the slider was
-  // cosmetic — the store value was never consulted. Now we refuse
-  // to call the provider when the user has already hit their cap
-  // for the day, so the slider becomes a real spend-control even on
-  // paid providers.
+  // Daily quota gate. Free/built-in users get FREE_DAILY_LIMIT generations
+  // per local day; users who pasted their own provider API key are unlimited
+  // (it's their own quota — see hasUnlimitedGeneration).
   //
-  // Count already-recorded generations PLUS the ones currently in
-  // flight, so two concurrent calls at `used === cap-1` can't both
-  // slip through (AI-3).
-  const cap = useSettingsStore.getState().maxGenPerDay;
-  const used = useAIStore.getState().todayCount();
-  if (used + inFlightReservations >= cap) {
-    return {
-      ok: false,
-      reason: 'rate_limited',
-      message: `Daily limit reached (${used + inFlightReservations}/${cap}). Raise it in Settings → Max Generation Per Day.`,
-    };
+  // Count already-recorded generations PLUS the ones currently in flight, so
+  // two concurrent calls at `used === cap-1` can't both slip through (AI-3).
+  if (!hasUnlimitedGeneration()) {
+    const used = useAIStore.getState().todayCount();
+    if (used + inFlightReservations >= FREE_DAILY_LIMIT) {
+      return {
+        ok: false,
+        reason: 'rate_limited',
+        message: `Free limit reached (${FREE_DAILY_LIMIT}/day). Paste your own API key in Settings → AI Generator Settings for unlimited generation.`,
+      };
+    }
   }
 
   // Reserve the slot before the await so a sibling call sees it.

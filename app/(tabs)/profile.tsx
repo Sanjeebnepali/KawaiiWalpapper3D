@@ -75,7 +75,6 @@ export default function Settings() {
   const featuredFolder = useSettingsStore((st) => st.featuredFolder);
   const generateQuality = useSettingsStore((st) => st.generateQuality);
   const autoSaveGenerated = useSettingsStore((st) => st.autoSaveGenerated);
-  const maxGenPerDay = useSettingsStore((st) => st.maxGenPerDay);
   const newWallpaperAlerts = useSettingsStore((st) => st.newWallpaperAlerts);
   const dailyRecommendation = useSettingsStore((st) => st.dailyRecommendation);
   const vibrationOnDownload = useSettingsStore((st) => st.vibrationOnDownload);
@@ -444,19 +443,11 @@ export default function Settings() {
               />
             }
           />
-          <View style={styles.sliderCell}>
-            <View style={styles.sliderHead}>
-              <Text style={styles.rowLabel}>Max Generation Per Day</Text>
-              <Text style={styles.sliderValue}>{maxGenPerDay}</Text>
-            </View>
-            <Slider
-              value={maxGenPerDay}
-              min={5}
-              max={100}
-              step={5}
-              onChange={(v) => setSetting('maxGenPerDay', v)}
-            />
-          </View>
+          <SettingsRow
+            label="Daily Generation Limit"
+            subtitle="Free: 3 images/day. Paste your own API key in the token row above for unlimited generation."
+            divider={false}
+          />
         </SettingsSection>
 
         {/* 1.6 Notification Settings */}

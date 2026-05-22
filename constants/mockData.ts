@@ -36,7 +36,8 @@ export type TopTab = { id: string; label: string };
 export const topTabs: TopTab[] = [
   { id: 'wallpapers', label: 'Wallpapers' },
   { id: '2d', label: '2D Kawaii' },
-  { id: 'dual', label: 'Dual' },
+  // id stays 'dual' (route /wallpapers/dual) — only the display label changed.
+  { id: 'dual', label: 'Premium Collection' },
   { id: 'theme-packs', label: 'Theme Packs' },
 ];
 
