@@ -1,0 +1,7 @@
+{
+  "name": "usage-stats",
+  "version": "0.1.0",
+  "description": "Local Expo module wrapping UsageStatsManager — detects when the user opens other apps (Instagram, Gallery, etc.) so we can fire a mood prompt at that moment.",
+  "main": "index.ts",
+  "private": true
+}

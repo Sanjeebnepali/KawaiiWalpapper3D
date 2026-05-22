@@ -1,0 +1,88 @@
+{
+  "expo": {
+    "name": "Kawaii Baby Wallpapers HD",
+    "slug": "kawaii-baby-wallpapers-hd",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "scheme": "kawaii",
+    "newArchEnabled": true,
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      "expo-sharing",
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "Allow Kawaii Baby Wallpapers to save wallpapers to your photo library.",
+          "savePhotosPermission": "Allow Kawaii Baby Wallpapers to save wallpapers to your photo library.",
+          "isAccessMediaLocationEnabled": false
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Kawaii Baby Wallpapers uses the front camera to detect your mood on-device. Your face is never recorded, saved or sent anywhere.",
+          "recordAudioAndroid": false
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#fab3ca"
+        }
+      ],
+      [
+        "expo-sensors",
+        {
+          "motionPermission": "Kawaii Baby Wallpapers uses motion data to guess your mood (e.g. walking = energetic) when the camera is unavailable."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Kawaii Baby Wallpapers needs access to your photo library so you can pick your own wake-up and sleeping wallpapers."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Kawaii Baby Wallpapers uses your location to detect when you're near your linked partner so it can swap to the couple wallpaper automatically. Location is shared only with your linked partner.",
+          "locationWhenInUsePermission": "Kawaii Baby Wallpapers uses your location to detect when you're near your linked partner so it can swap to the couple wallpaper automatically.",
+          "isAndroidBackgroundLocationEnabled": true,
+          "isAndroidForegroundServiceEnabled": true
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.kawaii.wallpapers"
+    },
+    "android": {
+      "package": "com.kawaii.wallpapers",
+      "permissions": [
+        "android.permission.SET_WALLPAPER",
+        "android.permission.CAMERA",
+        "android.permission.ACTIVITY_RECOGNITION",
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.PACKAGE_USAGE_STATS",
+        "android.permission.QUERY_ALL_PACKAGES",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_BACKGROUND_LOCATION",
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.FOREGROUND_SERVICE_LOCATION"
+      ],
+      "adaptiveIcon": {
+        "backgroundColor": "#131313"
+      }
+    },
+    "web": {
+      "bundler": "metro"
+    }
+  }
+}

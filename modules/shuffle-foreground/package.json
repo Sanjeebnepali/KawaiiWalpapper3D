@@ -1,0 +1,7 @@
+{
+  "name": "shuffle-foreground",
+  "version": "0.1.0",
+  "description": "Android foreground service that rotates the wallpaper on a fixed interval while the app is closed. Used by the theme-pack shuffle so OEM background killers (Vivo, Xiaomi, Oppo) can't pause it.",
+  "main": "index.ts",
+  "private": true
+}

@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .pb-safe {
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        body {
+            background-color: #121212;
+            color: #e5e2e1;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .scroll-container {
+            padding-bottom: 40px;
+        }
+        /* Custom track and thumb for sliders */
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+        input[type="range"]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 6px;
+            cursor: pointer;
+            background: #333333;
+            border-radius: 999px;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: #ffdfe7; /* primary */
+            cursor: pointer;
+            -webkit-appearance: none;
+            margin-top: -7px;
+            box-shadow: 0 0 10px rgba(255, 183, 206, 0.4);
+        }
+    </style>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "secondary-fixed-dim": "#dcb8ff",
+                    "surface-dim": "#131313",
+                    "secondary-fixed": "#f0dbff",
+                    "on-surface": "#e5e2e1",
+                    "error": "#ffb4ab",
+                    "on-tertiary-fixed-variant": "#454747",
+                    "surface-container-high": "#2a2a2a",
+                    "on-primary": "#502033",
+                    "on-primary-container": "#7b4458",
+                    "surface-container-low": "#1c1b1b",
+                    "outline-variant": "#514347",
+                    "surface-container-lowest": "#0e0e0e",
+                    "tertiary-fixed-dim": "#c6c6c7",
+                    "surface-variant": "#353534",
+                    "on-tertiary-container": "#545656",
+                    "on-tertiary": "#2f3131",
+                    "primary-fixed-dim": "#fab3ca",
+                    "error-container": "#93000a",
+                    "surface-tint": "#fab3ca",
+                    "accent-pink-muted": "#FFD1DF",
+                    "tertiary-container": "#cacbcb",
+                    "primary-container": "#ffb7ce",
+                    "on-error-container": "#ffdad6",
+                    "on-secondary-container": "#d2a5ff",
+                    "text-secondary": "#B0B0B0",
+                    "secondary": "#dcb8ff",
+                    "surface-container": "#201f1f",
+                    "tertiary-fixed": "#e2e2e2",
+                    "inverse-primary": "#864d61",
+                    "on-primary-fixed-variant": "#6a364a",
+                    "surface-bright": "#393939",
+                    "on-surface-variant": "#d5c2c6",
+                    "primary-fixed": "#ffd9e3",
+                    "background": "#131313",
+                    "tertiary": "#e7e7e7",
+                    "secondary-container": "#5e3588",
+                    "inverse-on-surface": "#313030",
+                    "divider": "#333333",
+                    "surface-container-highest": "#353534",
+                    "on-secondary": "#44186d",
+                    "on-primary-fixed": "#360b1e",
+                    "on-background": "#e5e2e1",
+                    "accent-purple-deep": "#9D50BB",
+                    "surface": "#1E1E1E",
+                    "primary": "#ffdfe7",
+                    "inverse-surface": "#e5e2e1",
+                    "on-secondary-fixed-variant": "#5b3285",
+                    "on-tertiary-fixed": "#1a1c1c",
+                    "on-error": "#690005",
+                    "on-secondary-fixed": "#2c0051",
+                    "outline": "#9d8c90"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "stack-gap-sm": "0.5rem",
+                    "stack-gap-lg": "1.5rem",
+                    "inline-gutter": "0.75rem",
+                    "stack-gap-md": "1rem",
+                    "container-margin": "1rem"
+            },
+            "fontFamily": {
+                    "label-sm": ["Plus Jakarta Sans"],
+                    "headline-lg": ["Plus Jakarta Sans"],
+                    "body-md": ["Plus Jakarta Sans"],
+                    "body-lg": ["Plus Jakarta Sans"],
+                    "headline-md": ["Plus Jakarta Sans"],
+                    "label-caps": ["Plus Jakarta Sans"]
+            },
+            "fontSize": {
+                    "label-sm-mobile": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                    "headline-lg-mobile": ["22px", {"lineHeight": "28px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "headline-md": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                    "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-background text-on-surface">
+<!-- TopAppBar -->
+<header class="flex items-center justify-between px-container-margin h-16 w-full fixed top-0 bg-background z-40">
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface">Settings</h1>
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-variant/10 active:scale-95 transition-transform duration-200">
+<span class="material-symbols-outlined text-primary">edit</span>
+</button>
+</header>
+<main class="pt-20 scroll-container px-4">
+<!-- Profile Section -->
+<section class="flex flex-col items-center mb-stack-gap-lg">
+<div class="w-24 h-24 rounded-full bg-surface-container-high flex items-center justify-center mb-3 overflow-hidden border-2 border-primary/20">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="A portrait placeholder for a high-quality user profile avatar. The circular frame is set against a dark, professional tech background with subtle glowing pink accents. The overall aesthetic is clean, modern, and aligned with a premium digital creator platform." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDe_mYM9kSALZXlfBqzjbXYccwT4i-vGOyeColRpcmfg9ehW-BBh65R_TRQ3MuTd-mp7mMW2EJj3aHEZtyuTy29070amjHFNCdQHr6H858vstI8B2ZDgHEADUsqAzP9PFzAZdKz4nhTVexqfLfH16NTDzbejFlb-V30PAQY_1YQMHpGN8Jx8iFe9DZUJwbgYc8g61uQWFS37MNSeVPjazB6gdFpQdNO4acSdAOOMwNuc2gwgX8I77vrOohMRQeCzlGXxTQAq7wGUDpr"/>
+</div>
+<h2 class="font-headline-md text-headline-md text-on-surface">Kawaii User</h2>
+<p class="font-body-md text-on-surface-variant">user@kawaii.com</p>
+</section>
+<!-- Account Settings -->
+<div class="mb-stack-gap-lg">
+<h3 class="font-label-caps text-label-caps text-on-surface-variant mb-2 px-2 uppercase">ACCOUNT SETTINGS</h3>
+<div class="bg-surface rounded-xl overflow-hidden">
+<!-- Dark Mode -->
+<button class="w-full flex items-center justify-between p-4 border-b border-divider active:bg-surface-bright/20 transition-colors">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-on-surface-variant">palette</span>
+<span class="font-body-lg text-on-surface">Theme</span>
+</div>
+<div class="flex items-center gap-1 text-primary">
+<span class="font-body-md font-bold">Kawaii Dark</span>
+<span class="material-symbols-outlined text-on-surface-variant">chevron_right</span>
+</div>
+</button>
+<!-- Auto Download -->
+<div class="flex items-center justify-between p-4 border-b border-divider">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-on-surface-variant">file_download</span>
+<span class="font-body-lg">Auto Download</span>
+</div>
+<div class="w-12 h-6 bg-surface-variant rounded-full relative flex items-center px-1">
+<div class="w-4 h-4 bg-on-surface-variant rounded-full absolute left-1"></div>
+</div>
+</div>
+<!-- Save to Gallery -->
+<div class="flex items-center justify-between p-4 border-b border-divider">
+<div class="flex flex-col">
+<span class="font-body-lg">Save to Gallery</span>
+<span class="font-label-sm-mobile text-on-surface-variant">Always save</span>
+</div>
+<div class="w-12 h-6 bg-primary-container rounded-full relative flex items-center px-1">
+<div class="w-4 h-4 bg-on-primary-container rounded-full absolute right-1"></div>
+</div>
+</div>
+<!-- Clear Cache -->
+<button class="w-full flex items-center justify-between p-4 active:bg-surface-bright/20 transition-colors">
+<span class="font-body-lg text-on-surface">Clear Cache</span>
+<span class="material-symbols-outlined text-on-surface-variant">chevron_right</span>
+</button>
+</div>
+</div>
+<!-- Wallpaper Settings -->
+<div class="mb-stack-gap-lg">
+<h3 class="font-label-caps text-label-caps text-on-surface-variant mb-2 px-2 uppercase">WALLPAPER SETTINGS</h3>
+<div class="bg-surface rounded-xl overflow-hidden">
+<!-- Resolution -->
+<div class="flex items-center justify-between p-4 border-b border-divider">
+<span class="font-body-lg">Default Wallpaper Resolution</span>
+<div class="flex items-center gap-1 text-primary">
+<span class="font-body-md font-bold">4K</span>
+<span class="material-symbols-outlined text-sm">expand_more</span>
+</div>
+</div>
+<!-- Live Wallpaper -->
+<div class="flex items-center justify-between p-4 border-b border-divider">
+<span class="font-body-lg">Live Wallpaper Support</span>
+<div class="w-12 h-6 bg-surface-variant rounded-full relative flex items-center px-1">
+<div class="w-4 h-4 bg-on-surface-variant rounded-full absolute left-1"></div>
+</div>
+</div>
+<!-- Set Wallpaper Button -->
+<div class="flex items-center justify-between p-4">
+<span class="font-body-lg">Show 'Set Wallpaper' Button</span>
+<div class="w-12 h-6 bg-primary-container rounded-full relative flex items-center px-1">
+<div class="w-4 h-4 bg-on-primary-container rounded-full absolute right-1"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- AI Generator Settings -->
+<div class="mb-stack-gap-lg">
+<h3 class="font-label-caps text-label-caps text-on-surface-variant mb-2 px-2 uppercase">AI GENERATOR SETTINGS</h3>
+<div class="bg-surface rounded-xl overflow-hidden p-4">
+<!-- Quality -->
+<div class="flex items-center justify-between mb-6">
+<span class="font-body-lg">Generate Quality</span>
+<div class="flex items-center gap-1 text-primary">
+<span class="font-body-md font-bold">High Quality</span>
+<span class="material-symbols-outlined text-sm">expand_more</span>
+</div>
+</div>
+<!-- Save Automatically -->
+<div class="flex items-center justify-between mb-6">
+<span class="font-body-lg">Save Generated Images Automatically</span>
+<div class="w-12 h-6 bg-primary-container rounded-full relative flex items-center px-1">
+<div class="w-4 h-4 bg-on-primary-container rounded-full absolute right-1"></div>
+</div>
+</div>
+<!-- Slider -->
+<div class="space-y-3">
+<div class="flex justify-between items-center">
+<span class="font-body-lg">Max Generation Per Day</span>
+<span class="font-body-md font-bold text-primary">50</span>
+</div>
+<input class="accent-primary" max="100" min="0" type="range" value="50"/>
+</div>
+</div>
+</div>
+<!-- Notification Settings -->
+<div class="mb-stack-gap-lg">
+<h3 class="font-label-caps text-label-caps text-on-surface-variant mb-2 px-2 uppercase">NOTIFICATION SETTINGS</h3>
+<div class="bg-surface rounded-xl overflow-hidden">
+<!-- Alerts -->
+<div class="flex items-center justify-between p-4 border-b border-divider">
+<span class="font-body-lg">New Wallpaper Alerts</span>
+<div class="w-12 h-6 bg-primary-container rounded-full relative flex items-center px-1">
+<div class="w-4 h-4 bg-on-primary-container rounded-full absolute right-1"></div>
+</div>
+</div>
+<!-- Daily Rec -->
+<div class="flex items-center justify-between p-4 border-b border-divider">
+<div class="flex flex-col">
+<span class="font-body-lg">Daily Recommendation</span>
+<span class="font-label-sm-mobile text-primary">9:00 AM</span>
+</div>
+<div class="w-12 h-6 bg-primary-container rounded-full relative flex items-center px-1">
+<div class="w-4 h-4 bg-on-primary-container rounded-full absolute right-1"></div>
+</div>
+</div>
+<!-- Vibration -->
+<div class="flex items-center justify-between p-4">
+<span class="font-body-lg">Vibration on Download</span>
+<div class="w-12 h-6 bg-surface-variant rounded-full relative flex items-center px-1">
+<div class="w-4 h-4 bg-on-surface-variant rounded-full absolute left-1"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Privacy & Legal -->
+<div class="mb-stack-gap-lg">
+<h3 class="font-label-caps text-label-caps text-on-surface-variant mb-2 px-2 uppercase">PRIVACY &amp; LEGAL</h3>
+<div class="bg-surface rounded-xl overflow-hidden">
+<button class="w-full flex items-center justify-between p-4 border-b border-divider active:bg-surface-bright/20">
+<span class="font-body-lg">Terms of Service</span>
+<span class="material-symbols-outlined text-on-surface-variant">open_in_new</span>
+</button>
+<button class="w-full flex items-center justify-between p-4 border-b border-divider active:bg-surface-bright/20">
+<span class="font-body-lg">Privacy Policy</span>
+<span class="material-symbols-outlined text-on-surface-variant">open_in_new</span>
+</button>
+<button class="w-full flex items-center justify-between p-4 border-b border-divider active:bg-surface-bright/20">
+<span class="font-body-lg">Export Data</span>
+<span class="material-symbols-outlined text-on-surface-variant">download</span>
+</button>
+<button class="w-full flex items-center justify-between p-4 active:bg-error/10">
+<span class="font-body-lg text-error">Delete Account</span>
+<span class="material-symbols-outlined text-error">delete_forever</span>
+</button>
+</div>
+</div>
+<!-- About Section -->
+<div class="mb-stack-gap-lg">
+<h3 class="font-label-caps text-label-caps text-on-surface-variant mb-2 px-2 uppercase">ABOUT</h3>
+<div class="bg-surface rounded-xl overflow-hidden">
+<div class="flex items-center justify-between p-4 border-b border-divider">
+<span class="font-body-lg">App Version</span>
+<span class="font-body-md text-on-surface-variant">v1.0.0</span>
+</div>
+<button class="w-full flex items-center justify-between p-4 border-b border-divider active:bg-surface-bright/20">
+<span class="font-body-lg">Rate Us</span>
+<span class="material-symbols-outlined text-primary">star</span>
+</button>
+<button class="w-full flex items-center justify-between p-4 border-b border-divider active:bg-surface-bright/20">
+<span class="font-body-lg">Share App</span>
+<span class="material-symbols-outlined text-on-surface-variant">share</span>
+</button>
+<button class="w-full flex items-center justify-between p-4 active:bg-surface-bright/20">
+<div class="flex flex-col text-left">
+<span class="font-body-lg">Contact Support</span>
+<span class="font-label-sm-mobile text-on-surface-variant">support@kawaiibaby.com</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant">mail</span>
+</button>
+</div>
+</div>
+<!-- Logout -->
+<div class="py-8 flex justify-center">
+<button class="flex items-center gap-2 px-8 py-3 rounded-full border border-error/30 active:bg-error/10 transition-colors">
+<span class="material-symbols-outlined text-error">logout</span>
+<span class="font-headline-md text-error">Logout</span>
+</button>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-3 pb-safe bg-surface-container rounded-t-xl shadow-sm">
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-5 py-1 hover:bg-surface-bright/20 transition-all" href="#">
+<span class="material-symbols-outlined">auto_awesome</span>
+<span class="font-label-sm text-label-sm">Generate</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-5 py-1 scale-90 transition-all duration-150 ease-in-out" href="#">
+<span class="material-symbols-outlined">image</span>
+<span class="font-label-sm text-label-sm">Gallery</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-5 py-1 hover:bg-surface-bright/20 transition-all" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-sm text-label-sm">Settings</span>
+</a>
+</nav>
+</body></html>

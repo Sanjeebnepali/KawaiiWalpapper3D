@@ -1,0 +1,7 @@
+{
+  "name": "wallpaper-setter",
+  "version": "0.1.0",
+  "description": "Local Expo module for one-tap WallpaperManager.setBitmap on Android",
+  "main": "index.ts",
+  "private": true
+}

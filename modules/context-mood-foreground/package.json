@@ -1,0 +1,7 @@
+{
+  "name": "context-mood-foreground",
+  "version": "0.1.0",
+  "description": "Android foreground service that ticks every N minutes so the JS-side context-mood inference (lib/moodBackgroundTask:runMoodBackgroundOnce) actually runs while the app is closed. Replaces expo-background-fetch which OEM background killers drop silently.",
+  "main": "index.ts",
+  "private": true
+}

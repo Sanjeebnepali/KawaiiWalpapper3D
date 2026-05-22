@@ -1,0 +1,2366 @@
+{
+  "bucket": "wallpapers",
+  "projectRef": "snhtsymzsfaptwhqodej",
+  "generatedAt": "2026-05-21T05:34:34.716Z",
+  "groups": {
+    "mood": {
+      "happy": {
+        "label": "Happy",
+        "tier": "free",
+        "count": 20,
+        "items": [
+          {
+            "id": "mood-happy-1",
+            "file": "001.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/happy/001.webp?v=2"
+          },
+          {
+            "id": "mood-happy-2",
+            "file": "002.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/happy/002.webp?v=2"
+          },
+          {
+            "id": "mood-happy-3",
+            "file": "003.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/happy/003.webp?v=2"
+          },
+          {
+            "id": "mood-happy-4",
+            "file": "004.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/happy/004.webp?v=2"
+          },
+          {
+            "id": "mood-happy-5",
+            "file": "005.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/happy/005.webp?v=2"
+          },
+          {
+            "id": "mood-happy-6",
+            "file": "006.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/happy/006.webp?v=2"
+          },
+          {
+            "id": "mood-happy-7",
+            "file": "007.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/happy/007.webp?v=2"
+          },
+          {
+            "id": "mood-happy-8",
+            "file": "008.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/happy/008.webp?v=2"
+          },
+          {
+            "id": "mood-happy-9",
+            "file": "009.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/happy/009.webp?v=2"
+          },
+          {
+            "id": "mood-happy-10",
+            "file": "010.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/happy/010.webp?v=2"
+          },
+          {
+            "id": "mood-happy-11",
+            "file": "011.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/happy/011.webp?v=2"
+          },
+          {
+            "id": "mood-happy-12",
+            "file": "012.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/happy/012.webp?v=2"
+          },
+          {
+            "id": "mood-happy-13",
+            "file": "013.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/happy/013.webp?v=2"
+          },
+          {
+            "id": "mood-happy-14",
+            "file": "014.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/happy/014.webp?v=2"
+          },
+          {
+            "id": "mood-happy-15",
+            "file": "015.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/happy/015.webp?v=2"
+          },
+          {
+            "id": "mood-happy-16",
+            "file": "016.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/happy/016.webp?v=2"
+          },
+          {
+            "id": "mood-happy-17",
+            "file": "017.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/happy/017.webp?v=2"
+          },
+          {
+            "id": "mood-happy-18",
+            "file": "018.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/happy/018.webp?v=2"
+          },
+          {
+            "id": "mood-happy-19",
+            "file": "019.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/happy/019.webp?v=2"
+          },
+          {
+            "id": "mood-happy-20",
+            "file": "020.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/happy/020.webp?v=2"
+          }
+        ]
+      },
+      "excited": {
+        "label": "Excited",
+        "tier": "free",
+        "count": 20,
+        "items": [
+          {
+            "id": "mood-excited-1",
+            "file": "001.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/excited/001.webp?v=2"
+          },
+          {
+            "id": "mood-excited-2",
+            "file": "002.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/excited/002.webp?v=2"
+          },
+          {
+            "id": "mood-excited-3",
+            "file": "003.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/excited/003.webp?v=2"
+          },
+          {
+            "id": "mood-excited-4",
+            "file": "004.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/excited/004.webp?v=2"
+          },
+          {
+            "id": "mood-excited-5",
+            "file": "005.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/excited/005.webp?v=2"
+          },
+          {
+            "id": "mood-excited-6",
+            "file": "006.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/excited/006.webp?v=2"
+          },
+          {
+            "id": "mood-excited-7",
+            "file": "007.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/excited/007.webp?v=2"
+          },
+          {
+            "id": "mood-excited-8",
+            "file": "008.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/excited/008.webp?v=2"
+          },
+          {
+            "id": "mood-excited-9",
+            "file": "009.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/excited/009.webp?v=2"
+          },
+          {
+            "id": "mood-excited-10",
+            "file": "010.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/excited/010.webp?v=2"
+          },
+          {
+            "id": "mood-excited-11",
+            "file": "011.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/excited/011.webp?v=2"
+          },
+          {
+            "id": "mood-excited-12",
+            "file": "012.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/excited/012.webp?v=2"
+          },
+          {
+            "id": "mood-excited-13",
+            "file": "013.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/excited/013.webp?v=2"
+          },
+          {
+            "id": "mood-excited-14",
+            "file": "014.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/excited/014.webp?v=2"
+          },
+          {
+            "id": "mood-excited-15",
+            "file": "015.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/excited/015.webp?v=2"
+          },
+          {
+            "id": "mood-excited-16",
+            "file": "016.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/excited/016.webp?v=2"
+          },
+          {
+            "id": "mood-excited-17",
+            "file": "017.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/excited/017.webp?v=2"
+          },
+          {
+            "id": "mood-excited-18",
+            "file": "018.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/excited/018.webp?v=2"
+          },
+          {
+            "id": "mood-excited-19",
+            "file": "019.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/excited/019.webp?v=2"
+          },
+          {
+            "id": "mood-excited-20",
+            "file": "020.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/excited/020.webp?v=2"
+          }
+        ]
+      },
+      "calm": {
+        "label": "Calm",
+        "tier": "free",
+        "count": 10,
+        "items": [
+          {
+            "id": "mood-calm-1",
+            "file": "001.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/calm/001.webp?v=2"
+          },
+          {
+            "id": "mood-calm-2",
+            "file": "002.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/calm/002.webp?v=2"
+          },
+          {
+            "id": "mood-calm-3",
+            "file": "003.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/calm/003.webp?v=2"
+          },
+          {
+            "id": "mood-calm-4",
+            "file": "004.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/calm/004.webp?v=2"
+          },
+          {
+            "id": "mood-calm-5",
+            "file": "005.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/calm/005.webp?v=2"
+          },
+          {
+            "id": "mood-calm-6",
+            "file": "006.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/calm/006.webp?v=2"
+          },
+          {
+            "id": "mood-calm-7",
+            "file": "007.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/calm/007.webp?v=2"
+          },
+          {
+            "id": "mood-calm-8",
+            "file": "008.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/calm/008.webp?v=2"
+          },
+          {
+            "id": "mood-calm-9",
+            "file": "009.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/calm/009.webp?v=2"
+          },
+          {
+            "id": "mood-calm-10",
+            "file": "010.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/calm/010.webp?v=2"
+          }
+        ]
+      },
+      "love": {
+        "label": "Love",
+        "tier": "free",
+        "count": 19,
+        "items": [
+          {
+            "id": "mood-love-1",
+            "file": "001.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/love/001.webp?v=2"
+          },
+          {
+            "id": "mood-love-2",
+            "file": "002.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/love/002.webp?v=2"
+          },
+          {
+            "id": "mood-love-3",
+            "file": "003.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/love/003.webp?v=2"
+          },
+          {
+            "id": "mood-love-4",
+            "file": "004.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/love/004.webp?v=2"
+          },
+          {
+            "id": "mood-love-5",
+            "file": "005.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/love/005.webp?v=2"
+          },
+          {
+            "id": "mood-love-6",
+            "file": "006.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/love/006.webp?v=2"
+          },
+          {
+            "id": "mood-love-7",
+            "file": "007.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/love/007.webp?v=2"
+          },
+          {
+            "id": "mood-love-8",
+            "file": "008.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/love/008.webp?v=2"
+          },
+          {
+            "id": "mood-love-9",
+            "file": "009.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/love/009.webp?v=2"
+          },
+          {
+            "id": "mood-love-10",
+            "file": "010.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/love/010.webp?v=2"
+          },
+          {
+            "id": "mood-love-11",
+            "file": "011.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/love/011.webp?v=2"
+          },
+          {
+            "id": "mood-love-12",
+            "file": "012.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/love/012.webp?v=2"
+          },
+          {
+            "id": "mood-love-13",
+            "file": "013.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/love/013.webp?v=2"
+          },
+          {
+            "id": "mood-love-14",
+            "file": "014.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/love/014.webp?v=2"
+          },
+          {
+            "id": "mood-love-15",
+            "file": "015.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/love/015.webp?v=2"
+          },
+          {
+            "id": "mood-love-16",
+            "file": "016.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/love/016.webp?v=2"
+          },
+          {
+            "id": "mood-love-17",
+            "file": "017.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/love/017.webp?v=2"
+          },
+          {
+            "id": "mood-love-18",
+            "file": "018.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/love/018.webp?v=2"
+          },
+          {
+            "id": "mood-love-19",
+            "file": "019.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/love/019.webp?v=2"
+          }
+        ]
+      },
+      "heartbroken": {
+        "label": "Heartbroken",
+        "tier": "free",
+        "count": 40,
+        "items": [
+          {
+            "id": "mood-heartbroken-1",
+            "file": "001.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/heartbroken/001.webp?v=2"
+          },
+          {
+            "id": "mood-heartbroken-2",
+            "file": "002.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/heartbroken/002.webp?v=2"
+          },
+          {
+            "id": "mood-heartbroken-3",
+            "file": "003.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/heartbroken/003.webp?v=2"
+          },
+          {
+            "id": "mood-heartbroken-4",
+            "file": "004.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/heartbroken/004.webp?v=2"
+          },
+          {
+            "id": "mood-heartbroken-5",
+            "file": "005.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/heartbroken/005.webp?v=2"
+          },
+          {
+            "id": "mood-heartbroken-6",
+            "file": "006.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/heartbroken/006.webp?v=2"
+          },
+          {
+            "id": "mood-heartbroken-7",
+            "file": "007.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/heartbroken/007.webp?v=2"
+          },
+          {
+            "id": "mood-heartbroken-8",
+            "file": "008.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/heartbroken/008.webp?v=2"
+          },
+          {
+            "id": "mood-heartbroken-9",
+            "file": "009.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/heartbroken/009.webp?v=2"
+          },
+          {
+            "id": "mood-heartbroken-10",
+            "file": "010.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/heartbroken/010.webp?v=2"
+          },
+          {
+            "id": "mood-heartbroken-11",
+            "file": "011.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/heartbroken/011.webp?v=2"
+          },
+          {
+            "id": "mood-heartbroken-12",
+            "file": "012.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/heartbroken/012.webp?v=2"
+          },
+          {
+            "id": "mood-heartbroken-13",
+            "file": "013.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/heartbroken/013.webp?v=2"
+          },
+          {
+            "id": "mood-heartbroken-14",
+            "file": "014.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/heartbroken/014.webp?v=2"
+          },
+          {
+            "id": "mood-heartbroken-15",
+            "file": "015.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/heartbroken/015.webp?v=2"
+          },
+          {
+            "id": "mood-heartbroken-16",
+            "file": "016.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/heartbroken/016.webp?v=2"
+          },
+          {
+            "id": "mood-heartbroken-17",
+            "file": "017.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/heartbroken/017.webp?v=2"
+          },
+          {
+            "id": "mood-heartbroken-18",
+            "file": "018.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/heartbroken/018.webp?v=2"
+          },
+          {
+            "id": "mood-heartbroken-19",
+            "file": "019.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/heartbroken/019.webp?v=2"
+          },
+          {
+            "id": "mood-heartbroken-20",
+            "file": "020.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/heartbroken/020.webp?v=2"
+          },
+          {
+            "id": "mood-heartbroken-21",
+            "file": "021.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/heartbroken/021.webp?v=2"
+          },
+          {
+            "id": "mood-heartbroken-22",
+            "file": "022.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/heartbroken/022.webp?v=2"
+          },
+          {
+            "id": "mood-heartbroken-23",
+            "file": "023.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/heartbroken/023.webp?v=2"
+          },
+          {
+            "id": "mood-heartbroken-24",
+            "file": "024.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/heartbroken/024.webp?v=2"
+          },
+          {
+            "id": "mood-heartbroken-25",
+            "file": "025.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/heartbroken/025.webp?v=2"
+          },
+          {
+            "id": "mood-heartbroken-26",
+            "file": "026.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/heartbroken/026.webp?v=2"
+          },
+          {
+            "id": "mood-heartbroken-27",
+            "file": "027.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/heartbroken/027.webp?v=2"
+          },
+          {
+            "id": "mood-heartbroken-28",
+            "file": "028.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/heartbroken/028.webp?v=2"
+          },
+          {
+            "id": "mood-heartbroken-29",
+            "file": "029.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/heartbroken/029.webp?v=2"
+          },
+          {
+            "id": "mood-heartbroken-30",
+            "file": "030.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/heartbroken/030.webp?v=2"
+          },
+          {
+            "id": "mood-heartbroken-31",
+            "file": "031.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/heartbroken/031.webp?v=2"
+          },
+          {
+            "id": "mood-heartbroken-32",
+            "file": "032.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/heartbroken/032.webp?v=2"
+          },
+          {
+            "id": "mood-heartbroken-33",
+            "file": "033.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/heartbroken/033.webp?v=2"
+          },
+          {
+            "id": "mood-heartbroken-34",
+            "file": "034.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/heartbroken/034.webp?v=2"
+          },
+          {
+            "id": "mood-heartbroken-35",
+            "file": "035.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/heartbroken/035.webp?v=2"
+          },
+          {
+            "id": "mood-heartbroken-36",
+            "file": "036.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/heartbroken/036.webp?v=2"
+          },
+          {
+            "id": "mood-heartbroken-37",
+            "file": "037.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/heartbroken/037.webp?v=2"
+          },
+          {
+            "id": "mood-heartbroken-38",
+            "file": "038.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/heartbroken/038.webp?v=2"
+          },
+          {
+            "id": "mood-heartbroken-39",
+            "file": "039.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/heartbroken/039.webp?v=2"
+          },
+          {
+            "id": "mood-heartbroken-40",
+            "file": "040.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/heartbroken/040.webp?v=2"
+          }
+        ]
+      },
+      "nervous": {
+        "label": "Nervous",
+        "tier": "free",
+        "count": 10,
+        "items": [
+          {
+            "id": "mood-nervous-1",
+            "file": "001.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/nervous/001.webp?v=2"
+          },
+          {
+            "id": "mood-nervous-2",
+            "file": "002.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/nervous/002.webp?v=2"
+          },
+          {
+            "id": "mood-nervous-3",
+            "file": "003.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/nervous/003.webp?v=2"
+          },
+          {
+            "id": "mood-nervous-4",
+            "file": "004.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/nervous/004.webp?v=2"
+          },
+          {
+            "id": "mood-nervous-5",
+            "file": "005.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/nervous/005.webp?v=2"
+          },
+          {
+            "id": "mood-nervous-6",
+            "file": "006.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/nervous/006.webp?v=2"
+          },
+          {
+            "id": "mood-nervous-7",
+            "file": "007.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/nervous/007.webp?v=2"
+          },
+          {
+            "id": "mood-nervous-8",
+            "file": "008.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/nervous/008.webp?v=2"
+          },
+          {
+            "id": "mood-nervous-9",
+            "file": "009.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/nervous/009.webp?v=2"
+          },
+          {
+            "id": "mood-nervous-10",
+            "file": "010.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/nervous/010.webp?v=2"
+          }
+        ]
+      },
+      "confused": {
+        "label": "Confused",
+        "tier": "free",
+        "count": 10,
+        "items": [
+          {
+            "id": "mood-confused-1",
+            "file": "001.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/confused/001.webp?v=2"
+          },
+          {
+            "id": "mood-confused-2",
+            "file": "002.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/confused/002.webp?v=2"
+          },
+          {
+            "id": "mood-confused-3",
+            "file": "003.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/confused/003.webp?v=2"
+          },
+          {
+            "id": "mood-confused-4",
+            "file": "004.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/confused/004.webp?v=2"
+          },
+          {
+            "id": "mood-confused-5",
+            "file": "005.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/confused/005.webp?v=2"
+          },
+          {
+            "id": "mood-confused-6",
+            "file": "006.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/confused/006.webp?v=2"
+          },
+          {
+            "id": "mood-confused-7",
+            "file": "007.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/confused/007.webp?v=2"
+          },
+          {
+            "id": "mood-confused-8",
+            "file": "008.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/confused/008.webp?v=2"
+          },
+          {
+            "id": "mood-confused-9",
+            "file": "009.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/confused/009.webp?v=2"
+          },
+          {
+            "id": "mood-confused-10",
+            "file": "010.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/confused/010.webp?v=2"
+          }
+        ]
+      },
+      "angry": {
+        "label": "Angry",
+        "tier": "free",
+        "count": 20,
+        "items": [
+          {
+            "id": "mood-angry-1",
+            "file": "001.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/angry/001.webp?v=2"
+          },
+          {
+            "id": "mood-angry-2",
+            "file": "002.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/angry/002.webp?v=2"
+          },
+          {
+            "id": "mood-angry-3",
+            "file": "003.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/angry/003.webp?v=2"
+          },
+          {
+            "id": "mood-angry-4",
+            "file": "004.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/angry/004.webp?v=2"
+          },
+          {
+            "id": "mood-angry-5",
+            "file": "005.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/angry/005.webp?v=2"
+          },
+          {
+            "id": "mood-angry-6",
+            "file": "006.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/angry/006.webp?v=2"
+          },
+          {
+            "id": "mood-angry-7",
+            "file": "007.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/angry/007.webp?v=2"
+          },
+          {
+            "id": "mood-angry-8",
+            "file": "008.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/angry/008.webp?v=2"
+          },
+          {
+            "id": "mood-angry-9",
+            "file": "009.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/angry/009.webp?v=2"
+          },
+          {
+            "id": "mood-angry-10",
+            "file": "010.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/angry/010.webp?v=2"
+          },
+          {
+            "id": "mood-angry-11",
+            "file": "011.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/angry/011.webp?v=2"
+          },
+          {
+            "id": "mood-angry-12",
+            "file": "012.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/angry/012.webp?v=2"
+          },
+          {
+            "id": "mood-angry-13",
+            "file": "013.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/angry/013.webp?v=2"
+          },
+          {
+            "id": "mood-angry-14",
+            "file": "014.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/angry/014.webp?v=2"
+          },
+          {
+            "id": "mood-angry-15",
+            "file": "015.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/angry/015.webp?v=2"
+          },
+          {
+            "id": "mood-angry-16",
+            "file": "016.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/angry/016.webp?v=2"
+          },
+          {
+            "id": "mood-angry-17",
+            "file": "017.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/angry/017.webp?v=2"
+          },
+          {
+            "id": "mood-angry-18",
+            "file": "018.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/angry/018.webp?v=2"
+          },
+          {
+            "id": "mood-angry-19",
+            "file": "019.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/angry/019.webp?v=2"
+          },
+          {
+            "id": "mood-angry-20",
+            "file": "020.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/angry/020.webp?v=2"
+          }
+        ]
+      },
+      "crying": {
+        "label": "Crying",
+        "tier": "free",
+        "count": 20,
+        "items": [
+          {
+            "id": "mood-crying-1",
+            "file": "001.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/crying/001.webp?v=2"
+          },
+          {
+            "id": "mood-crying-2",
+            "file": "002.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/crying/002.webp?v=2"
+          },
+          {
+            "id": "mood-crying-3",
+            "file": "003.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/crying/003.webp?v=2"
+          },
+          {
+            "id": "mood-crying-4",
+            "file": "004.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/crying/004.webp?v=2"
+          },
+          {
+            "id": "mood-crying-5",
+            "file": "005.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/crying/005.webp?v=2"
+          },
+          {
+            "id": "mood-crying-6",
+            "file": "006.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/crying/006.webp?v=2"
+          },
+          {
+            "id": "mood-crying-7",
+            "file": "007.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/crying/007.webp?v=2"
+          },
+          {
+            "id": "mood-crying-8",
+            "file": "008.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/crying/008.webp?v=2"
+          },
+          {
+            "id": "mood-crying-9",
+            "file": "009.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/crying/009.webp?v=2"
+          },
+          {
+            "id": "mood-crying-10",
+            "file": "010.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/crying/010.webp?v=2"
+          },
+          {
+            "id": "mood-crying-11",
+            "file": "011.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/crying/011.webp?v=2"
+          },
+          {
+            "id": "mood-crying-12",
+            "file": "012.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/crying/012.webp?v=2"
+          },
+          {
+            "id": "mood-crying-13",
+            "file": "013.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/crying/013.webp?v=2"
+          },
+          {
+            "id": "mood-crying-14",
+            "file": "014.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/crying/014.webp?v=2"
+          },
+          {
+            "id": "mood-crying-15",
+            "file": "015.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/crying/015.webp?v=2"
+          },
+          {
+            "id": "mood-crying-16",
+            "file": "016.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/crying/016.webp?v=2"
+          },
+          {
+            "id": "mood-crying-17",
+            "file": "017.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/crying/017.webp?v=2"
+          },
+          {
+            "id": "mood-crying-18",
+            "file": "018.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/crying/018.webp?v=2"
+          },
+          {
+            "id": "mood-crying-19",
+            "file": "019.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/crying/019.webp?v=2"
+          },
+          {
+            "id": "mood-crying-20",
+            "file": "020.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/mood/crying/020.webp?v=2"
+          }
+        ]
+      }
+    },
+    "category": {
+      "football": {
+        "label": "Football",
+        "tier": "free",
+        "count": 10,
+        "items": [
+          {
+            "id": "category-football-1",
+            "file": "001.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/football/001.webp?v=2"
+          },
+          {
+            "id": "category-football-2",
+            "file": "002.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/football/002.webp?v=2"
+          },
+          {
+            "id": "category-football-3",
+            "file": "003.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/football/003.webp?v=2"
+          },
+          {
+            "id": "category-football-4",
+            "file": "004.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/football/004.webp?v=2"
+          },
+          {
+            "id": "category-football-5",
+            "file": "005.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/football/005.webp?v=2"
+          },
+          {
+            "id": "category-football-6",
+            "file": "006.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/football/006.webp?v=2"
+          },
+          {
+            "id": "category-football-7",
+            "file": "007.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/football/007.webp?v=2"
+          },
+          {
+            "id": "category-football-8",
+            "file": "008.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/football/008.webp?v=2"
+          },
+          {
+            "id": "category-football-9",
+            "file": "009.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/football/009.webp?v=2"
+          },
+          {
+            "id": "category-football-10",
+            "file": "010.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/football/010.webp?v=2"
+          }
+        ]
+      },
+      "gym": {
+        "label": "Gym",
+        "tier": "free",
+        "count": 10,
+        "items": [
+          {
+            "id": "category-gym-1",
+            "file": "001.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/gym/001.webp?v=2"
+          },
+          {
+            "id": "category-gym-2",
+            "file": "002.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/gym/002.webp?v=2"
+          },
+          {
+            "id": "category-gym-3",
+            "file": "003.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/gym/003.webp?v=2"
+          },
+          {
+            "id": "category-gym-4",
+            "file": "004.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/gym/004.webp?v=2"
+          },
+          {
+            "id": "category-gym-5",
+            "file": "005.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/gym/005.webp?v=2"
+          },
+          {
+            "id": "category-gym-6",
+            "file": "006.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/gym/006.webp?v=2"
+          },
+          {
+            "id": "category-gym-7",
+            "file": "007.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/gym/007.webp?v=2"
+          },
+          {
+            "id": "category-gym-8",
+            "file": "008.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/gym/008.webp?v=2"
+          },
+          {
+            "id": "category-gym-9",
+            "file": "009.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/gym/009.webp?v=2"
+          },
+          {
+            "id": "category-gym-10",
+            "file": "010.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/gym/010.webp?v=2"
+          }
+        ]
+      },
+      "yoga": {
+        "label": "Yoga",
+        "tier": "free",
+        "count": 9,
+        "items": [
+          {
+            "id": "category-yoga-1",
+            "file": "001.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/yoga/001.webp?v=2"
+          },
+          {
+            "id": "category-yoga-2",
+            "file": "002.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/yoga/002.webp?v=2"
+          },
+          {
+            "id": "category-yoga-3",
+            "file": "003.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/yoga/003.webp?v=2"
+          },
+          {
+            "id": "category-yoga-4",
+            "file": "004.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/yoga/004.webp?v=2"
+          },
+          {
+            "id": "category-yoga-5",
+            "file": "005.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/yoga/005.webp?v=2"
+          },
+          {
+            "id": "category-yoga-6",
+            "file": "006.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/yoga/006.webp?v=2"
+          },
+          {
+            "id": "category-yoga-7",
+            "file": "007.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/yoga/007.webp?v=2"
+          },
+          {
+            "id": "category-yoga-8",
+            "file": "008.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/yoga/008.webp?v=2"
+          },
+          {
+            "id": "category-yoga-9",
+            "file": "009.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/yoga/009.webp?v=2"
+          }
+        ]
+      },
+      "studying": {
+        "label": "Studying",
+        "tier": "free",
+        "count": 12,
+        "items": [
+          {
+            "id": "category-studying-1",
+            "file": "001.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/studying/001.webp?v=2"
+          },
+          {
+            "id": "category-studying-2",
+            "file": "002.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/studying/002.webp?v=2"
+          },
+          {
+            "id": "category-studying-3",
+            "file": "003.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/studying/003.webp?v=2"
+          },
+          {
+            "id": "category-studying-4",
+            "file": "004.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/studying/004.webp?v=2"
+          },
+          {
+            "id": "category-studying-5",
+            "file": "005.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/studying/005.webp?v=2"
+          },
+          {
+            "id": "category-studying-6",
+            "file": "006.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/studying/006.webp?v=2"
+          },
+          {
+            "id": "category-studying-7",
+            "file": "007.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/studying/007.webp?v=2"
+          },
+          {
+            "id": "category-studying-8",
+            "file": "008.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/studying/008.webp?v=2"
+          },
+          {
+            "id": "category-studying-9",
+            "file": "009.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/studying/009.webp?v=2"
+          },
+          {
+            "id": "category-studying-10",
+            "file": "010.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/studying/010.webp?v=2"
+          },
+          {
+            "id": "category-studying-11",
+            "file": "011.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/studying/011.webp?v=2"
+          },
+          {
+            "id": "category-studying-12",
+            "file": "012.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/studying/012.webp?v=2"
+          }
+        ]
+      },
+      "dance": {
+        "label": "Dance",
+        "tier": "free",
+        "count": 9,
+        "items": [
+          {
+            "id": "category-dance-1",
+            "file": "001.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/dance/001.webp?v=2"
+          },
+          {
+            "id": "category-dance-2",
+            "file": "002.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/dance/002.webp?v=2"
+          },
+          {
+            "id": "category-dance-3",
+            "file": "003.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/dance/003.webp?v=2"
+          },
+          {
+            "id": "category-dance-4",
+            "file": "004.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/dance/004.webp?v=2"
+          },
+          {
+            "id": "category-dance-5",
+            "file": "005.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/dance/005.webp?v=2"
+          },
+          {
+            "id": "category-dance-6",
+            "file": "006.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/dance/006.webp?v=2"
+          },
+          {
+            "id": "category-dance-7",
+            "file": "007.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/dance/007.webp?v=2"
+          },
+          {
+            "id": "category-dance-8",
+            "file": "008.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/dance/008.webp?v=2"
+          },
+          {
+            "id": "category-dance-9",
+            "file": "009.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/dance/009.webp?v=2"
+          }
+        ]
+      },
+      "cooking": {
+        "label": "Cooking",
+        "tier": "free",
+        "count": 16,
+        "items": [
+          {
+            "id": "category-cooking-1",
+            "file": "001.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/cooking/001.webp?v=2"
+          },
+          {
+            "id": "category-cooking-2",
+            "file": "002.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/cooking/002.webp?v=2"
+          },
+          {
+            "id": "category-cooking-3",
+            "file": "003.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/cooking/003.webp?v=2"
+          },
+          {
+            "id": "category-cooking-4",
+            "file": "004.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/cooking/004.webp?v=2"
+          },
+          {
+            "id": "category-cooking-5",
+            "file": "005.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/cooking/005.webp?v=2"
+          },
+          {
+            "id": "category-cooking-6",
+            "file": "006.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/cooking/006.webp?v=2"
+          },
+          {
+            "id": "category-cooking-7",
+            "file": "007.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/cooking/007.webp?v=2"
+          },
+          {
+            "id": "category-cooking-8",
+            "file": "008.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/cooking/008.webp?v=2"
+          },
+          {
+            "id": "category-cooking-9",
+            "file": "009.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/cooking/009.webp?v=2"
+          },
+          {
+            "id": "category-cooking-10",
+            "file": "010.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/cooking/010.webp?v=2"
+          },
+          {
+            "id": "category-cooking-11",
+            "file": "011.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/cooking/011.webp?v=2"
+          },
+          {
+            "id": "category-cooking-12",
+            "file": "012.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/cooking/012.webp?v=2"
+          },
+          {
+            "id": "category-cooking-13",
+            "file": "013.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/cooking/013.webp?v=2"
+          },
+          {
+            "id": "category-cooking-14",
+            "file": "014.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/cooking/014.webp?v=2"
+          },
+          {
+            "id": "category-cooking-15",
+            "file": "015.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/cooking/015.webp?v=2"
+          },
+          {
+            "id": "category-cooking-16",
+            "file": "016.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/cooking/016.webp?v=2"
+          }
+        ]
+      },
+      "gardening": {
+        "label": "Gardening",
+        "tier": "free",
+        "count": 15,
+        "items": [
+          {
+            "id": "category-gardening-1",
+            "file": "001.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/gardening/001.webp?v=2"
+          },
+          {
+            "id": "category-gardening-2",
+            "file": "002.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/gardening/002.webp?v=2"
+          },
+          {
+            "id": "category-gardening-3",
+            "file": "003.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/gardening/003.webp?v=2"
+          },
+          {
+            "id": "category-gardening-4",
+            "file": "004.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/gardening/004.webp?v=2"
+          },
+          {
+            "id": "category-gardening-5",
+            "file": "005.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/gardening/005.webp?v=2"
+          },
+          {
+            "id": "category-gardening-6",
+            "file": "006.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/gardening/006.webp?v=2"
+          },
+          {
+            "id": "category-gardening-7",
+            "file": "007.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/gardening/007.webp?v=2"
+          },
+          {
+            "id": "category-gardening-8",
+            "file": "008.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/gardening/008.webp?v=2"
+          },
+          {
+            "id": "category-gardening-9",
+            "file": "009.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/gardening/009.webp?v=2"
+          },
+          {
+            "id": "category-gardening-10",
+            "file": "010.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/gardening/010.webp?v=2"
+          },
+          {
+            "id": "category-gardening-11",
+            "file": "011.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/gardening/011.webp?v=2"
+          },
+          {
+            "id": "category-gardening-12",
+            "file": "012.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/gardening/012.webp?v=2"
+          },
+          {
+            "id": "category-gardening-13",
+            "file": "013.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/gardening/013.webp?v=2"
+          },
+          {
+            "id": "category-gardening-14",
+            "file": "014.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/gardening/014.webp?v=2"
+          },
+          {
+            "id": "category-gardening-15",
+            "file": "015.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/gardening/015.webp?v=2"
+          }
+        ]
+      },
+      "photography": {
+        "label": "Photography",
+        "tier": "free",
+        "count": 20,
+        "items": [
+          {
+            "id": "category-photography-1",
+            "file": "001.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/photography/001.webp?v=2"
+          },
+          {
+            "id": "category-photography-2",
+            "file": "002.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/photography/002.webp?v=2"
+          },
+          {
+            "id": "category-photography-3",
+            "file": "003.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/photography/003.webp?v=2"
+          },
+          {
+            "id": "category-photography-4",
+            "file": "004.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/photography/004.webp?v=2"
+          },
+          {
+            "id": "category-photography-5",
+            "file": "005.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/photography/005.webp?v=2"
+          },
+          {
+            "id": "category-photography-6",
+            "file": "006.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/photography/006.webp?v=2"
+          },
+          {
+            "id": "category-photography-7",
+            "file": "007.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/photography/007.webp?v=2"
+          },
+          {
+            "id": "category-photography-8",
+            "file": "008.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/photography/008.webp?v=2"
+          },
+          {
+            "id": "category-photography-9",
+            "file": "009.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/photography/009.webp?v=2"
+          },
+          {
+            "id": "category-photography-10",
+            "file": "010.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/photography/010.webp?v=2"
+          },
+          {
+            "id": "category-photography-11",
+            "file": "011.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/photography/011.webp?v=2"
+          },
+          {
+            "id": "category-photography-12",
+            "file": "012.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/photography/012.webp?v=2"
+          },
+          {
+            "id": "category-photography-13",
+            "file": "013.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/photography/013.webp?v=2"
+          },
+          {
+            "id": "category-photography-14",
+            "file": "014.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/photography/014.webp?v=2"
+          },
+          {
+            "id": "category-photography-15",
+            "file": "015.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/photography/015.webp?v=2"
+          },
+          {
+            "id": "category-photography-16",
+            "file": "016.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/photography/016.webp?v=2"
+          },
+          {
+            "id": "category-photography-17",
+            "file": "017.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/photography/017.webp?v=2"
+          },
+          {
+            "id": "category-photography-18",
+            "file": "018.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/photography/018.webp?v=2"
+          },
+          {
+            "id": "category-photography-19",
+            "file": "019.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/photography/019.webp?v=2"
+          },
+          {
+            "id": "category-photography-20",
+            "file": "020.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/photography/020.webp?v=2"
+          }
+        ]
+      },
+      "painting": {
+        "label": "Painting",
+        "tier": "free",
+        "count": 10,
+        "items": [
+          {
+            "id": "category-painting-1",
+            "file": "001.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/painting/001.webp?v=2"
+          },
+          {
+            "id": "category-painting-2",
+            "file": "002.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/painting/002.webp?v=2"
+          },
+          {
+            "id": "category-painting-3",
+            "file": "003.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/painting/003.webp?v=2"
+          },
+          {
+            "id": "category-painting-4",
+            "file": "004.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/painting/004.webp?v=2"
+          },
+          {
+            "id": "category-painting-5",
+            "file": "005.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/painting/005.webp?v=2"
+          },
+          {
+            "id": "category-painting-6",
+            "file": "006.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/painting/006.webp?v=2"
+          },
+          {
+            "id": "category-painting-7",
+            "file": "007.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/painting/007.webp?v=2"
+          },
+          {
+            "id": "category-painting-8",
+            "file": "008.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/painting/008.webp?v=2"
+          },
+          {
+            "id": "category-painting-9",
+            "file": "009.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/painting/009.webp?v=2"
+          },
+          {
+            "id": "category-painting-10",
+            "file": "010.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/painting/010.webp?v=2"
+          }
+        ]
+      },
+      "bike": {
+        "label": "Bike",
+        "tier": "free",
+        "count": 10,
+        "items": [
+          {
+            "id": "category-bike-1",
+            "file": "001.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/bike/001.webp?v=2"
+          },
+          {
+            "id": "category-bike-2",
+            "file": "002.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/bike/002.webp?v=2"
+          },
+          {
+            "id": "category-bike-3",
+            "file": "003.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/bike/003.webp?v=2"
+          },
+          {
+            "id": "category-bike-4",
+            "file": "004.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/bike/004.webp?v=2"
+          },
+          {
+            "id": "category-bike-5",
+            "file": "005.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/bike/005.webp?v=2"
+          },
+          {
+            "id": "category-bike-6",
+            "file": "006.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/bike/006.webp?v=2"
+          },
+          {
+            "id": "category-bike-7",
+            "file": "007.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/bike/007.webp?v=2"
+          },
+          {
+            "id": "category-bike-8",
+            "file": "008.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/bike/008.webp?v=2"
+          },
+          {
+            "id": "category-bike-9",
+            "file": "009.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/bike/009.webp?v=2"
+          },
+          {
+            "id": "category-bike-10",
+            "file": "010.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/bike/010.webp?v=2"
+          }
+        ]
+      },
+      "sleeping": {
+        "label": "Sleeping",
+        "tier": "free",
+        "count": 12,
+        "items": [
+          {
+            "id": "category-sleeping-1",
+            "file": "001.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/sleeping/001.webp?v=2"
+          },
+          {
+            "id": "category-sleeping-2",
+            "file": "002.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/sleeping/002.webp?v=2"
+          },
+          {
+            "id": "category-sleeping-3",
+            "file": "003.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/sleeping/003.webp?v=2"
+          },
+          {
+            "id": "category-sleeping-4",
+            "file": "004.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/sleeping/004.webp?v=2"
+          },
+          {
+            "id": "category-sleeping-5",
+            "file": "005.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/sleeping/005.webp?v=2"
+          },
+          {
+            "id": "category-sleeping-6",
+            "file": "006.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/sleeping/006.webp?v=2"
+          },
+          {
+            "id": "category-sleeping-7",
+            "file": "007.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/sleeping/007.webp?v=2"
+          },
+          {
+            "id": "category-sleeping-8",
+            "file": "008.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/sleeping/008.webp?v=2"
+          },
+          {
+            "id": "category-sleeping-9",
+            "file": "009.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/sleeping/009.webp?v=2"
+          },
+          {
+            "id": "category-sleeping-10",
+            "file": "010.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/sleeping/010.webp?v=2"
+          },
+          {
+            "id": "category-sleeping-11",
+            "file": "011.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/sleeping/011.webp?v=2"
+          },
+          {
+            "id": "category-sleeping-12",
+            "file": "012.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/sleeping/012.webp?v=2"
+          }
+        ]
+      },
+      "playing-game": {
+        "label": "Playing Game",
+        "tier": "free",
+        "count": 16,
+        "items": [
+          {
+            "id": "category-playing-game-1",
+            "file": "001.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/playing-game/001.webp?v=2"
+          },
+          {
+            "id": "category-playing-game-2",
+            "file": "002.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/playing-game/002.webp?v=2"
+          },
+          {
+            "id": "category-playing-game-3",
+            "file": "003.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/playing-game/003.webp?v=2"
+          },
+          {
+            "id": "category-playing-game-4",
+            "file": "004.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/playing-game/004.webp?v=2"
+          },
+          {
+            "id": "category-playing-game-5",
+            "file": "005.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/playing-game/005.webp?v=2"
+          },
+          {
+            "id": "category-playing-game-6",
+            "file": "006.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/playing-game/006.webp?v=2"
+          },
+          {
+            "id": "category-playing-game-7",
+            "file": "007.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/playing-game/007.webp?v=2"
+          },
+          {
+            "id": "category-playing-game-8",
+            "file": "008.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/playing-game/008.webp?v=2"
+          },
+          {
+            "id": "category-playing-game-9",
+            "file": "009.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/playing-game/009.webp?v=2"
+          },
+          {
+            "id": "category-playing-game-10",
+            "file": "010.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/playing-game/010.webp?v=2"
+          },
+          {
+            "id": "category-playing-game-11",
+            "file": "011.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/playing-game/011.webp?v=2"
+          },
+          {
+            "id": "category-playing-game-12",
+            "file": "012.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/playing-game/012.webp?v=2"
+          },
+          {
+            "id": "category-playing-game-13",
+            "file": "013.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/playing-game/013.webp?v=2"
+          },
+          {
+            "id": "category-playing-game-14",
+            "file": "014.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/playing-game/014.webp?v=2"
+          },
+          {
+            "id": "category-playing-game-15",
+            "file": "015.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/playing-game/015.webp?v=2"
+          },
+          {
+            "id": "category-playing-game-16",
+            "file": "016.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/playing-game/016.webp?v=2"
+          }
+        ]
+      },
+      "watching-movie": {
+        "label": "Watching Movie",
+        "tier": "free",
+        "count": 16,
+        "items": [
+          {
+            "id": "category-watching-movie-1",
+            "file": "001.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/watching-movie/001.webp?v=2"
+          },
+          {
+            "id": "category-watching-movie-2",
+            "file": "002.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/watching-movie/002.webp?v=2"
+          },
+          {
+            "id": "category-watching-movie-3",
+            "file": "003.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/watching-movie/003.webp?v=2"
+          },
+          {
+            "id": "category-watching-movie-4",
+            "file": "004.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/watching-movie/004.webp?v=2"
+          },
+          {
+            "id": "category-watching-movie-5",
+            "file": "005.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/watching-movie/005.webp?v=2"
+          },
+          {
+            "id": "category-watching-movie-6",
+            "file": "006.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/watching-movie/006.webp?v=2"
+          },
+          {
+            "id": "category-watching-movie-7",
+            "file": "007.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/watching-movie/007.webp?v=2"
+          },
+          {
+            "id": "category-watching-movie-8",
+            "file": "008.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/watching-movie/008.webp?v=2"
+          },
+          {
+            "id": "category-watching-movie-9",
+            "file": "009.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/watching-movie/009.webp?v=2"
+          },
+          {
+            "id": "category-watching-movie-10",
+            "file": "010.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/watching-movie/010.webp?v=2"
+          },
+          {
+            "id": "category-watching-movie-11",
+            "file": "011.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/watching-movie/011.webp?v=2"
+          },
+          {
+            "id": "category-watching-movie-12",
+            "file": "012.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/watching-movie/012.webp?v=2"
+          },
+          {
+            "id": "category-watching-movie-13",
+            "file": "013.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/watching-movie/013.webp?v=2"
+          },
+          {
+            "id": "category-watching-movie-14",
+            "file": "014.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/watching-movie/014.webp?v=2"
+          },
+          {
+            "id": "category-watching-movie-15",
+            "file": "015.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/watching-movie/015.webp?v=2"
+          },
+          {
+            "id": "category-watching-movie-16",
+            "file": "016.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/watching-movie/016.webp?v=2"
+          }
+        ]
+      },
+      "stylish": {
+        "label": "Stylish",
+        "tier": "free",
+        "count": 30,
+        "items": [
+          {
+            "id": "category-stylish-1",
+            "file": "001.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/stylish/001.webp?v=2"
+          },
+          {
+            "id": "category-stylish-2",
+            "file": "002.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/stylish/002.webp?v=2"
+          },
+          {
+            "id": "category-stylish-3",
+            "file": "003.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/stylish/003.webp?v=2"
+          },
+          {
+            "id": "category-stylish-4",
+            "file": "004.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/stylish/004.webp?v=2"
+          },
+          {
+            "id": "category-stylish-5",
+            "file": "005.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/stylish/005.webp?v=2"
+          },
+          {
+            "id": "category-stylish-6",
+            "file": "006.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/stylish/006.webp?v=2"
+          },
+          {
+            "id": "category-stylish-7",
+            "file": "007.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/stylish/007.webp?v=2"
+          },
+          {
+            "id": "category-stylish-8",
+            "file": "008.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/stylish/008.webp?v=2"
+          },
+          {
+            "id": "category-stylish-9",
+            "file": "009.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/stylish/009.webp?v=2"
+          },
+          {
+            "id": "category-stylish-10",
+            "file": "010.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/stylish/010.webp?v=2"
+          },
+          {
+            "id": "category-stylish-11",
+            "file": "011.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/stylish/011.webp?v=2"
+          },
+          {
+            "id": "category-stylish-12",
+            "file": "012.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/stylish/012.webp?v=2"
+          },
+          {
+            "id": "category-stylish-13",
+            "file": "013.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/stylish/013.webp?v=2"
+          },
+          {
+            "id": "category-stylish-14",
+            "file": "014.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/stylish/014.webp?v=2"
+          },
+          {
+            "id": "category-stylish-15",
+            "file": "015.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/stylish/015.webp?v=2"
+          },
+          {
+            "id": "category-stylish-16",
+            "file": "016.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/stylish/016.webp?v=2"
+          },
+          {
+            "id": "category-stylish-17",
+            "file": "017.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/stylish/017.webp?v=2"
+          },
+          {
+            "id": "category-stylish-18",
+            "file": "018.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/stylish/018.webp?v=2"
+          },
+          {
+            "id": "category-stylish-19",
+            "file": "019.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/stylish/019.webp?v=2"
+          },
+          {
+            "id": "category-stylish-20",
+            "file": "020.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/stylish/020.webp?v=2"
+          },
+          {
+            "id": "category-stylish-21",
+            "file": "021.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/stylish/021.webp?v=2"
+          },
+          {
+            "id": "category-stylish-22",
+            "file": "022.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/stylish/022.webp?v=2"
+          },
+          {
+            "id": "category-stylish-23",
+            "file": "023.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/stylish/023.webp?v=2"
+          },
+          {
+            "id": "category-stylish-24",
+            "file": "024.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/stylish/024.webp?v=2"
+          },
+          {
+            "id": "category-stylish-25",
+            "file": "025.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/stylish/025.webp?v=2"
+          },
+          {
+            "id": "category-stylish-26",
+            "file": "026.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/stylish/026.webp?v=2"
+          },
+          {
+            "id": "category-stylish-27",
+            "file": "027.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/stylish/027.webp?v=2"
+          },
+          {
+            "id": "category-stylish-28",
+            "file": "028.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/stylish/028.webp?v=2"
+          },
+          {
+            "id": "category-stylish-29",
+            "file": "029.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/stylish/029.webp?v=2"
+          },
+          {
+            "id": "category-stylish-30",
+            "file": "030.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/category/stylish/030.webp?v=2"
+          }
+        ]
+      }
+    },
+    "2d": {
+      "mixed": {
+        "label": "2D Kawaii",
+        "tier": "free",
+        "count": 8,
+        "items": [
+          {
+            "id": "2d-mixed-1",
+            "file": "001.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/mixed/001.webp?v=2"
+          },
+          {
+            "id": "2d-mixed-2",
+            "file": "002.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/mixed/002.webp?v=2"
+          },
+          {
+            "id": "2d-mixed-3",
+            "file": "003.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/mixed/003.webp?v=2"
+          },
+          {
+            "id": "2d-mixed-4",
+            "file": "004.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/mixed/004.webp?v=2"
+          },
+          {
+            "id": "2d-mixed-5",
+            "file": "005.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/mixed/005.webp?v=2"
+          },
+          {
+            "id": "2d-mixed-6",
+            "file": "006.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/mixed/006.webp?v=2"
+          },
+          {
+            "id": "2d-mixed-7",
+            "file": "007.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/mixed/007.webp?v=2"
+          },
+          {
+            "id": "2d-mixed-8",
+            "file": "008.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/mixed/008.webp?v=2"
+          }
+        ]
+      },
+      "excited": {
+        "label": "Excited",
+        "tier": "free",
+        "count": 10,
+        "items": [
+          {
+            "id": "2d-excited-1",
+            "file": "001.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/excited/001.webp?v=2"
+          },
+          {
+            "id": "2d-excited-2",
+            "file": "002.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/excited/002.webp?v=2"
+          },
+          {
+            "id": "2d-excited-3",
+            "file": "003.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/excited/003.webp?v=2"
+          },
+          {
+            "id": "2d-excited-4",
+            "file": "004.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/excited/004.webp?v=2"
+          },
+          {
+            "id": "2d-excited-5",
+            "file": "005.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/excited/005.webp?v=2"
+          },
+          {
+            "id": "2d-excited-6",
+            "file": "006.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/excited/006.webp?v=2"
+          },
+          {
+            "id": "2d-excited-7",
+            "file": "007.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/excited/007.webp?v=2"
+          },
+          {
+            "id": "2d-excited-8",
+            "file": "008.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/excited/008.webp?v=2"
+          },
+          {
+            "id": "2d-excited-9",
+            "file": "009.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/excited/009.webp?v=2"
+          },
+          {
+            "id": "2d-excited-10",
+            "file": "010.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/excited/010.webp?v=2"
+          }
+        ]
+      },
+      "heartbroken": {
+        "label": "Heartbroken",
+        "tier": "free",
+        "count": 20,
+        "items": [
+          {
+            "id": "2d-heartbroken-1",
+            "file": "001.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/heartbroken/001.webp?v=2"
+          },
+          {
+            "id": "2d-heartbroken-2",
+            "file": "002.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/heartbroken/002.webp?v=2"
+          },
+          {
+            "id": "2d-heartbroken-3",
+            "file": "003.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/heartbroken/003.webp?v=2"
+          },
+          {
+            "id": "2d-heartbroken-4",
+            "file": "004.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/heartbroken/004.webp?v=2"
+          },
+          {
+            "id": "2d-heartbroken-5",
+            "file": "005.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/heartbroken/005.webp?v=2"
+          },
+          {
+            "id": "2d-heartbroken-6",
+            "file": "006.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/heartbroken/006.webp?v=2"
+          },
+          {
+            "id": "2d-heartbroken-7",
+            "file": "007.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/heartbroken/007.webp?v=2"
+          },
+          {
+            "id": "2d-heartbroken-8",
+            "file": "008.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/heartbroken/008.webp?v=2"
+          },
+          {
+            "id": "2d-heartbroken-9",
+            "file": "009.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/heartbroken/009.webp?v=2"
+          },
+          {
+            "id": "2d-heartbroken-10",
+            "file": "010.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/heartbroken/010.webp?v=2"
+          },
+          {
+            "id": "2d-heartbroken-11",
+            "file": "011.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/heartbroken/011.webp?v=2"
+          },
+          {
+            "id": "2d-heartbroken-12",
+            "file": "012.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/heartbroken/012.webp?v=2"
+          },
+          {
+            "id": "2d-heartbroken-13",
+            "file": "013.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/heartbroken/013.webp?v=2"
+          },
+          {
+            "id": "2d-heartbroken-14",
+            "file": "014.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/heartbroken/014.webp?v=2"
+          },
+          {
+            "id": "2d-heartbroken-15",
+            "file": "015.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/heartbroken/015.webp?v=2"
+          },
+          {
+            "id": "2d-heartbroken-16",
+            "file": "016.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/heartbroken/016.webp?v=2"
+          },
+          {
+            "id": "2d-heartbroken-17",
+            "file": "017.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/heartbroken/017.webp?v=2"
+          },
+          {
+            "id": "2d-heartbroken-18",
+            "file": "018.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/heartbroken/018.webp?v=2"
+          },
+          {
+            "id": "2d-heartbroken-19",
+            "file": "019.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/heartbroken/019.webp?v=2"
+          },
+          {
+            "id": "2d-heartbroken-20",
+            "file": "020.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/heartbroken/020.webp?v=2"
+          }
+        ]
+      },
+      "nervous": {
+        "label": "Nervous",
+        "tier": "free",
+        "count": 9,
+        "items": [
+          {
+            "id": "2d-nervous-1",
+            "file": "001.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/nervous/001.webp?v=2"
+          },
+          {
+            "id": "2d-nervous-2",
+            "file": "002.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/nervous/002.webp?v=2"
+          },
+          {
+            "id": "2d-nervous-3",
+            "file": "003.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/nervous/003.webp?v=2"
+          },
+          {
+            "id": "2d-nervous-4",
+            "file": "004.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/nervous/004.webp?v=2"
+          },
+          {
+            "id": "2d-nervous-5",
+            "file": "005.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/nervous/005.webp?v=2"
+          },
+          {
+            "id": "2d-nervous-6",
+            "file": "006.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/nervous/006.webp?v=2"
+          },
+          {
+            "id": "2d-nervous-7",
+            "file": "007.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/nervous/007.webp?v=2"
+          },
+          {
+            "id": "2d-nervous-8",
+            "file": "008.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/nervous/008.webp?v=2"
+          },
+          {
+            "id": "2d-nervous-9",
+            "file": "009.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/nervous/009.webp?v=2"
+          }
+        ]
+      },
+      "confused": {
+        "label": "Confused",
+        "tier": "free",
+        "count": 10,
+        "items": [
+          {
+            "id": "2d-confused-1",
+            "file": "001.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/confused/001.webp?v=2"
+          },
+          {
+            "id": "2d-confused-2",
+            "file": "002.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/confused/002.webp?v=2"
+          },
+          {
+            "id": "2d-confused-3",
+            "file": "003.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/confused/003.webp?v=2"
+          },
+          {
+            "id": "2d-confused-4",
+            "file": "004.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/confused/004.webp?v=2"
+          },
+          {
+            "id": "2d-confused-5",
+            "file": "005.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/confused/005.webp?v=2"
+          },
+          {
+            "id": "2d-confused-6",
+            "file": "006.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/confused/006.webp?v=2"
+          },
+          {
+            "id": "2d-confused-7",
+            "file": "007.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/confused/007.webp?v=2"
+          },
+          {
+            "id": "2d-confused-8",
+            "file": "008.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/confused/008.webp?v=2"
+          },
+          {
+            "id": "2d-confused-9",
+            "file": "009.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/confused/009.webp?v=2"
+          },
+          {
+            "id": "2d-confused-10",
+            "file": "010.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/confused/010.webp?v=2"
+          }
+        ]
+      },
+      "angry": {
+        "label": "Angry",
+        "tier": "free",
+        "count": 9,
+        "items": [
+          {
+            "id": "2d-angry-1",
+            "file": "001.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/angry/001.webp?v=2"
+          },
+          {
+            "id": "2d-angry-2",
+            "file": "002.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/angry/002.webp?v=2"
+          },
+          {
+            "id": "2d-angry-3",
+            "file": "003.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/angry/003.webp?v=2"
+          },
+          {
+            "id": "2d-angry-4",
+            "file": "004.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/angry/004.webp?v=2"
+          },
+          {
+            "id": "2d-angry-5",
+            "file": "005.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/angry/005.webp?v=2"
+          },
+          {
+            "id": "2d-angry-6",
+            "file": "006.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/angry/006.webp?v=2"
+          },
+          {
+            "id": "2d-angry-7",
+            "file": "007.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/angry/007.webp?v=2"
+          },
+          {
+            "id": "2d-angry-8",
+            "file": "008.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/angry/008.webp?v=2"
+          },
+          {
+            "id": "2d-angry-9",
+            "file": "009.webp",
+            "url": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/angry/009.webp?v=2"
+          }
+        ]
+      }
+    }
+  }
+}

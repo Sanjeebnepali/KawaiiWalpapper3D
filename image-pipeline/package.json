@@ -1,0 +1,13 @@
+{
+  "name": "kawaii-image-pipeline",
+  "private": true,
+  "version": "1.0.0",
+  "description": "One-off pipeline: optimize the owner's wallpaper PNGs to WebP, stage them, and upload to Supabase Storage. Isolated from the app's deps on purpose.",
+  "scripts": {
+    "optimize": "node optimize.js",
+    "upload": "node upload.js"
+  },
+  "dependencies": {
+    "sharp": "^0.33.5"
+  }
+}

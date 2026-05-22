@@ -1,0 +1,7 @@
+{
+  "name": "friend-checkin-foreground",
+  "version": "0.1.0",
+  "description": "Android foreground service that fires the Mood friend check-in notification on a real timer (sub-15-min reliable), bypassing AlarmManager / Doze coalescing that makes expo-notifications TIME_INTERVAL triggers fire only in bursts when the user opens the app.",
+  "main": "index.ts",
+  "private": true
+}

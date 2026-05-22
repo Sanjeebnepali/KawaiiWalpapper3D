@@ -1,0 +1,7 @@
+{
+  "name": "sleep-wake-foreground",
+  "version": "0.1.0",
+  "description": "Android foreground service that applies the user's wake-up and sleep wallpapers at the configured hours, surviving OEM background killers (Vivo, MIUI, ColorOS) by holding a low-priority ongoing notification.",
+  "main": "index.ts",
+  "private": true
+}
