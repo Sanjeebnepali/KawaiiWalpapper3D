@@ -114,7 +114,8 @@
       "Bash(git rm *)",
       "Bash(git commit --quiet -m ' *)",
       "Bash(git remote *)",
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "Bash(awk '{print $5, $6, $7, $8}')"
     ]
   }
 }

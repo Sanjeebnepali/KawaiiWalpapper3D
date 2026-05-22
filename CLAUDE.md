@@ -47,6 +47,20 @@ npm install --legacy-peer-deps && npx expo run:android --variant release --no-bu
 
 `changes/` is for change history only — durable docs like this file live at the repo root.
 
+## Git auto-push convention
+
+**RULE: When the work in a session is finished — i.e. the change is complete, typechecks, and its `changes/NNN-*.md` entry is written — automatically commit and push to GitHub (`origin`, branch `main`) WITHOUT being asked. This keeps a reviewable, revertable history so any regression is easy to find and roll back.**
+
+The remote is already configured: `origin` → `https://github.com/Sanjeebnepali/KawaiiWalpapper3D.git`.
+
+- Stage with `git add -A`, commit, then `git push origin main`.
+- Write a descriptive commit message that summarizes the session's work and references the `changes/` number. End every commit message with the standard trailer:
+  `Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>`
+- Prefer one commit per `changes/NNN` entry (one logical unit) so history reads cleanly and a single change can be reverted in isolation.
+- "Session" = a completed unit of requested work, NOT every message. Never push half-finished or unverified work; push once the task is done.
+- **NEVER commit secrets.** `.env` (HF token, Supabase keys) is gitignored and stays untracked. If GitHub push protection rejects a push, STOP and surface it — do not bypass with the allow-secret URL.
+- If there's nothing to commit, skip silently.
+
 ## Critical dependency pins (do not "upgrade" casually)
 
 Load-bearing versions. Bumping any without checking the others breaks the build or bundle.
