@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import type { BottomSheetModal } from '@gorhom/bottom-sheet';
+import { useRouter, type Href } from 'expo-router';
 import {
   forwardRef,
   useImperativeHandle,
@@ -71,6 +72,7 @@ type Option = {
 export const WallpaperMenu = forwardRef<WallpaperMenuRef, Props>(
   ({ item, onSetWallpaper, onShowInfo }, ref) => {
     const theme = useTheme();
+    const router = useRouter();
     const sheetRef = useRef<BottomSheetModal>(null);
 
     useImperativeHandle(
@@ -102,7 +104,11 @@ export const WallpaperMenu = forwardRef<WallpaperMenuRef, Props>(
 
     const handleEdit = () => {
       dismiss();
-      toast('✏️ Image editor is coming in a future update');
+      // New route file — cast until expo-router regenerates .expo/types.
+      router.push({
+        pathname: '/wallpaper/edit',
+        params: { uri: item.image, id: item.id },
+      } as Href);
     };
 
     const handleFavorite = () => {
@@ -195,7 +201,7 @@ export const WallpaperMenu = forwardRef<WallpaperMenuRef, Props>(
         onPress: handleFavorite,
       },
       { key: 'set', icon: 'phone-portrait-outline', label: 'Set as Wallpaper', onPress: handleSetWallpaper },
-      { key: 'featured', icon: 'folder-open-outline', label: 'Save to Featured Folder', onPress: handleFeaturedFolder },
+      { key: 'featured', icon: 'folder-open-outline', label: 'Save to “Kawaii Baby” Album', onPress: handleFeaturedFolder },
       { key: 'copy', icon: 'link-outline', label: 'Copy Link', onPress: handleCopyLink },
       { key: 'info', icon: 'information-circle-outline', label: 'Wallpaper Info', onPress: handleInfo },
       { key: 'rate', icon: 'star-outline', label: 'Rate This', onPress: handleRate },

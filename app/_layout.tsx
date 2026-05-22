@@ -163,6 +163,10 @@ function RootStack() {
           options={{ animation: 'simple_push' }}
         />
         <Stack.Screen
+          name="wallpaper/edit"
+          options={{ animation: 'simple_push' }}
+        />
+        <Stack.Screen
           name="wallpaper/[id]"
           options={{ presentation: 'transparentModal', animation: 'fade', animationDuration: 140 }}
         />
