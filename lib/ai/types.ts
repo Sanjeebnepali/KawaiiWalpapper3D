@@ -24,8 +24,12 @@ export type AIProviderId =
    *  with paid PRO or pay-as-you-go credits + Fine-grained token
    *  with the "Make calls to Inference Providers" permission. */
   | 'huggingface'
-  /** Reserved — premium. OpenAI DALL-E 3 via the official API. */
+  /** OpenAI DALL·E 3 via the official Images API. User pastes their own
+   *  OpenAI key; usage is billed by OpenAI to that key. */
   | 'dalle'
+  /** Google Gemini (Imagen) via the Generative Language API. User pastes
+   *  their own Google API key; usage is billed by Google to that key. */
+  | 'gemini'
   /** Reserved — premium. Stability AI's REST API. */
   | 'stability'
   /** Reserved — premium. Replicate hosted models. */

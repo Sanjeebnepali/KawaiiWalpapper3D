@@ -56,6 +56,11 @@ export type AIState = {
    *  free "seed" tier (1 image / 5 s). Anonymous works without it — this
    *  is purely a speed upgrade for the free default provider. */
   pollToken: string;
+  /** OpenAI API key (DALL·E provider). Empty = not configured. The user's
+   *  own key → unlimited generation, billed to their OpenAI account. */
+  openaiToken: string;
+  /** Google API key (Gemini/Imagen provider). Empty = not configured. */
+  geminiToken: string;
   /** Selected HF model id. Falls back to provider default if empty. */
   hfModelId: string;
   /** Active provider id — controls which provider `client.generateImage`
@@ -70,6 +75,8 @@ type AIStore = AIState & {
   hydrate: () => Promise<void>;
   setHFToken: (t: string) => void;
   setPollToken: (t: string) => void;
+  setOpenAIToken: (t: string) => void;
+  setGeminiToken: (t: string) => void;
   setHFModelId: (id: string) => void;
   setProviderId: (id: AIProviderId) => void;
   recordGeneration: (g: AIGeneration) => void;
@@ -104,6 +111,8 @@ type AIStore = AIState & {
 const DEFAULTS: AIState = {
   hfToken: '',
   pollToken: '',
+  openaiToken: '',
+  geminiToken: '',
   hfModelId: '',
   // Pollinations (no token, no setup) is the new default per change 068.
   // Existing installs that have `providerId: 'huggingface'` persisted
@@ -209,6 +218,16 @@ export const useAIStore = create<AIStore>((set, get) => ({
     const cleaned = t.trim();
     set({ pollToken: cleaned });
     schedulePersist({ ...get(), pollToken: cleaned });
+  },
+  setOpenAIToken: (t) => {
+    const cleaned = t.trim();
+    set({ openaiToken: cleaned });
+    schedulePersist({ ...get(), openaiToken: cleaned });
+  },
+  setGeminiToken: (t) => {
+    const cleaned = t.trim();
+    set({ geminiToken: cleaned });
+    schedulePersist({ ...get(), geminiToken: cleaned });
   },
   setHFModelId: (id) => {
     set({ hfModelId: id });

@@ -16,8 +16,9 @@
 import type { AIProvider, AIProviderId } from './types';
 import { huggingfaceProvider } from './providers/huggingface';
 import { pollinationsProvider } from './providers/pollinations';
+import { openaiProvider } from './providers/openai';
+import { geminiProvider } from './providers/gemini';
 // ─── Add new providers here ────────────────────────────────────────────
-// import { dalleProvider } from './providers/dalle';
 // import { stabilityProvider } from './providers/stability';
 // import { replicateProvider } from './providers/replicate';
 // ──────────────────────────────────────────────────────────────────────
@@ -29,7 +30,10 @@ export const PROVIDERS: AIProvider[] = [
   // at position 0.
   pollinationsProvider,
   huggingfaceProvider,
-  // dalleProvider,
+  // Bring-your-own-key providers — usable by anyone who pastes their key
+  // (unlimited, billed to their account). Not gated behind app premium.
+  openaiProvider,
+  geminiProvider,
   // stabilityProvider,
   // replicateProvider,
 ];

@@ -48,6 +48,8 @@ export function hasUnlimitedGeneration(): boolean {
   const ai = useAIStore.getState();
   if (ai.providerId === 'huggingface' && ai.hfToken.trim().length > 0) return true;
   if (ai.providerId === 'pollinations' && ai.pollToken.trim().length > 0) return true;
+  if (ai.providerId === 'dalle' && ai.openaiToken.trim().length > 0) return true;
+  if (ai.providerId === 'gemini' && ai.geminiToken.trim().length > 0) return true;
   return false;
 }
 

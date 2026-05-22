@@ -28,14 +28,12 @@ import {
   SettingsSection,
   Toggle,
 } from '../../components/SettingsControls';
-import { Slider } from '../../components/Slider';
 import { ThemeModal } from '../../components/ThemeModal';
 import { getAvatar } from '../../constants/avatars';
 import { Colors, Radius, Spacing } from '../../constants/theme';
 import { useTheme } from '../../contexts/ThemeContext';
-import { DEFAULT_HF_TOKEN } from '../../lib/ai/defaults';
-import { isUsingUserHFToken } from '../../lib/ai/providers/huggingface';
-import { getProvider } from '../../lib/ai/registry';
+import { getProvider, PROVIDERS } from '../../lib/ai/registry';
+import { AI_TOKEN_CFG, setTokenFor } from '../../lib/ai/tokens';
 import {
   openAutostartSettings,
   openBatteryOptimization,
@@ -94,37 +92,34 @@ export default function Settings() {
   const resolutionModal = useRef<BottomSheetModal>(null);
   const qualityModal = useRef<BottomSheetModal>(null);
   const aiTokenSheet = useRef<BottomSheetModal>(null);
+  const providerModal = useRef<BottomSheetModal>(null);
 
-  // AI token row — reads from the AI store, which is its own slice so
-  // wiring is uniform if/when we add paid providers (each gets its own
-  // token field; this row stays focused on the active provider).
-  //
-  // Two-token model:
-  //   - DEFAULT_HF_TOKEN is baked into the build. Works for everyone.
-  //   - user `hfToken` overrides it for power users who want their own
-  //     quota / account.
-  // Settings row shows which one is currently active.
+  // AI provider + per-provider API key. Each provider has its own token
+  // field in the AI store; the picker switches the active provider and the
+  // single key row/sheet below adapts to it (see lib/ai/tokens.ts).
   const hfToken = useAIStore((s) => s.hfToken);
   const pollToken = useAIStore((s) => s.pollToken);
+  const openaiToken = useAIStore((s) => s.openaiToken);
+  const geminiToken = useAIStore((s) => s.geminiToken);
   const providerId = useAIStore((s) => s.providerId);
-  const setHFToken = useAIStore((s) => s.setHFToken);
-  const setPollToken = useAIStore((s) => s.setPollToken);
+  const setProviderId = useAIStore((s) => s.setProviderId);
   const aiProvider = getProvider(providerId);
-  // Pollinations (the free default) needs no token — a token is an
-  // OPTIONAL speed upgrade (anon tier 1 img/15s → seed tier 1 img/5s).
-  // HF needs a token (or the baked-in default). The one row adapts.
-  const isPoll = providerId === 'pollinations';
   const [tokenDraft, setTokenDraft] = useState('');
-  // What the right side of the row should read.
-  const tokenStatus = isPoll
-    ? pollToken
-      ? `${pollToken.slice(0, 3)}…${pollToken.slice(-4)}`
-      : 'Free · no token'
-    : hfToken
-      ? `${hfToken.slice(0, 3)}…${hfToken.slice(-4)}`
-      : DEFAULT_HF_TOKEN
-        ? 'App default'
-        : 'Not set';
+
+  // The single token row + sheet adapts to whichever provider is active.
+  // `activeToken` is that provider's user-pasted key (empty = none/default);
+  // `tokenCfg` carries the provider-specific copy/placeholder (lib/ai/tokens).
+  const activeToken =
+    providerId === 'huggingface'
+      ? hfToken
+      : providerId === 'dalle'
+        ? openaiToken
+        : providerId === 'gemini'
+          ? geminiToken
+          : pollToken;
+  const tokenCfg = AI_TOKEN_CFG[providerId] ?? AI_TOKEN_CFG.pollinations;
+  const maskToken = (t: string) => `${t.slice(0, 3)}…${t.slice(-4)}`;
+  const tokenStatus = activeToken ? maskToken(activeToken) : tokenCfg.emptyStatus;
 
   const version = Constants.expoConfig?.version ?? '1.0.0';
 
@@ -417,7 +412,13 @@ export default function Settings() {
         {/* 1.6 AI Generator Settings */}
         <SettingsSection title="AI Generator Settings">
           <SettingsRow
-            label={`${aiProvider.displayName} token`}
+            label="AI Provider"
+            subtitle="Pollinations & Hugging Face are free; OpenAI / Gemini use your own key for unlimited"
+            right={<RowValue text={aiProvider.displayName} chevron="down" />}
+            onPress={() => providerModal.current?.present()}
+          />
+          <SettingsRow
+            label={`${aiProvider.displayName} key`}
             right={
               <RowValue
                 text={tokenStatus}
@@ -425,7 +426,7 @@ export default function Settings() {
               />
             }
             onPress={() => {
-              setTokenDraft(isPoll ? pollToken : hfToken);
+              setTokenDraft(activeToken);
               aiTokenSheet.current?.present();
             }}
           />
@@ -578,54 +579,42 @@ export default function Settings() {
         }}
       />
 
+      <PremiumModal
+        ref={providerModal}
+        title="AI Provider"
+        options={PROVIDERS.map((p) => p.displayName)}
+        selected={aiProvider.displayName}
+        onSelect={(name) => {
+          const p = PROVIDERS.find((x) => x.displayName === name);
+          if (p) setProviderId(p.id);
+          providerModal.current?.dismiss();
+        }}
+      />
+
       <PremiumSheet
         ref={aiTokenSheet}
         snapPoints={['68%']}
-        title={`${aiProvider.displayName} token`}
-        subtitle={
-          isPoll
-            ? 'Optional. Pollinations works for free with no token — adding a free token just speeds up how often you can generate (1 image / 5 s instead of 1 / 15 s).'
-            : DEFAULT_HF_TOKEN
-              ? 'You can skip this — the app ships with a working token. Add your own here for higher quota / better results on your own account.'
-              : 'Paste your token to enable image generation. Kept on this device, not shared.'
-        }
+        title={`${aiProvider.displayName} key`}
+        subtitle={tokenCfg.subtitle}
       >
         <View style={styles.aiTokenBody}>
           <View style={styles.aiTokenStateRow}>
             <Ionicons
-              name={
-                isPoll
-                  ? pollToken
-                    ? 'person-circle'
-                    : 'flash'
-                  : isUsingUserHFToken()
-                    ? 'person-circle'
-                    : 'flash'
-              }
+              name={activeToken ? 'person-circle' : 'flash'}
               size={14}
-              color={
-                (isPoll ? !!pollToken : isUsingUserHFToken())
-                  ? theme.primary
-                  : Colors.cyan
-              }
+              color={activeToken ? theme.primary : Colors.cyan}
             />
             <Text style={styles.aiTokenStateText}>
-              {isPoll
-                ? pollToken
-                  ? `Active: your token (${pollToken.slice(0, 3)}…${pollToken.slice(-4)})`
-                  : 'Active: free anonymous tier (1 image / 15 s)'
-                : isUsingUserHFToken()
-                  ? `Active: your token (${hfToken.slice(0, 3)}…${hfToken.slice(-4)})`
-                  : DEFAULT_HF_TOKEN
-                    ? 'Active: app default'
-                    : 'Active: none set'}
+              {activeToken
+                ? `Active: your key (${maskToken(activeToken)})`
+                : `Active: ${tokenCfg.emptyStatus}`}
             </Text>
           </View>
 
           <TextInput
             value={tokenDraft}
             onChangeText={setTokenDraft}
-            placeholder={isPoll ? 'paste token (optional)…' : 'hf_...'}
+            placeholder={tokenCfg.placeholder}
             placeholderTextColor={Colors.textMute}
             style={styles.aiTokenInput}
             autoCapitalize="none"
@@ -649,51 +638,37 @@ export default function Settings() {
             <Text style={styles.aiTokenPasteText}>Paste from clipboard</Text>
           </Pressable>
 
-          <Text style={styles.aiTokenHint}>
-            {isPoll
-              ? 'Optional: get a free token at auth.pollinations.ai to generate more often. Leave blank to stay on the free anonymous tier — generation still works either way.'
-              : 'Get a free token at huggingface.co → Settings → Access Tokens → Create with role "Read". Tap Clear below to revert to the app default.'}
-          </Text>
+          <Text style={styles.aiTokenHint}>{tokenCfg.hint}</Text>
 
           <View style={styles.aiTokenBtnRow}>
             <AnimatedButton
               onPress={() => {
-                if (isPoll) {
-                  setPollToken('');
-                  aiTokenSheet.current?.dismiss();
-                  toast('✓ Using free anonymous tier');
-                  return;
-                }
-                setHFToken('');
+                setTokenFor(providerId, '');
                 aiTokenSheet.current?.dismiss();
-                toast(
-                  DEFAULT_HF_TOKEN
-                    ? '✓ Reverted to app default'
-                    : 'AI token cleared',
-                );
+                toast(`✓ ${tokenCfg.clearLabel}`);
               }}
               style={[styles.aiTokenBtn, styles.aiTokenBtnSecondary]}
             >
               <Text style={[styles.aiTokenBtnText, { color: Colors.textDim }]}>
-                {isPoll ? 'No token' : DEFAULT_HF_TOKEN ? 'Use default' : 'Clear'}
+                {tokenCfg.clearLabel}
               </Text>
             </AnimatedButton>
             <AnimatedButton
               onPress={() => {
                 const clean = tokenDraft.trim();
-                if (isPoll) {
-                  setPollToken(clean);
-                  aiTokenSheet.current?.dismiss();
-                  toast(clean ? '✓ Token saved' : '✓ Using free anonymous tier');
+                if (
+                  clean &&
+                  tokenCfg.requiredPrefix &&
+                  !clean.startsWith(tokenCfg.requiredPrefix)
+                ) {
+                  toast(
+                    `That doesn't look like a ${aiProvider.displayName} key (expected "${tokenCfg.requiredPrefix}…").`,
+                  );
                   return;
                 }
-                if (clean && !clean.startsWith('hf_')) {
-                  toast('That doesn’t look like a Hugging Face token (should start hf_)');
-                  return;
-                }
-                setHFToken(clean);
+                setTokenFor(providerId, clean);
                 aiTokenSheet.current?.dismiss();
-                toast(clean ? '✓ Token saved' : 'AI token cleared');
+                toast(clean ? '✓ Key saved' : 'Key cleared');
               }}
               style={[
                 styles.aiTokenBtn,
