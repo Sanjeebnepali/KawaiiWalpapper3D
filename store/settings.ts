@@ -50,11 +50,18 @@ type SettingsStore = SettingsState & {
   set: <K extends keyof SettingsState>(key: K, value: SettingsState[K]) => void;
 };
 
-/** Defaults mirror the design spec (Auto Download OFF, Save to Gallery ON, etc.). */
+/**
+ * Defaults. Both gallery-save toggles default OFF so applying a wallpaper
+ * never copies it to the device gallery unless the user explicitly opts in
+ * (Auto Download or Save to Gallery). The manual "Save to Gallery" action in
+ * the wallpaper menu always works regardless of these toggles. `saveToGallery`
+ * was previously ON by default, which silently saved every applied wallpaper —
+ * see the v1→v2 migration in `applyMigrations` for the existing-install reset.
+ */
 const DEFAULTS: SettingsState = {
   theme: 'Kawaii Dark',
   autoDownload: false,
-  saveToGallery: true,
+  saveToGallery: false,
   resolution: '4K',
   liveWallpaper: false,
   showSetButton: true,
@@ -85,11 +92,54 @@ const DEFAULTS: SettingsState = {
 // notifications fire but no automatic wallpaper change.
 
 const PERSIST_KEY = '@kawaii/settings@v1';
+// Schema version tracked separately from the settings blob so migrations can
+// run without resetting the user's whole settings object (bumping PERSIST_KEY
+// would wipe theme/toggles too). Stored as a plain integer string.
+const SCHEMA_KEY = '@kawaii/settings/schema';
+const SCHEMA_VERSION = 2;
 
 type AsyncStorageLike = {
   getItem: (k: string) => Promise<string | null>;
   setItem: (k: string, v: string) => Promise<void>;
 };
+
+/**
+ * One-time, forward-only migrations applied to the persisted settings blob
+ * before it's merged into the live store. Returns the (possibly adjusted)
+ * settings plus whether anything changed, so `hydrate` can re-persist the
+ * corrected blob (otherwise the next launch would re-read the stale value
+ * and, since the schema version is already bumped, skip the fix).
+ *
+ *   v1 → v2: `saveToGallery` ("Always save") used to default ON, which
+ *   auto-saved every applied wallpaper to the gallery without the user ever
+ *   opting in. The new default is OFF (opt-in). Reset the inherited-on value
+ *   exactly once so existing installs match the new behaviour. A user who
+ *   genuinely wants it can re-enable it; the migration won't run again.
+ */
+async function applyMigrations(
+  s: AsyncStorageLike,
+  parsed: Partial<SettingsState>,
+): Promise<{ data: Partial<SettingsState>; didMigrate: boolean }> {
+  let version = 1;
+  try {
+    const v = await s.getItem(SCHEMA_KEY);
+    if (v) version = parseInt(v, 10) || 1;
+  } catch {
+    /* assume v1 — safe to re-run a forward-only migration once */
+  }
+  if (version >= SCHEMA_VERSION) return { data: parsed, didMigrate: false };
+
+  const data: Partial<SettingsState> = { ...parsed };
+  if (version < 2 && data.saveToGallery === true) {
+    data.saveToGallery = false;
+  }
+  try {
+    await s.setItem(SCHEMA_KEY, String(SCHEMA_VERSION));
+  } catch {
+    /* best effort — worst case the migration re-runs next launch (idempotent) */
+  }
+  return { data, didMigrate: true };
+}
 
 let storage: AsyncStorageLike | null = null;
 let storageResolved = false;
@@ -137,16 +187,28 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
       const raw = await s.getItem(PERSIST_KEY);
       if (raw) {
         const parsed = JSON.parse(raw) as Partial<SettingsState>;
+        // Run forward-only schema migrations on the persisted blob before it
+        // reaches the live store (e.g. v1→v2 resets the old default-ON
+        // saveToGallery to opt-in).
+        const { data: migratedParsed, didMigrate } = await applyMigrations(
+          s,
+          parsed,
+        );
         // CORE-8: layer persisted values UNDER any keys the user changed in
         // the window before this async read resolved (early changes win, as
         // the most recent intent), instead of overwriting wholesale and
         // dropping that action. `earlyChanges` is the diff of the live state
         // against DEFAULTS.
         const earlyChanges = diffFromDefaults(get());
-        const merged = { ...DEFAULTS, ...parsed, ...earlyChanges };
+        const merged = { ...DEFAULTS, ...migratedParsed, ...earlyChanges };
         set({ ...merged, hydrated: true });
-        // If an early change deviated from what's on disk, persist the merge.
-        if (Object.keys(earlyChanges).length) schedulePersist(merged);
+        // Persist the merge if an early change deviated from disk OR a
+        // migration adjusted a value — without the latter, the next launch
+        // would re-read the stale blob and (schema already bumped) skip the
+        // fix, reverting the migration.
+        if (didMigrate || Object.keys(earlyChanges).length) {
+          schedulePersist(merged);
+        }
         return;
       }
     } catch {

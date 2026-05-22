@@ -112,6 +112,19 @@ export default function CollectionDetail() {
   const selectedIds = collection.photoIds;
   const isFull = selectedIds.length >= COLLECTION_SIZE;
   const isActive = collection.id === activeId;
+  // Built-in/curated packs carry a `seedPackId`; user-created collections
+  // don't. Curated packs are developer-owned content: the photos are fixed
+  // and must NOT be swappable by the user (only the timer + mode are). The
+  // photo picker below is therefore replaced by a read-only grid for packs.
+  // Photo-choosing lives only in "Create your own collection" (no seedPackId).
+  const isBuiltinPack = !!collection.seedPackId;
+  // Resolve the pack's fixed photos for the read-only grid. getPhotoById
+  // returns the catalog image, or the URI itself for URI-style ids.
+  const builtinPhotos = isBuiltinPack
+    ? selectedIds
+        .map((pid) => ({ id: pid, image: getPhotoById(pid)?.image ?? '' }))
+        .filter((c) => c.image)
+    : [];
 
   // Built-in pack photos (ids like `pink-lolita-0`) live in the theme-pack
   // generators, not in `searchCatalog`. Without surfacing them, the picker
@@ -434,7 +447,51 @@ export default function CollectionDetail() {
           />
         </View>
 
-        {/* Photo picker — premium portrait-aspect grid */}
+        {/* Photos — read-only for curated packs (developer-owned, fixed),
+            editable picker for user collections. Photo-choosing is a
+            "Create your own collection" feature only. */}
+        {isBuiltinPack ? (
+        <View style={styles.card}>
+          <View style={styles.cardHead}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.cardLabel}>Photos</Text>
+              <Text style={styles.helperText}>
+                Curated pack — photos are fixed
+              </Text>
+            </View>
+            <View
+              style={[
+                styles.countChip,
+                {
+                  borderColor: theme.primary,
+                  backgroundColor: 'rgba(250,179,202,0.08)',
+                },
+              ]}
+            >
+              <Ionicons name="lock-closed" size={12} color={theme.primary} />
+              <Text style={[styles.countChipText, { color: theme.primary }]}>
+                {builtinPhotos.length}
+              </Text>
+            </View>
+          </View>
+          <View style={styles.grid}>
+            {builtinPhotos.map((p) => (
+              <View
+                key={p.id}
+                style={[styles.cell, { width: cellW, height: cellH }]}
+              >
+                <Image
+                  source={{ uri: p.image }}
+                  style={styles.cellImg}
+                  contentFit="cover"
+                  transition={80}
+                  cachePolicy="memory-disk"
+                />
+              </View>
+            ))}
+          </View>
+        </View>
+        ) : (
         <View style={styles.card}>
           <View style={styles.cardHead}>
             <View style={{ flex: 1 }}>
@@ -561,6 +618,7 @@ export default function CollectionDetail() {
             })}
           </View>
         </View>
+        )}
 
         {/* Shuffle mode */}
         <View style={styles.card}>
