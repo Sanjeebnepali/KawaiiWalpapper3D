@@ -76,6 +76,8 @@ const TopTabItem = memo(function TopTabItem({
       onPress={onPress}
       onPressIn={onPressIn}
       onPressOut={onPressOut}
+      hitSlop={{ top: 12, bottom: 12, left: 14, right: 14 }}
+      android_ripple={{ color: 'rgba(255,255,255,0.12)', borderless: true }}
       style={styles.tab}
     >
       <Animated.Text style={[styles.label, labelStyle]}>
@@ -130,13 +132,18 @@ export const TopTabs = memo(TopTabsBase);
 const styles = StyleSheet.create({
   row: {
     paddingHorizontal: Spacing.lg,
-    gap: Spacing.xl,
+    gap: Spacing.md,
     paddingTop: Spacing.xs,
     paddingBottom: Spacing.sm,
   },
   tab: {
+    // Bigger tappable area — was just the label height, which made the
+    // tabs fiddly to hit. Vertical + horizontal padding plus the Pressable
+    // hitSlop give a comfortable target without changing the visual layout.
     alignItems: 'center',
+    paddingTop: Spacing.xs,
     paddingBottom: Spacing.sm,
+    paddingHorizontal: Spacing.sm,
   },
   label: {
     fontSize: 15,

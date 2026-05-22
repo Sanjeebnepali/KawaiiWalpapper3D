@@ -111,27 +111,27 @@ export default function WallpapersHome() {
 
   const keyExtractor = useCallback((item: Section) => item.id, []);
 
-  const ListHeader = useMemo(
-    () => (
-      <View style={[styles.stickyHead, { backgroundColor: theme.bg }]}>
-        <Header />
-        <TopTabs />
-      </View>
-    ),
-    [theme.bg],
-  );
-
   return (
     <SafeAreaView
       style={[styles.safe, { backgroundColor: theme.bg }]}
       edges={['top']}
     >
+      {/* Fixed top bar. Header + TopTabs USED to be the FlatList's sticky
+          ListHeaderComponent, but a horizontal ScrollView of Pressables
+          nested inside an Android sticky header drops/steals taps right
+          after a vertical scroll — the user couldn't reliably tap
+          2D Kawaii / Dual / Theme Packs. As a fixed sibling above the list
+          they stay pinned at the top (same look as the sticky header) and
+          receive taps cleanly, decoupled from the list's scroll responder. */}
+      <View style={[styles.topBar, { backgroundColor: theme.bg }]}>
+        <Header />
+        <TopTabs />
+      </View>
       <FlatList
+        style={styles.list}
         data={sections}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
-        ListHeaderComponent={ListHeader}
-        stickyHeaderIndices={STICKY}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scroll}
         // Virtualization tuned for ~8 section rows where the heaviest two
@@ -152,10 +152,9 @@ export default function WallpapersHome() {
   );
 }
 
-const STICKY = [0];
-
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.bg },
+  list: { flex: 1 },
   scroll: { paddingBottom: 140 },
-  stickyHead: { backgroundColor: Colors.bg },
+  topBar: { backgroundColor: Colors.bg },
 });
