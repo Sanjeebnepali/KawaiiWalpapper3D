@@ -9,11 +9,11 @@ import { applyProximityWallpaper } from './coupleWallpaper';
  *
  * Strategy:
  *   1. A TaskManager-defined task receives Location updates from
- *      `Location.startLocationUpdatesAsync`. iOS / Android both deliver
- *      these on a sensor-driven cadence, NOT a wall-clock interval — so
- *      we get roughly one update every 30 s when the user is moving and
- *      MUCH less frequent updates when they're stationary (which is the
- *      battery-efficient behaviour the spec asks for).
+ *      `Location.startLocationUpdatesAsync` on a ~15 s wall-clock cadence
+ *      (`timeInterval: 15_000`, `distanceInterval: 0`) so the distance stays
+ *      live even when both phones are stationary, without the 5 s firehose
+ *      that drained the battery in change 107. The OS throttles further under
+ *      Doze when the screen is off, bounding the cost to active use.
  *   2. Each update pushes to Supabase via `pushMyLocation` and updates
  *      the local store. The store's `setMyLocation` re-computes
  *      Haversine distance against the last known partner GPS, which
@@ -71,10 +71,24 @@ if (!TaskManager.isTaskDefined(COUPLE_LOCATION_TASK)) {
       // the band should widen, but without this the geofence keeps its stale
       // radius and the OS enter/exit wake fires at a different distance than
       // `recomputeDistance` flips on. Cheap + idempotent (stop+start).
-      await refreshCoupleGeofence();
+      //
+      // Geofencing requires background ("Always") permission — on a
+      // foreground-only grant `startGeofencingAsync` THROWS. Wrap it so a
+      // geofence failure can never abort the wallpaper apply below; the
+      // geofence is a battery optimization, not load-bearing for proximity.
+      try {
+        await refreshCoupleGeofence();
+      } catch (e) {
+        if (__DEV__)
+          console.warn(
+            '[coupleLoc] geofence refresh skipped:',
+            (e as Error)?.message,
+          );
+      }
       // The wallpaper handler is idempotent — it only writes when the
       // computed proximity state actually flipped since the last write,
-      // so calling it on every tick is cheap.
+      // so calling it on every tick is cheap. Runs even if the geofence
+      // above failed.
       await applyProximityWallpaper();
     },
   );
@@ -146,14 +160,16 @@ export async function startCoupleLocation(): Promise<boolean> {
 
   await Location.startLocationUpdatesAsync(COUPLE_LOCATION_TASK, {
     accuracy: Location.Accuracy.Balanced,
-    // ~5-second cadence so the distance feels LIVE while the couple feature
-    // is active (the owner expected real-time updates; the old 30s/25m filter
-    // froze the distance when both phones were stationary). The OS still
-    // throttles under Doze when the screen is off, so the battery hit is
-    // bounded to active use. distanceInterval:0 → emit on every fix (don't
-    // require movement), which is what makes a stationary "4 m" keep refreshing
-    // its timestamp and lets proximity re-evaluate continuously.
-    timeInterval: 5_000,
+    // ~15-second cadence — keeps the distance feeling live while the couple
+    // feature is active WITHOUT the 5 s firehose that drained the battery for
+    // an always-on linked session (QA M3). distanceInterval:0 is retained on
+    // purpose: it makes a STATIONARY phone keep emitting (the owner's change
+    // 107 requirement — a couple sitting together at "4 m" must keep
+    // refreshing instead of freezing the way the old 30s/25m filter did). 15 s
+    // is the balance: ~3× less battery than 5 s, still refreshes when still.
+    // The OS throttles further under Doze when the screen is off, so the cost
+    // is bounded to active use.
+    timeInterval: 15_000,
     distanceInterval: 0,
     // Persistent foreground-service notification (Android only). Lets
     // the OS keep delivering updates while the screen is off without

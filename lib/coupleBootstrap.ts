@@ -7,6 +7,7 @@ import {
   subscribeCouple,
 } from './couple';
 import {
+  ensureBackgroundLocationPermission,
   refreshCoupleGeofence,
   startCoupleLocation,
   stopCoupleLocation,
@@ -45,6 +46,14 @@ let lastUserId: string | null = null;
 // realtime + the location task instead of early-returning. Reset in
 // `exitLinkedMode` so a re-link after an unlink always re-arms too.
 let lastCoupleKey: string | null = null;
+// H4 backstop: a low-frequency poll of the partner's latest GPS, as a fallback
+// for when a Supabase Realtime event is missed. The `couple_locations` realtime
+// read is gated by a subquery-based RLS policy that can silently drop rows; a
+// STATIONARY phone otherwise never recomputes distance / flips proximity / re-
+// applies the wallpaper (only the MOVING phone does). Started in
+// `enterLinkedMode`, cleared in `exitLinkedMode`. Re-armed on every re-link.
+let partnerPollTimer: ReturnType<typeof setInterval> | null = null;
+const PARTNER_POLL_MS = 25_000;
 
 export async function bootstrapCoupleFeature(): Promise<void> {
   if (booted) return;
@@ -67,7 +76,12 @@ export async function bootstrapCoupleFeature(): Promise<void> {
     const b = prev.link?.code ?? null;
     if (a === b && state.link?.status === prev.link?.status) return;
     if (state.link?.status === 'linked' && a) {
-      void enterLinkedMode(a, state.link.partner?.id ?? null);
+      // Catch the rejection so a permission/start failure surfaces in logs
+      // instead of being silently swallowed by `void` (H3).
+      void enterLinkedMode(a, state.link.partner?.id ?? null).catch((e) => {
+        if (__DEV__)
+          console.warn('[couple] enterLinkedMode failed:', (e as Error)?.message);
+      });
     } else if (state.link?.status === 'pending' && a) {
       // A pending couple created IN-SESSION (the "Generate code" path) must
       // keep its realtime channel OPEN so the waiting room auto-advances the
@@ -180,8 +194,70 @@ async function enterLinkedMode(
   // files to apply without a network round-trip. Fire-and-forget.
   void precacheActiveCouplePack();
 
-  await startCoupleLocation();
-  await refreshCoupleGeofence();
+  // H3: request location permission BEFORE starting the stream. Previously
+  // `startCoupleLocation` ran with no/foreground-only permission, threw, and
+  // (because this whole function was invoked via `void`) the rejection was
+  // swallowed — leaving the dashboard implying a "live distance" that never
+  // arrived. Surface the real outcome via the store error so the UI can stop
+  // implying live tracking.
+  const perm = await ensureBackgroundLocationPermission();
+  if (perm === 'denied') {
+    useCoupleStore
+      .getState()
+      .setError('Location is off — enable it to see your partner’s distance.');
+  } else if (perm === 'foreground-only') {
+    useCoupleStore
+      .getState()
+      .setError(
+        'Background location is off. Distance only updates while the app is open — set location to “Allow all the time” for full tracking.',
+      );
+  } else {
+    // Permission OK — clear any stale permission error from a prior attempt.
+    useCoupleStore.getState().clearError();
+  }
+
+  // Start the stream unless permission is fully denied (foreground-only still
+  // delivers fixes while the app is open).
+  if (perm !== 'denied') {
+    await startCoupleLocation();
+  }
+
+  // H4: low-frequency partner-location backstop. Realtime is the primary
+  // path, but if an event is missed the stationary phone never recomputes.
+  // Poll the partner's latest row and run it through the SAME
+  // setPartnerLocation → recomputeDistance path. The wallpaper apply is
+  // idempotent (lastAppliedKey/inFlight guard in coupleWallpaper), so this
+  // never re-sets the wallpaper every tick — it only acts when proximity
+  // actually changes.
+  if (partnerPollTimer) clearInterval(partnerPollTimer);
+  partnerPollTimer = setInterval(() => {
+    void (async () => {
+      const cur = useCoupleStore.getState().link;
+      if (!cur || cur.status !== 'linked') return;
+      const pid = cur.partner?.id ?? null;
+      if (!pid) return;
+      try {
+        const loc = await fetchPartnerLocation(cur.code, pid);
+        if (!loc) return;
+        useCoupleStore
+          .getState()
+          .setPartnerLocation(loc.lat, loc.lng, loc.updatedAt, loc.accuracy);
+        await applyProximityWallpaper();
+      } catch (e) {
+        if (__DEV__)
+          console.warn('[couple] partner poll failed:', (e as Error)?.message);
+      }
+    })();
+  }, PARTNER_POLL_MS);
+
+  // Geofencing needs background permission; on foreground-only it throws.
+  // Don't let that abort the rest of linked-mode setup (M4 same root cause).
+  try {
+    await refreshCoupleGeofence();
+  } catch (e) {
+    if (__DEV__)
+      console.warn('[couple] initial geofence skipped:', (e as Error)?.message);
+  }
   await applyProximityWallpaper();
 }
 
@@ -192,5 +268,11 @@ async function exitLinkedMode(): Promise<void> {
   unsubscribeRealtime?.();
   unsubscribeRealtime = null;
   subscribedCode = null;
+  // H4: stop the partner-location backstop poll so it doesn't leak across
+  // an unlink / account switch.
+  if (partnerPollTimer) {
+    clearInterval(partnerPollTimer);
+    partnerPollTimer = null;
+  }
   await stopCoupleLocation();
 }
