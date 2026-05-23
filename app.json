@@ -12,6 +12,13 @@
       "expo-font",
       "expo-sharing",
       [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#c79cc9",
+          "resizeMode": "cover"
+        }
+      ],
+      [
         "expo-media-library",
         {
           "photosPermission": "Allow Kawaii Baby Wallpapers to save wallpapers to your photo library.",

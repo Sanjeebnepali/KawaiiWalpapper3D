@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
+import { Image } from 'expo-image';
 import { type Href, useRouter } from 'expo-router';
 import { memo } from 'react';
 import {
@@ -35,14 +35,11 @@ function HeaderBase() {
           hitSlop={6}
           style={[styles.logoWrap, { shadowColor: theme.primary }]}
         >
-          <LinearGradient
-            colors={[theme.primary, theme.secondary]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.logoGrad}
-          >
-            <Ionicons name="happy" size={22} color="#131313" />
-          </LinearGradient>
+          <Image
+            source={require('../assets/logo-kawaii.png')}
+            style={styles.logoImg}
+            contentFit="cover"
+          />
         </SimpleButton>
 
         <View style={styles.brandWrap}>
@@ -125,10 +122,9 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 0 },
     elevation: 6,
   },
-  logoGrad: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+  logoImg: {
+    width: '100%',
+    height: '100%',
   },
   brandWrap: { flex: 1 },
   brand: {
