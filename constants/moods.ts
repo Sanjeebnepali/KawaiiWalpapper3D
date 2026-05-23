@@ -206,3 +206,27 @@ export function getMoodWallpapers(id: MoodId, count = 24): CategoryPhoto[] {
   const sec = sectionByKey('mood', key) ?? moodSections[0];
   return (sec?.photos ?? []).slice(0, count);
 }
+
+/**
+ * Inverse of MOOD_TO_CATALOG: a real catalog mood folder key → the picker
+ * MoodId that best represents it. Used by lib/moodBucket.getMoodBucket to
+ * derive the SEMANTIC mood of a photo from its id (e.g. `mood-crying-3` →
+ * 'sad', `mood-happy-1` → 'happy') instead of hashing the id string.
+ *
+ * Built by INVERTING MOOD_TO_CATALOG (so the two can never drift), then adding
+ * the extra catalog folders that have no first-class picker MoodId
+ * (love / heartbroken / nervous). MOOD_TO_CATALOG is many-to-one — 'calm' is
+ * the folder for BOTH 'calm' and 'neutral' — so we iterate MOODS (canonical
+ * order) and let the FIRST/primary mood win: catalog 'calm' → 'calm'.
+ */
+export const CATALOG_TO_MOOD: Record<string, MoodId> = (() => {
+  const inv: Record<string, MoodId> = {};
+  for (const m of MOODS) {
+    const key = MOOD_TO_CATALOG[m.id];
+    if (key && !(key in inv)) inv[key] = m.id;
+  }
+  if (!('love' in inv)) inv.love = 'happy';            // warm / affectionate → happy
+  if (!('heartbroken' in inv)) inv.heartbroken = 'sad'; // grief → sad
+  if (!('nervous' in inv)) inv.nervous = 'neutral';     // anxious / fearful → neutral
+  return inv;
+})();
