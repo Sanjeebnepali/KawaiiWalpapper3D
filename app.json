@@ -79,8 +79,8 @@
         "android.permission.FOREGROUND_SERVICE_LOCATION"
       ],
       "adaptiveIcon": {
-        "foregroundImage": "./assets/app-icon.png",
-        "backgroundColor": "#131313"
+        "foregroundImage": "./assets/app-icon-foreground.png",
+        "backgroundColor": "#000000"
       }
     },
     "web": {
