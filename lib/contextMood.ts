@@ -44,6 +44,12 @@ export function inferContextMood(s: ContextSignals): ContextMoodResult {
   //    and moving regardless of the clock. The three step bands also reach
   //    the `surprised` bucket (a sudden burst of movement) so the background
   //    path can select photos that the hash-bucketer assigns to it.
+  //
+  //    NOTE: `recentSteps` is ALWAYS `null` on Android — the historical-step
+  //    read API is iOS-only (see lib/stepCount.ts). So this whole block is
+  //    iOS-only in practice; on Android we always fall through to the
+  //    time-of-day mapping below. The `!= null` guard makes that safe: no
+  //    code path here assumes a non-null step count.
   if (recentSteps != null) {
     if (recentSteps >= STEPS_VERY_ACTIVE) {
       return {

@@ -254,6 +254,13 @@ async function runSleepWakeFallback(): Promise<boolean> {
   const s = useMoodStore.getState();
   if (!s.sleepWakeEnabled || !s.sleepWakePackId) return false;
 
+  // Degenerate guard: if sleep hour == wake hour the two windows below
+  // collapse (sleep window becomes empty, wake window becomes "always"),
+  // which would fire wake every day and sleep never. There's no coherent
+  // schedule to honour, so do nothing. The UI hour pickers also prevent
+  // selecting equal hours; this is belt + braces for any persisted state.
+  if (s.sleepWakeSleepHour === s.sleepWakeWakeHour) return false;
+
   const now = new Date();
   // LOCAL date — `toISOString()` is UTC and disagrees with `getHours()`
   // (local) in any non-UTC timezone, so the per-day stamp could mark
@@ -284,6 +291,12 @@ async function runSleepWakeFallback(): Promise<boolean> {
         history: next,
       });
       appliedSomething = true;
+      // One pass applies AT MOST one image. If we're in the sleep window
+      // we're by definition NOT in the wake window (the two are mutually
+      // exclusive once sleepHour != wakeHour), but return early anyway so a
+      // future edit can never accidentally apply both sleep + wake in a
+      // single tick and visibly "flip" the wallpaper twice.
+      return true;
     }
   }
 

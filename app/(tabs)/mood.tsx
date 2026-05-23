@@ -349,12 +349,13 @@ export default function MoodHome() {
         toast('Pick a pool first, then turn this on');
         return;
       }
-      // Motion permission is technically optional (the bg task can run
-      // on time-of-day alone), but the user has reported "footstep walk
-      // doesn't work properly" — which is exactly the symptom of the
-      // permission being missing or the sensor unavailable. Probe the
-      // status BEFORE enabling and surface it clearly so the user knows
-      // whether walking will actually influence their wallpaper.
+      // Probe the step-signal status BEFORE enabling so the toast tells the
+      // user the TRUTH about whether walking influences their wallpaper.
+      // On Android the answer is always 'unsupported' — the historical-step
+      // read API is iOS-only (see lib/stepCount.ts), so the bg task runs on
+      // time-of-day alone. `ensureMotionPermission()` is a no-op on Android
+      // (no scary motion-permission prompt for a feature that can't use it);
+      // on iOS it requests the permission the working step read needs.
       await ensureMotionPermission();
       const stepStatus = await getStepStatus();
       // Mutual exclusivity surfacing: enabling Mood-based stops every
@@ -375,7 +376,9 @@ export default function MoodHome() {
           toast(`✓ ${baseMsg} · steps OFF (motion permission denied)`);
           break;
         case 'unsupported':
-          toast(`✓ ${baseMsg} · steps unsupported on this device`);
+          // Android (always) + iOS devices with no pedometer. Be honest:
+          // walking won't move the wallpaper; it changes by time of day.
+          toast(`✓ ${baseMsg} · changes by time of day`);
           break;
         case 'unlinked':
           toast(`✓ ${baseMsg} · steps unavailable in this build`);
@@ -430,9 +433,23 @@ export default function MoodHome() {
   }, [setNotifHour]);
 
   const onRunBgNow = useCallback(async () => {
+    // `runMoodBackgroundOnce` returns a bare boolean and can return false
+    // for SEVERAL distinct reasons (disabled, no pool, apply failed, or a
+    // genuine no-op). The old toast asserted "No change (same mood)" for
+    // every false, which masked real failures. Check the obvious gates here
+    // so the user gets the TRUE reason; only the genuine apply-returned-
+    // false case shows a neutral "No change yet".
+    if (!backgroundEnabled) {
+      toast('Turn background on first');
+      return;
+    }
+    if (!moodCollectionId) {
+      toast('Pick a pool first');
+      return;
+    }
     const ok = await runMoodBackgroundOnce();
-    toast(ok ? '✓ Wallpaper refreshed' : 'No change (same mood)');
-  }, []);
+    toast(ok ? '✓ Wallpaper refreshed' : 'No change yet — try again shortly');
+  }, [backgroundEnabled, moodCollectionId]);
 
   // Force an immediate camera scan — used by the "Scan now" button so the
   // user can verify the engine without waiting the 60 s cadence.
@@ -993,34 +1010,53 @@ export default function MoodHome() {
   }, [sleepWakeCustomWakeId, sleepWakeCustomSleepId, setSleepWakePackId]);
 
   const onPickWakeHour = useCallback(() => {
+    // Guard: wake hour must differ from sleep hour. Equal hours collapse
+    // the sleep/wake windows in runSleepWakeFallback (sleep never fires,
+    // wake fires daily) — see the degenerate guard there. Ignore + toast
+    // rather than persisting a broken schedule.
+    const pickWake = (h: number) => {
+      if (h === sleepWakeSleepHour) {
+        toast('Wake time can’t equal sleep time');
+        return;
+      }
+      setSleepWakeWakeHour(h);
+    };
     premiumAlert({
       title: 'Wake-up time',
       message: 'When should ☀️ Good Morning fire?',
       icon: 'sunny',
       buttons: [
-        { text: '6 AM', onPress: () => setSleepWakeWakeHour(6) },
-        { text: '7 AM', onPress: () => setSleepWakeWakeHour(7) },
-        { text: '8 AM', onPress: () => setSleepWakeWakeHour(8) },
-        { text: '9 AM', onPress: () => setSleepWakeWakeHour(9) },
+        { text: '6 AM', onPress: () => pickWake(6) },
+        { text: '7 AM', onPress: () => pickWake(7) },
+        { text: '8 AM', onPress: () => pickWake(8) },
+        { text: '9 AM', onPress: () => pickWake(9) },
         { text: 'Cancel', style: 'cancel' },
       ],
     });
-  }, [setSleepWakeWakeHour]);
+  }, [setSleepWakeWakeHour, sleepWakeSleepHour]);
 
   const onPickSleepHour = useCallback(() => {
+    // Same guard as wake: sleep hour must differ from wake hour.
+    const pickSleep = (h: number) => {
+      if (h === sleepWakeWakeHour) {
+        toast('Sleep time can’t equal wake time');
+        return;
+      }
+      setSleepWakeSleepHour(h);
+    };
     premiumAlert({
       title: 'Sleep time',
       message: 'When should 🌙 Sleep Well fire?',
       icon: 'moon',
       buttons: [
-        { text: '9 PM', onPress: () => setSleepWakeSleepHour(21) },
-        { text: '10 PM', onPress: () => setSleepWakeSleepHour(22) },
-        { text: '11 PM', onPress: () => setSleepWakeSleepHour(23) },
-        { text: '12 AM', onPress: () => setSleepWakeSleepHour(0) },
+        { text: '9 PM', onPress: () => pickSleep(21) },
+        { text: '10 PM', onPress: () => pickSleep(22) },
+        { text: '11 PM', onPress: () => pickSleep(23) },
+        { text: '12 AM', onPress: () => pickSleep(0) },
         { text: 'Cancel', style: 'cancel' },
       ],
     });
-  }, [setSleepWakeSleepHour]);
+  }, [setSleepWakeSleepHour, sleepWakeWakeHour]);
 
   const saveCustomInterval = useCallback(() => {
     const trimmed = customMinInput.trim();
@@ -1051,15 +1087,20 @@ export default function MoodHome() {
   // ─── Manual emoji tap ────────────────────────────────────────────────────
   const onSelectMood = useCallback(
     async (id: MoodId) => {
-      selectMoodManual(id);
       if (!activeCollection) {
-        // No pool yet — fall back to the preview grid for that mood.
+        // No pool yet — record the manual selection (the preview grid is the
+        // user's chosen mood) and fall back to the preview grid for that mood.
+        await selectMoodManual(id);
         router.push(`/mood/${id}` as Href);
         return;
       }
-      // Force-apply a wallpaper from the active Collection's bucket.
+      // Force-apply a wallpaper from the active Collection's bucket. Only
+      // commit the manual mood to the store AFTER a successful apply —
+      // otherwise the header would flip to the new mood while the wallpaper
+      // (and currentPhotoId) stay on the old one when the apply fails.
       const r = await applyMoodPhotoFromCollection(id, activeCollection.id, currentPhotoId);
       if (r.ok && r.photoId) {
+        await selectMoodManual(id);
         await setCurrentMoodPhoto(r.photoId);
         toast(`✓ ${MOOD_BY_ID[id].label} wallpaper applied`);
       } else {
