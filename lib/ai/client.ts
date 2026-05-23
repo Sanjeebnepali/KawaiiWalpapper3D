@@ -64,8 +64,10 @@ export async function generateImage(
   // per local day; users who pasted their own provider API key are unlimited
   // (it's their own quota — see hasUnlimitedGeneration).
   //
-  // Count already-recorded generations PLUS the ones currently in flight, so
-  // two concurrent calls at `used === cap-1` can't both slip through (AI-3).
+  // `todayCount()` now reads the persisted, history-independent `dailyGen`
+  // counter (AI-M1) — clearing AI history no longer refills the allowance.
+  // Add the in-flight reservations so two concurrent calls at
+  // `used === cap-1` can't both slip through (AI-3).
   if (!hasUnlimitedGeneration()) {
     const used = useAIStore.getState().todayCount();
     if (used + inFlightReservations >= FREE_DAILY_LIMIT) {
@@ -82,6 +84,14 @@ export async function generateImage(
   try {
     const result = await provider.generateImage(req, signal);
     if (result.ok) {
+      // Charge the free-tier daily quota on SUCCESS only (AI-M1). This
+      // counter is persisted independently of `history`, so "Clear AI
+      // history" no longer resets the daily limit. The gate above reads
+      // it via `todayCount()`. Skipped for unlimited (user-key) users —
+      // they're never gated, so there's nothing to count.
+      if (!hasUnlimitedGeneration()) {
+        useAIStore.getState().bumpDailyGen();
+      }
       // Record in history. Cap at HISTORY_LIMIT per the store; the
       // store handles eviction so the call site stays cheap.
       useAIStore.getState().recordGeneration({

@@ -111,11 +111,22 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   signOut: async () => {
     await supabase.auth.signOut();
-    // Shared-device privacy (CORE-2): wipe every per-user store so the next
-    // user doesn't inherit the previous user's data. Favorites + AI history
-    // live in their own stores; profile/session/user reset locally here.
+    // Shared-device privacy (CORE-2 / H5): wipe every per-user store so the
+    // next user doesn't inherit the previous user's data. Favorites + AI
+    // state live in their own stores; profile/session/user reset locally here.
     useFavoritesStore.getState().clear();
-    useAIStore.getState().reset();
+    // resetAll() (NOT reset()) — the in-memory-only reset() left the persisted
+    // '@kawaii/ai@v1' blob on disk, so the next launch re-hydrated the prior
+    // user's API tokens (hf/openai/gemini/poll — and their billing), their
+    // generation history, and their consumed daily quota. resetAll() also
+    // removes the disk blob, so the next user starts with NO tokens, NO
+    // history, and NO inherited quota (dailyGen). Awaited so the wipe lands
+    // before the screen transitions; log on the (best-effort) failure path.
+    try {
+      await useAIStore.getState().resetAll();
+    } catch (e) {
+      console.error('[auth] signOut: AI resetAll failed:', e);
+    }
     set({ profile: null, user: null, session: null, status: 'anon' });
   },
 

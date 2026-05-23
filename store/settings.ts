@@ -15,7 +15,11 @@ export type SettingsState = {
   // AI Generator
   generateQuality: string;
   autoSaveGenerated: boolean;
-  maxGenPerDay: number;
+  // NOTE: the old `maxGenPerDay` field was removed (AI-M2). It was dead
+  // state — the real free-tier cap is `FREE_DAILY_LIMIT` in
+  // `lib/ai/client.ts`, enforced via the persisted `dailyGen` counter in
+  // `store/ai.ts`. Nothing read `maxGenPerDay`, so it only misled the docs
+  // into claiming a 50/day cap that never applied.
   // Notifications
   newWallpaperAlerts: boolean;
   dailyRecommendation: boolean;
@@ -68,7 +72,6 @@ const DEFAULTS: SettingsState = {
   featuredFolder: false,
   generateQuality: 'High Quality',
   autoSaveGenerated: true,
-  maxGenPerDay: 50,
   newWallpaperAlerts: true,
   dailyRecommendation: true,
   vibrationOnDownload: false,

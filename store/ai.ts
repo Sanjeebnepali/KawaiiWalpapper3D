@@ -68,6 +68,17 @@ export type AIState = {
   providerId: AIProviderId;
   /** Most-recent-first list of generations. Capped at `HISTORY_LIMIT`. */
   history: AIGeneration[];
+  /**
+   * Daily free-tier quota counter, DECOUPLED from `history` (AI-M1). The
+   * count used to be derived from `history` via `todayCount()`, which let
+   * "Clear AI history" reset the quota to 0 — a trivial free-limit bypass.
+   * This standalone counter is incremented on every SUCCESSFUL generation
+   * and is NOT touched by `clearHistory`/`removeGeneration`, so deleting
+   * history can't refill the allowance. It resets when `dayKey` rolls over
+   * to a new local day, and is wiped by `resetAll` (a real sign-out, so a
+   * new user on a shared device gets a fresh allowance — that's correct).
+   */
+  dailyGen: { dayKey: string; count: number };
 };
 
 type AIStore = AIState & {
@@ -98,14 +109,23 @@ type AIStore = AIState & {
    */
   reset: () => void;
   /**
-   * Wipe ALL AI state — token, provider, history. Single button in
-   * Settings for users who want to scrub the app before lending the
-   * phone. Idempotent.
+   * Wipe ALL AI state from memory AND disk — tokens, provider, history,
+   * AND the daily free-tier quota counter (`dailyGen`). Used by the
+   * Settings "scrub the app" button and by the auth sign-out flow on a
+   * shared device, so the next user inherits NO tokens, NO history, and
+   * NO consumed quota (gets a fresh allowance). Idempotent.
    */
   resetAll: () => Promise<void>;
-  /** Number of generations recorded today (local day). UI gates calls
-   *  on this to defend free-tier quota. */
+  /** Number of generations recorded today (local day). Returns the
+   *  history-independent `dailyGen` counter when it's for today, so the
+   *  UI label stays in lock-step with the actual free-tier gate and
+   *  clearing history can't make it under-report (AI-M1). */
   todayCount: () => number;
+  /** Increment the persisted daily free-tier counter by one, rolling it
+   *  over to the current local day first if `dayKey` changed. Called on a
+   *  SUCCESSFUL generation only (see `lib/ai/client.ts`). Decoupled from
+   *  history so `clearHistory` can't reset the quota. */
+  bumpDailyGen: () => void;
 };
 
 const DEFAULTS: AIState = {
@@ -121,6 +141,9 @@ const DEFAULTS: AIState = {
   // any user still on the broken HF path can switch via Settings.
   providerId: 'pollinations',
   history: [],
+  // Empty dayKey => "no generations recorded yet today"; the first
+  // successful gen on any given local day seeds it.
+  dailyGen: { dayKey: '', count: 0 },
 };
 
 // ─── Persistence (mirrors store/settings.ts) ─────────────────────────────
@@ -242,6 +265,19 @@ export const useAIStore = create<AIStore>((set, get) => ({
     set({ history: next });
     schedulePersist({ ...get(), history: next });
   },
+  bumpDailyGen: () => {
+    const today = localDayKey(new Date());
+    const cur = get().dailyGen;
+    // Roll over to a fresh count when the local day changed; otherwise
+    // increment in place. This is the source of truth for the free-tier
+    // gate — independent of `history`, so deleting history can't reset it.
+    const dailyGen =
+      cur.dayKey === today
+        ? { dayKey: today, count: cur.count + 1 }
+        : { dayKey: today, count: 1 };
+    set({ dailyGen });
+    schedulePersist({ ...get(), dailyGen });
+  },
   removeGeneration: (localUri) => {
     const next = get().history.filter((g) => g.localUri !== localUri);
     // No-op early-return so we don't burn a persist write when the
@@ -274,7 +310,11 @@ export const useAIStore = create<AIStore>((set, get) => ({
   },
   todayCount: () => {
     const today = localDayKey(new Date());
-    return get().history.filter((g) => localDayKey(new Date(g.createdAt)) === today).length;
+    const { dailyGen } = get();
+    // The persisted, history-independent counter is authoritative for the
+    // free-tier quota (AI-M1). If it's stale (a previous local day), today's
+    // count is 0 — bumpDailyGen will roll it over on the next success.
+    return dailyGen.dayKey === today ? dailyGen.count : 0;
   },
 }));
 
