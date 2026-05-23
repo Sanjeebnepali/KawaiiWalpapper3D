@@ -106,6 +106,18 @@ export async function acceptCoupleCode(
     return { ok: false, error: 'Code must look like LOVE-XXXX.' };
   }
 
+  // RECONNECT-FIRST (changes/105): if the caller is ALREADY a member of the
+  // couple with this code — e.g. the HOST re-entering its own code after a
+  // reinstall, or a partner re-pairing a fresh install — don't try to
+  // "accept" it. Accepting a couple you're already in returns CODE_TAKEN (it's
+  // already 'linked'), which is the dead-end the user hit. Restore the
+  // existing link from the server instead and route straight to the dashboard.
+  const existing = await fetchActiveCouple();
+  if (existing && existing.code === code) {
+    useCoupleStore.getState().setLink(existing);
+    return { ok: true, link: existing };
+  }
+
   const { data, error } = await supabase.rpc('accept_couple_code', {
     p_code: code,
     p_role: role,
@@ -172,16 +184,28 @@ export async function fetchActiveCouple(): Promise<CoupleLink | null> {
   const uid = useAuthStore.getState().user?.id;
   if (!uid) return null;
 
-  // Plain couple-row fetch — NO PostgREST embed. The previous
-  // `creator:profiles!couples_creator_id_fkey(...)` embed could NEVER resolve:
-  // couples.creator_id / partner_id are FKs to `auth.users`, not
-  // `public.profiles`, so PostgREST returned PGRST200 ("could not find a
-  // relationship between 'couples' and 'profiles'") and the WHOLE query failed
-  // → fetchActiveCouple always returned null. That broke the creator's
-  // realtime/poll advance (both call this) AND linked-couple rehydration on
-  // cold boot. Fetching the bare couple row works fine under the existing
-  // "couples: read own" RLS.
-  const { data, error } = await supabase
+  // PRIMARY (changes/105): the `get_my_couple()` SECURITY DEFINER RPC. It
+  // returns the caller's active couple — host OR partner — plus the other
+  // member's profile and the active pack, in one round-trip that does NOT
+  // depend on PostgREST resolving an `.or(creator,partner)` filter against RLS
+  // exactly right. The previous direct `select` came back EMPTY on the host
+  // side after a reinstall, stranding a reinstalled host on "Pair your couple"
+  // unable to rejoin its own couple. The RPC is the reliable restore path.
+  const { data, error } = await supabase.rpc('get_my_couple');
+  if (!error) {
+    const row = Array.isArray(data) ? data[0] : data;
+    if (!row) return null;
+    return mapCoupleRow(row, uid);
+  }
+
+  // FALLBACK: the RPC isn't deployed yet (couple_reconnect_v3.sql not run).
+  // Use the original bare-row select so the app keeps working exactly as
+  // before until the migration is applied. NO PostgREST embed (couples FKs
+  // point at auth.users, not public.profiles — an embed returns PGRST200).
+  if (__DEV__) {
+    console.warn('[couple] get_my_couple RPC unavailable, using fallback:', error.message);
+  }
+  const { data: rows, error: selErr } = await supabase
     .from('couples')
     .select(
       'code, creator_id, partner_id, status, linked_at, creator_role, partner_role',
@@ -191,16 +215,10 @@ export async function fetchActiveCouple(): Promise<CoupleLink | null> {
     .limit(1)
     .maybeSingle();
 
-  if (error || !data) return null;
+  if (selErr || !rows) return null;
 
-  const isCreator = data.creator_id === uid;
-  const otherId = isCreator ? data.partner_id : data.creator_id;
-
-  // Best-effort fetch of the OTHER person's profile in a separate query.
-  // Reading another user's profile row needs the "profiles: read couple
-  // partner" RLS policy (supabase/couple_profile_read.sql). Until that's
-  // applied this returns null and the dashboard falls back to "your partner" —
-  // the link itself works regardless, so a missing name never blocks linking.
+  const isCreator = rows.creator_id === uid;
+  const otherId = isCreator ? rows.partner_id : rows.creator_id;
   let other: PartnerProfile | null = null;
   if (otherId) {
     const { data: prof } = await supabase
@@ -210,31 +228,78 @@ export async function fetchActiveCouple(): Promise<CoupleLink | null> {
       .maybeSingle();
     other = (prof as PartnerProfile | null) ?? null;
   }
+  if (rows.status === 'linked') {
+    useSettingsStore.getState().set('isCouplePremium', true);
+  }
+  return {
+    code: rows.code,
+    status: rows.status as CoupleLink['status'],
+    isCreator,
+    myRole: (isCreator ? rows.creator_role : rows.partner_role) as CoupleRole | null,
+    partnerRole: (isCreator ? rows.partner_role : rows.creator_role) as CoupleRole | null,
+    partner: other ?? null,
+    linked_at: rows.linked_at,
+  };
+}
 
-  const myRole = (isCreator ? data.creator_role : data.partner_role) as
-    | CoupleRole
-    | null;
-  const partnerRole = (isCreator ? data.partner_role : data.creator_role) as
-    | CoupleRole
-    | null;
+/** Shape returned by the `get_my_couple()` RPC (one row, OUT-param names). */
+type MyCoupleRow = {
+  code: string;
+  creator_id: string;
+  partner_id: string | null;
+  status: CoupleLink['status'];
+  linked_at: string | null;
+  creator_role: string | null;
+  partner_role: string | null;
+  couple_pack_id: string | null;
+  other_id: string | null;
+  other_name: string | null;
+  other_avatar: string | null;
+};
 
-  // Re-derive inherited Couple Premium on every hydration: the perk is
-  // written at accept time, but a reinstall rehydrates the link from the
-  // server without ever re-running accept — so a linked couple would lose
-  // the inherited perk. Setting it here makes "linked ⇒ premium" idempotent.
-  if (data.status === 'linked') {
+/** Map a `get_my_couple()` row into the in-memory `CoupleLink` shape. */
+function mapCoupleRow(row: MyCoupleRow, uid: string): CoupleLink {
+  const isCreator = row.creator_id === uid;
+  const partner: PartnerProfile | null = row.other_id
+    ? {
+        id: row.other_id,
+        display_name: row.other_name,
+        avatar_id: row.other_avatar,
+      }
+    : null;
+
+  // Re-derive inherited Couple Premium on every hydration: the perk is written
+  // at accept time, but a reinstall rehydrates the link from the server
+  // without ever re-running accept — so a linked couple would lose the
+  // inherited perk. Setting it here makes "linked ⇒ premium" idempotent.
+  if (row.status === 'linked') {
     useSettingsStore.getState().set('isCouplePremium', true);
   }
 
   return {
-    code: data.code,
-    status: data.status as CoupleLink['status'],
+    code: row.code,
+    status: row.status,
     isCreator,
-    myRole,
-    partnerRole,
-    partner: other ?? null,
-    linked_at: data.linked_at,
+    myRole: (isCreator ? row.creator_role : row.partner_role) as CoupleRole | null,
+    partnerRole: (isCreator ? row.partner_role : row.creator_role) as CoupleRole | null,
+    partner,
+    linked_at: row.linked_at,
   };
+}
+
+/**
+ * Explicit "restore my pairing" — fetch the caller's active couple from the
+ * server and push it into the store. Used by the Couple Setup screen's
+ * "Restore pairing" button and an on-mount auto-attempt so a reinstalled
+ * device (whose local link was wiped) can rejoin WITHOUT re-entering a code.
+ * Returns the link it found (or null) so the UI can route + toast.
+ */
+export async function restoreCouple(): Promise<CoupleLink | null> {
+  const link = await fetchActiveCouple();
+  if (link) {
+    useCoupleStore.getState().setLink(link);
+  }
+  return link;
 }
 
 /** Read the shared `couple_settings` row for `code`. */

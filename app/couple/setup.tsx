@@ -29,6 +29,7 @@ import {
   fetchActiveCouple,
   isWellFormedCode,
   normaliseCode,
+  restoreCouple,
 } from '../../lib/couple';
 import { toast } from '../../lib/toast';
 import { useAuthStatus } from '../../store/auth';
@@ -96,6 +97,19 @@ export default function CoupleSetup() {
   const [busy, setBusy] = useState<'create' | 'accept' | null>(null);
   const [generatedCode, setGeneratedCode] = useState<string | null>(null);
   const [enterInput, setEnterInput] = useState('');
+  const [restoring, setRestoring] = useState(false);
+
+  // Auto-attempt a SILENT restore when this screen opens (changes/105). A
+  // device whose local link was wiped (reinstall) can rejoin its existing
+  // couple with no code entry: restoreCouple() re-reads the server pairing and
+  // pushes it into the store; the linked-status effect above then routes to
+  // the dashboard. If bootstrap already restored it (or there's nothing to
+  // restore) this is a cheap no-op — no toast, so it never nags. Runs once.
+  useEffect(() => {
+    if (link?.status === 'linked' || link?.status === 'pending') return;
+    void restoreCouple();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // GENERATE-side state
   const [chosenPackId, setChosenPackId] = useState<string>(initialPackId);
@@ -165,6 +179,34 @@ export default function CoupleSetup() {
     }
   }, [authStatus, enterInput, acceptRole, router]);
 
+  // Explicit "Restore pairing" — for a reinstalled device. Re-reads the
+  // server pairing for the signed-in account and routes to the right screen.
+  // Unlike the silent on-mount attempt, this one toasts the outcome so the
+  // user gets clear feedback when they tap the button (changes/105).
+  const onRestore = useCallback(async () => {
+    if (authStatus !== 'authed') {
+      toast('Sign in first to restore your pairing');
+      return;
+    }
+    setRestoring(true);
+    try {
+      const restored = await restoreCouple();
+      if (!restored) {
+        toast('No active pairing found for this account');
+        return;
+      }
+      if (restored.status === 'linked') {
+        toast('💕 Reconnected');
+        router.replace('/couple/dashboard' as Href);
+      } else if (restored.status === 'pending') {
+        // The user's own un-accepted code — send them to the waiting room.
+        router.replace('/couple/linking' as Href);
+      }
+    } finally {
+      setRestoring(false);
+    }
+  }, [authStatus, router]);
+
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.bg }]} edges={['top', 'bottom']}>
       <StatusBar style="light" />
@@ -178,6 +220,27 @@ export default function CoupleSetup() {
       </View>
 
       <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
+        {/* ─── RESTORE (reinstalled device rejoins its existing couple) ─── */}
+        <AnimatedButton
+          onPress={onRestore}
+          disabled={restoring}
+          style={[styles.restoreBtn, { borderColor: theme.primary + '88' }]}
+        >
+          <Ionicons
+            name={restoring ? 'sync' : 'refresh'}
+            size={16}
+            color={theme.primary}
+          />
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.restoreTitle, { color: theme.text }]}>
+              {restoring ? 'Restoring…' : 'Already paired? Restore'}
+            </Text>
+            <Text style={styles.restoreSub}>
+              Reinstalled or new phone — get back your existing pairing without a code.
+            </Text>
+          </View>
+        </AnimatedButton>
+
         {/* ─── GENERATE CARD ─── */}
         <View
           style={[
@@ -486,6 +549,17 @@ const styles = StyleSheet.create({
   },
   title: { fontSize: 18, fontWeight: '800', letterSpacing: -0.3, flex: 1, textAlign: 'center' },
   body: { paddingHorizontal: Spacing.lg, gap: Spacing.md, paddingBottom: 40 },
+  restoreBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    padding: Spacing.md,
+    borderRadius: Radius.lg,
+    borderWidth: 1,
+    backgroundColor: Colors.surface,
+  },
+  restoreTitle: { fontSize: 14, fontWeight: '800', letterSpacing: -0.2 },
+  restoreSub: { color: Colors.textDim, fontSize: 11, lineHeight: 15, marginTop: 2 },
   card: {
     borderRadius: Radius.lg,
     borderWidth: 1,

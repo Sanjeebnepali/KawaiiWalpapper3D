@@ -26,7 +26,25 @@ export async function resolveCoupleImageUri(
 ): Promise<string> {
   if (typeof src === 'string') return src;
   const asset = Asset.fromModule(src);
-  if (!asset.localUri) await asset.downloadAsync();
+  // CRITICAL (changes/107): on Android, expo-asset keeps a bundled image's
+  // `localUri` as the bare drawable RESOURCE NAME (e.g.
+  // "assets_couple_pack2together") for RN <Image> backward-compat AND marks the
+  // asset `downloaded = true` — so `downloadAsync()` short-circuits and never
+  // materialises a real file. The native wallpaper-setter
+  // (BitmapFactory.decodeFile) and FileSystem can't read a resource name, so
+  // the couple wallpaper apply silently failed ("downloadAsync rejected").
+  // When the current localUri isn't a usable file:// / content:// / http(s)
+  // URI, clear the "downloaded" flag and force a real copy into the cache.
+  const usable = (u: string | null | undefined): u is string =>
+    !!u &&
+    (u.startsWith('file://') ||
+      u.startsWith('content://') ||
+      /^https?:/i.test(u));
+  if (!usable(asset.localUri)) {
+    asset.downloaded = false;
+    asset.localUri = null;
+    await asset.downloadAsync();
+  }
   return asset.localUri ?? asset.uri;
 }
 

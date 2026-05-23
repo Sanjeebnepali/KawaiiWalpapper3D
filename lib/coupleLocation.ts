@@ -146,13 +146,15 @@ export async function startCoupleLocation(): Promise<boolean> {
 
   await Location.startLocationUpdatesAsync(COUPLE_LOCATION_TASK, {
     accuracy: Location.Accuracy.Balanced,
-    // 30-second nominal cadence. Android may stretch this when the user
-    // is stationary (Doze) — that's intentional. The geofence below
-    // covers the "approaching partner while still" case.
-    timeInterval: 30_000,
-    // Re-emit only if the user moved at least 25 m. Coupled with the
-    // time filter, this is the standard "battery-friendly" profile.
-    distanceInterval: 25,
+    // ~5-second cadence so the distance feels LIVE while the couple feature
+    // is active (the owner expected real-time updates; the old 30s/25m filter
+    // froze the distance when both phones were stationary). The OS still
+    // throttles under Doze when the screen is off, so the battery hit is
+    // bounded to active use. distanceInterval:0 → emit on every fix (don't
+    // require movement), which is what makes a stationary "4 m" keep refreshing
+    // its timestamp and lets proximity re-evaluate continuously.
+    timeInterval: 5_000,
+    distanceInterval: 0,
     // Persistent foreground-service notification (Android only). Lets
     // the OS keep delivering updates while the screen is off without
     // killing us under Doze.
@@ -161,9 +163,37 @@ export async function startCoupleLocation(): Promise<boolean> {
       notificationBody: 'Sharing location with your partner',
       notificationColor: '#fab3ca',
     },
-    pausesUpdatesAutomatically: true,
+    // Keep delivering fixes even when the phone is stationary. With this true,
+    // some OEMs (e.g. Vivo Funtouch) PAUSE updates on a still phone → the
+    // distance never appears. We want a live distance whenever the feature is
+    // active, so don't let the OS pause us.
+    pausesUpdatesAutomatically: false,
     showsBackgroundLocationIndicator: false,
   });
+
+  // Seed an IMMEDIATE position so the dashboard shows a distance right away
+  // instead of waiting for the movement-driven stream's first emit (which can
+  // take a long time, or never come, on a stationary phone). Fire-and-forget
+  // so it never blocks startup; try a fresh fix, fall back to last-known.
+  void (async () => {
+    try {
+      const pos =
+        (await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Balanced,
+        }).catch(() => null)) ??
+        (await Location.getLastKnownPositionAsync());
+      if (!pos) return;
+      const cur = useCoupleStore.getState().link;
+      if (!cur || cur.status !== 'linked') return;
+      const { latitude, longitude, accuracy } = pos.coords;
+      useCoupleStore.getState().setMyLocation(latitude, longitude, accuracy ?? null);
+      await pushMyLocation(cur.code, latitude, longitude, accuracy ?? null);
+      await applyProximityWallpaper();
+    } catch {
+      /* best-effort seed — the stream + geofence still drive updates */
+    }
+  })();
+
   return true;
 }
 
