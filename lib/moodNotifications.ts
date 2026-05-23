@@ -462,6 +462,12 @@ const DAILY_ID = 'kawaii.mood.daily.v1';
 const FRIEND_ID = 'kawaii.mood.friend.v1';
 const SW_WAKE_ID = 'kawaii.mood.sw.wake.v1';
 const SW_SLEEP_ID = 'kawaii.mood.sw.sleep.v1';
+/** Stable id for the immediate "how are you feeling?" prompt fired by the
+ *  friend-checkin foreground-service tick (lib/moodBootstrap.ts) and the
+ *  app-usage monitor. Reused on every fire so a NEW prompt REPLACES the
+ *  previous one in the system shade instead of stacking — without it each
+ *  tick posted a unique-id notification and they piled up, one per interval. */
+const MOOD_PROMPT_NOW_ID = 'kawaii.mood.prompt.now.v1';
 /** Prefix for the batch of one-shot fires used when interval < 15 min.
  *  Android's WorkManager periodic floor is 15 min, so a `repeats: true`
  *  trigger at 1–14 min is silently rounded up by the OS. To get true
@@ -759,6 +765,10 @@ export async function fireMoodPromptNotification(opts?: {
 
   try {
     await m.scheduleNotificationAsync({
+      // Reuse one stable id so each new prompt REPLACES the previous one in
+      // the shade instead of stacking (the recurring tick fired this with a
+      // fresh auto-id every time, which is what piled up).
+      identifier: MOOD_PROMPT_NOW_ID,
       content: {
         title: opts?.title ?? 'Quick mood check 😊',
         body: opts?.body ?? 'Tap a feeling to update your wallpaper.',
