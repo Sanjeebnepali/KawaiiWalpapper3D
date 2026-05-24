@@ -1,5 +1,6 @@
 import * as Location from 'expo-location';
-import { fetchPartnerLocation, pushMyLocation } from './couple';
+import { fetchPartnerLocation } from './couple';
+import { recordMyFix } from './coupleMyFix';
 import { useAuthStore } from '../store/auth';
 import { useCoupleStore } from '../store/couple';
 
@@ -52,8 +53,8 @@ async function liveTick(): Promise<void> {
         }).catch(() => null);
         if (!pos) return;
         const { latitude, longitude, accuracy } = pos.coords;
-        useCoupleStore.getState().setMyLocation(latitude, longitude, accuracy ?? null);
-        await pushMyLocation(code, latitude, longitude, accuracy ?? null);
+        // Smooth + store + push through the shared funnel (Kalman-filtered).
+        await recordMyFix(code, latitude, longitude, accuracy ?? null);
       })(),
       // 2) Partner's latest position → store. Realtime also delivers this,
       //    but polling here guarantees freshness even if an event is missed.

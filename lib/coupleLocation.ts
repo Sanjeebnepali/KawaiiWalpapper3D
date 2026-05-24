@@ -1,7 +1,8 @@
 import * as Location from 'expo-location';
 import * as TaskManager from 'expo-task-manager';
 import { getBufferZone, useCoupleStore } from '../store/couple';
-import { pushMyLocation } from './couple';
+import { recordMyFix } from './coupleMyFix';
+import { resetMyFix } from './gpsFilter';
 import { applyProximityWallpaper } from './coupleWallpaper';
 
 /**
@@ -62,9 +63,9 @@ if (!TaskManager.isTaskDefined(COUPLE_LOCATION_TASK)) {
       if (useCoupleStore.getState().paused) return;
 
       const { latitude, longitude, accuracy } = loc.coords;
-      // Feed accuracy into the store too — it picks the dynamic buffer band.
-      useCoupleStore.getState().setMyLocation(latitude, longitude, accuracy ?? null);
-      await pushMyLocation(link.code, latitude, longitude, accuracy ?? null);
+      // Smooth (Kalman) + store + push via the shared funnel. The smoothed
+      // accuracy still feeds the dynamic buffer band in the store.
+      await recordMyFix(link.code, latitude, longitude, accuracy ?? null);
       // Re-arm the geofence on every local tick so its radius tracks the
       // LATEST accuracy band. The bootstrap subscriber only re-arms when the
       // PARTNER's pin moves; if OUR accuracy degrades (e.g. walking indoors)
@@ -202,8 +203,7 @@ export async function startCoupleLocation(): Promise<boolean> {
       const cur = useCoupleStore.getState().link;
       if (!cur || cur.status !== 'linked') return;
       const { latitude, longitude, accuracy } = pos.coords;
-      useCoupleStore.getState().setMyLocation(latitude, longitude, accuracy ?? null);
-      await pushMyLocation(cur.code, latitude, longitude, accuracy ?? null);
+      await recordMyFix(cur.code, latitude, longitude, accuracy ?? null);
       await applyProximityWallpaper();
     } catch {
       /* best-effort seed — the stream + geofence still drive updates */
@@ -214,6 +214,9 @@ export async function startCoupleLocation(): Promise<boolean> {
 }
 
 export async function stopCoupleLocation(): Promise<void> {
+  // Drop the smoothing state so the next pairing starts from a clean fix
+  // instead of inheriting the old location's filter estimate.
+  resetMyFix();
   const already = await Location.hasStartedLocationUpdatesAsync(
     COUPLE_LOCATION_TASK,
   );
