@@ -90,7 +90,7 @@ export async function runCoupleConnectionCheck(): Promise<CoupleConnectionCheck>
   if (partnerId) {
     const { data, error } = await supabase
       .from('couple_locations')
-      .select('lat, lng, updated_at')
+      .select('lat, lng, updated_at, accuracy_m')
       .eq('couple_code', link.code)
       .eq('user_id', partnerId)
       .maybeSingle();
@@ -104,6 +104,21 @@ export async function runCoupleConnectionCheck(): Promise<CoupleConnectionCheck>
       if (lat != null && lng != null) {
         const d = Math.round(haversineMeters(lat, lng, data.lat, data.lng));
         lines.push(`→ Straight-line distance right now: ${d} m.`);
+      }
+      // The honest accuracy verdict: the distance can never be tighter than
+      // the two phones' GPS errors combined. This tells you whether a "wrong"
+      // number is a bug or just the GPS hardware (e.g. indoors).
+      const partnerA = data.accuracy_m as number | null;
+      if (acc != null && partnerA != null) {
+        const combined = Math.round(Math.sqrt(acc * acc + partnerA * partnerA));
+        lines.push(
+          `GPS accuracy: you ±${Math.round(acc)} m, partner ±${Math.round(partnerA)} m.`,
+        );
+        lines.push(
+          combined > 30
+            ? `✗ Distance can't be tighter than ~±${combined} m here — that's the GPS itself. Go outdoors / under open sky.`
+            : `→ Distance is accurate to ~±${combined} m here (good).`,
+        );
       }
     }
   }

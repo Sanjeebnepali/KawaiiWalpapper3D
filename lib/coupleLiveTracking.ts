@@ -49,7 +49,8 @@ async function liveTick(): Promise<void> {
       // 1) Our own fresh position → store + server.
       (async () => {
         const pos = await Location.getCurrentPositionAsync({
-          accuracy: Location.Accuracy.High,
+          // Best the hardware can do — worth it while actively watching.
+          accuracy: Location.Accuracy.BestForNavigation,
         }).catch(() => null);
         if (!pos) return;
         const { latitude, longitude, accuracy } = pos.coords;

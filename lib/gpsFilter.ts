@@ -65,6 +65,59 @@ export class GpsKalmanFilter {
   }
 }
 
+// ─── Outlier gate (runs BEFORE the filter) ─────────────────────────────────
+// The Kalman filter weights by accuracy, but two kinds of bad fix still hurt:
+//   1. A "teleport" glitch — a fix that reports GOOD accuracy but a position
+//      hundreds of metres off; the filter trusts it and yanks the estimate.
+//   2. A fix vaguer than ~100 m — worse than just keeping the last good one.
+// Dropping both before they reach the filter keeps the distance honest.
+
+const MAX_ACCURACY_M = 100; // drop fixes vaguer than this when we have a recent one
+const MAX_SPEED_MPS = 55; // ~200 km/h between fixes ⇒ a teleport glitch, not real motion
+const STALE_AFTER_MS = 60_000;
+
+let hasLast = false;
+let lastLat = 0;
+let lastLng = 0;
+let lastMs = 0;
+
+/** Cheap equirectangular metres — accurate enough for the speed sanity check. */
+function approxMeters(la1: number, lo1: number, la2: number, lo2: number): number {
+  const R = 6_371_000;
+  const dLat = ((la2 - la1) * Math.PI) / 180;
+  const dLng = ((lo2 - lo1) * Math.PI) / 180;
+  const x = dLng * Math.cos(((la1 + la2) * Math.PI) / 360);
+  return R * Math.sqrt(dLat * dLat + x * x);
+}
+
+/**
+ * Decide whether to accept a raw fix. Records the accepted position so the next
+ * call can sanity-check speed. The FIRST fix (or one after a long gap) is always
+ * accepted — we need a starting point. Side-effecting on purpose: an accepted
+ * fix updates the "last accepted" baseline. (An explicit `hasLast` flag — not a
+ * timestamp sentinel — so a legitimate `timeMs` of 0 still counts as a fix.)
+ */
+export function acceptFix(
+  lat: number,
+  lng: number,
+  accuracyM: number | null,
+  timeMs: number,
+): boolean {
+  const haveRecent = hasLast && timeMs - lastMs < STALE_AFTER_MS;
+  if (accuracyM != null && accuracyM > MAX_ACCURACY_M && haveRecent) return false;
+  if (haveRecent) {
+    const dt = (timeMs - lastMs) / 1000;
+    if (dt > 0 && approxMeters(lastLat, lastLng, lat, lng) / dt > MAX_SPEED_MPS) {
+      return false;
+    }
+  }
+  hasLast = true;
+  lastLat = lat;
+  lastLng = lng;
+  lastMs = timeMs;
+  return true;
+}
+
 // Singleton for the LOCAL user's track: every place our GPS enters funnels
 // through this one instance (foreground live loop + background stream + seed)
 // so the filter sees a single time-ordered stream of our fixes.
@@ -82,4 +135,5 @@ export function smoothMyFix(
 
 export function resetMyFix(): void {
   myFilter.reset();
+  hasLast = false;
 }

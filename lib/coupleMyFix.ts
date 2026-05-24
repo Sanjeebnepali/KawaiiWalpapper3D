@@ -1,6 +1,6 @@
 import { useCoupleStore } from '../store/couple';
 import { pushMyLocation } from './couple';
-import { smoothMyFix } from './gpsFilter';
+import { acceptFix, smoothMyFix } from './gpsFilter';
 
 /**
  * Single funnel for the local user's GPS. Every place a fix for US arrives
@@ -20,7 +20,10 @@ export async function recordMyFix(
   lng: number,
   accuracyM: number | null,
 ): Promise<void> {
-  const s = smoothMyFix(lat, lng, accuracyM, Date.now());
+  const now = Date.now();
+  // Drop teleport glitches / very-vague fixes before they corrupt the estimate.
+  if (!acceptFix(lat, lng, accuracyM, now)) return;
+  const s = smoothMyFix(lat, lng, accuracyM, now);
   useCoupleStore.getState().setMyLocation(s.lat, s.lng, s.accuracy);
   await pushMyLocation(code, s.lat, s.lng, s.accuracy);
 }

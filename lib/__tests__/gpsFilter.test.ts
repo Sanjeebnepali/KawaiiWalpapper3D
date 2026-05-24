@@ -1,4 +1,4 @@
-import { GpsKalmanFilter } from '../gpsFilter';
+import { GpsKalmanFilter, acceptFix, resetMyFix } from '../gpsFilter';
 
 describe('GpsKalmanFilter', () => {
   it('reduces jitter on a stationary noisy signal vs the raw fixes', () => {
@@ -43,5 +43,30 @@ describe('GpsKalmanFilter', () => {
     const r = f.process(50, 50, 5, 1000);
     expect(r.lat).toBe(50);
     expect(r.lng).toBe(50);
+  });
+});
+
+describe('acceptFix (outlier gate)', () => {
+  beforeEach(() => resetMyFix());
+
+  it('accepts the first fix regardless of accuracy', () => {
+    expect(acceptFix(27.7, 85.3, 200, 0)).toBe(true);
+  });
+
+  it('rejects a teleport (impossible speed since last fix)', () => {
+    expect(acceptFix(27.7, 85.3, 10, 0)).toBe(true);
+    // ~1.1 km away 1 s later ⇒ ~1100 m/s — impossible.
+    expect(acceptFix(27.71, 85.3, 10, 1000)).toBe(false);
+  });
+
+  it('accepts realistic walking movement', () => {
+    expect(acceptFix(27.7, 85.3, 10, 0)).toBe(true);
+    // ~1.7 m north 1 s later ⇒ walking pace.
+    expect(acceptFix(27.700015, 85.3, 10, 1000)).toBe(true);
+  });
+
+  it('rejects a too-vague fix when a recent good one exists', () => {
+    expect(acceptFix(27.7, 85.3, 10, 0)).toBe(true);
+    expect(acceptFix(27.7, 85.3, 250, 1000)).toBe(false);
   });
 });
