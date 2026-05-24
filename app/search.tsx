@@ -43,7 +43,7 @@ export default function SearchScreen() {
   const filter = useFilter();
 
   const cellW = Math.floor((width - SIDE * 2 - GAP * (COLS - 1)) / COLS);
-  const cellH = cellW;
+  const cellH = Math.round(cellW * 1.5); // portrait wallpaper crop (was 1:1 square)
 
   const results = useMemo(
     () => searchWallpapers(debounced, filter.selected),

@@ -43,7 +43,7 @@ export default function CategoryScreen() {
   const listReady = useDeferredMount();
 
   const cellW = Math.floor((width - SIDE * 2 - GAP * (COLS - 1)) / COLS);
-  const cellH = cellW; // 1:1 square per design brief
+  const cellH = Math.round(cellW * 1.5); // portrait wallpaper crop — premium feel
 
   // Stable callbacks so the memoized WallpaperGridCells don't re-render.
   const openWallpaper = useCallback(

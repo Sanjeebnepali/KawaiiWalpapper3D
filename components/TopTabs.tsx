@@ -16,7 +16,9 @@ import { useTheme } from '../contexts/ThemeContext';
 const ROUTE_BY_TAB: Record<string, string | null> = {
   wallpapers: null,
   '2d': '/wallpapers/2d-kawaii',
-  dual: '/wallpapers/dual',
+  // "Premium Collection" tab → the real premium grid (Supabase premium/ images,
+  // diamond + paywall), not the old dual-pair mock screen.
+  dual: '/category/premium',
   'theme-packs': '/wallpapers/theme-packs',
 };
 
