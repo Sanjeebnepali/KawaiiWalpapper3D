@@ -1,7 +1,9 @@
 # Execution discipline (always active)
 
 - **make → test → fix → test.** After any code edit, verify before claiming done.
-  This project has no unit-test suite; the available verification gates are:
+  The available verification gates are:
+  - `npm test` (Jest + jest-expo — unit tests for pure logic in `lib/`, `store/`, and
+    extracted helpers, in `__tests__/` folders). Add/extend a test when you touch pure logic.
   - `npx tsc --noEmit` (type check — note: 5 pre-existing, unrelated errors exist;
     your change must not *add* new ones).
   - A real build/run when behaviour matters: `npx expo run:android` (or the

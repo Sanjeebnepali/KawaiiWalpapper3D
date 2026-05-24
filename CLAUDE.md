@@ -30,6 +30,9 @@ different project (keasy) and do not apply here.
 # Install (--legacy-peer-deps is REQUIRED — see below)
 npm install --legacy-peer-deps
 
+# Run unit tests (Jest + jest-expo — pure-logic coverage)
+npm test
+
 # Dev server + reload bundle
 npx expo start --clear
 
@@ -41,7 +44,7 @@ npx expo run:ios
 npx expo run:android --variant release --no-bundler
 ```
 
-No tests, lint, or typecheck scripts are wired up. TypeScript is configured (`tsconfig.json`) but only an editor aid — the build path is Babel via `babel-preset-expo`.
+Unit tests run via `npm test` (Jest + jest-expo) — currently pure-logic coverage (`lib/`, `store/`, extracted helpers) in `__tests__/` folders. No lint script is wired up. TypeScript is configured (`tsconfig.json`) but only an editor aid (it has 5 known pre-existing errors) — the build path is Babel via `babel-preset-expo`.
 
 ## "run" shortcut — install release APK, NOT Expo dev client
 

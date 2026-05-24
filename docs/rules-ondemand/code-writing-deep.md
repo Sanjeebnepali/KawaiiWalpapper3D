@@ -44,9 +44,13 @@ It expands the always-active [`.claude/rules/code-writing.md`](../../.claude/rul
 
 ## Testing / verification
 
-- No unit-test harness here. Verification = `npx tsc --noEmit` (no *new* errors) +
-  a real run on device for behavioural changes. Paste the evidence.
-- For a behaviour change, state the manual repro you ran and what you observed.
+- Unit tests: `npm test` (Jest + jest-expo). Tests live in `__tests__/` folders next to
+  the code; current coverage is pure logic (`lib/`, `store/`, extracted helpers). When
+  you add or change a pure function, add/update its test.
+- Plus `npx tsc --noEmit` (no *new* type errors) + a real device run for behavioural
+  changes. Paste the evidence.
+- Component/render tests (@testing-library/react-native) are not set up yet — a sensible
+  next step once pure-logic coverage grows.
 
 ## Refactoring
 
