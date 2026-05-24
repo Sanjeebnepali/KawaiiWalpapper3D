@@ -10,6 +10,7 @@ import {
 } from './wallpaperCatalog';
 import { ACCENTS, pic } from './mockData.tokens';
 import { type CategoryPhoto, type FeaturedItem } from './mockData.types';
+import { premiumPhotoById, premiumPhotos } from './premiumCatalog';
 
 // Public API preserved: symbols extracted to concern siblings are re-exported
 // here so every existing `constants/mockData` importer keeps working unchanged.
@@ -139,13 +140,18 @@ export const bestPicks: CategoryPhoto[] = BEST_PICKS.flatMap(({ group, key, n })
   (sectionByKey(group, key)?.photos ?? []).slice(0, n),
 );
 
-// The "Premium" button browses the curated best picks (all free for now).
+// The "Premium" collection — curated, subscription-gated images stored in the
+// Supabase `premium` bucket (constants/premiumCatalog + scripts/upload-premium.mjs).
+// Their ids ('premium-<uuid>') drive the diamond badge + the gatePremium() apply
+// lock. Falls back to the free best-picks if the catalog is empty (pre-upload).
 const PREMIUM_SECTION: CatalogSection = {
   group: 'category',
   key: 'premium',
   label: 'Premium',
-  tier: 'free',
-  photos: bestPicks,
+  tier: 'premium',
+  photos: premiumPhotos.length
+    ? premiumPhotos.map((p) => ({ id: p.id, image: p.image }))
+    : bestPicks,
 };
 
 /**
@@ -255,6 +261,14 @@ export function getPhotoById(id: string | null | undefined): FeaturedItem | unde
     id.startsWith('https://')
   ) {
     return { id, title: 'My photo', tag: 'Custom', image: id, accent: Colors.pink };
+  }
+  // Premium-collection ids ('premium-<uuid>') → their Supabase Storage URL.
+  // Tag 'Premium' + gold accent drive the preview's premium chrome.
+  if (id.startsWith('premium-')) {
+    const p = premiumPhotoById(id);
+    if (p) {
+      return { id: p.id, title: 'Premium', tag: 'Premium', image: p.image, accent: Colors.gold };
+    }
   }
   // Real catalog photo id (e.g. "category-football-2", "mood-love-3",
   // "2d-mixed-1") → resolve to its Supabase image URL.

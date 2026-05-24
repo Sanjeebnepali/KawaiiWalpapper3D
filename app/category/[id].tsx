@@ -16,6 +16,7 @@ import { premiumAlert } from '../../components/PremiumAlert';
 import { AnimatedButton } from '../../components/AnimatedButton';
 import { WallpaperGridCell } from '../../components/WallpaperGridCell';
 import { browseMeta, type CategoryPhoto } from '../../constants/mockData';
+import { isPremiumPhotoId } from '../../constants/premiumCatalog';
 import { Colors, Radius, Spacing } from '../../constants/theme';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useDeferredMount } from '../../hooks/useDeferredMount';
@@ -73,6 +74,7 @@ export default function CategoryScreen() {
         accent={meta.accent}
         width={cellW}
         height={cellH}
+        premium={isPremiumPhotoId(item.id)}
         onOpen={openWallpaper}
         onLongPress={onLongPressDownload}
       />

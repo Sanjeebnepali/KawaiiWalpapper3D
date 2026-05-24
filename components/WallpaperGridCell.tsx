@@ -16,6 +16,8 @@ export type WallpaperGridCellProps = {
   title?: string;
   /** Show the favorite heart toggle (wired to the favorites store). */
   showHeart?: boolean;
+  /** Show a gold diamond badge marking this as a premium (paid) wallpaper. */
+  premium?: boolean;
   /** Stable callbacks — parents should pass useCallback'd refs so memo holds. */
   onOpen: (id: string) => void;
   onLongPress?: (id: string) => void;
@@ -40,6 +42,7 @@ function WallpaperGridCellBase({
   accent: _accent = Colors.pink,
   title,
   showHeart = true,
+  premium = false,
   onOpen,
   onLongPress,
 }: WallpaperGridCellProps) {
@@ -84,6 +87,11 @@ function WallpaperGridCellBase({
       {/* Flat dark overlay (replaces LinearGradient — see changes/032).
           Same contrast against the white title text, ~10× cheaper to paint. */}
       <View style={styles.fade} pointerEvents="none" />
+      {premium ? (
+        <View style={styles.premiumBadge} pointerEvents="none">
+          <Ionicons name="diamond" size={11} color="#131313" />
+        </View>
+      ) : null}
       {title ? (
         <Text style={styles.title} numberOfLines={1}>
           {title}
@@ -127,6 +135,17 @@ const styles = StyleSheet.create({
     color: Colors.text,
     fontSize: 12,
     fontWeight: '700',
+  },
+  premiumBadge: {
+    position: 'absolute',
+    top: 6,
+    left: 6,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: Colors.gold,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   heartBtn: {
     position: 'absolute',

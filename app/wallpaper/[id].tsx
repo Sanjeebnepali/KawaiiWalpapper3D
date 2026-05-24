@@ -18,6 +18,8 @@ import {
 } from '../../components/WallpaperInfoModal';
 import { styles } from '../../components/wallpaperPreview/styles';
 import { getPhotoById } from '../../constants/mockData';
+import { isPremiumPhotoId } from '../../constants/premiumCatalog';
+import { gatePremium } from '../../components/PremiumLock';
 import { Colors } from '../../constants/theme';
 import { useTheme } from '../../contexts/ThemeContext';
 import { toast } from '../../lib/toast';
@@ -124,12 +126,22 @@ export default function WallpaperPreview() {
   // One-tap Apply: skip the Lock/Home/Both modal and apply to BOTH screens.
   // Long-press Apply still opens the modal if the user wants a target choice
   // (changes/017).
-  const onApplyTap = async () => {
+  const onApplyTap = () => {
     if (applying || !item) return;
-    setApplying(true);
-    const r = await setAsWallpaper(item.image, item.id, 'both');
-    if (mountedRef.current) setApplying(false);
-    toast(r.message);
+    const doApply = async () => {
+      setApplying(true);
+      const r = await setAsWallpaper(item.image, item.id, 'both');
+      if (mountedRef.current) setApplying(false);
+      toast(r.message);
+    };
+    // Premium wallpapers require a subscription. gatePremium runs doApply
+    // immediately if the user is premium, otherwise pops the paywall (and
+    // runs it once they subscribe). Free wallpapers apply straight away.
+    if (isPremiumPhotoId(item.id)) {
+      gatePremium(() => void doApply());
+    } else {
+      void doApply();
+    }
   };
 
   // Unavailable state (CORE-7) — the id didn't resolve to a real catalog /
