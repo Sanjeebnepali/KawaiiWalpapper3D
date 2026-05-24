@@ -123,22 +123,54 @@ export const categoryMeta: Record<string, { title: string; accent: string }> =
     {} as Record<string, { title: string; accent: string }>,
   );
 
-// Curated "Best Picks" for the home hero — the strongest images. Painting +
-// Stylish + Photography lead (owner's picks). gym/yoga are intentionally left
-// out (they live in the category row). Edit BEST_PICKS to recurate.
-const BEST_PICKS: { group: 'category' | 'mood' | '2d'; key: string; n: number }[] = [
-  { group: 'category', key: 'painting', n: 3 },
-  { group: 'category', key: 'stylish', n: 3 },
-  { group: 'category', key: 'photography', n: 3 },
-  { group: 'mood', key: 'love', n: 2 },
-  { group: '2d', key: 'mixed', n: 2 },
-  { group: 'category', key: 'dance', n: 2 },
-  { group: 'category', key: 'cooking', n: 2 },
-  { group: 'mood', key: 'happy', n: 1 },
+// Hand-picked "Best Fit" home grid (owner-curated, FREE — never premium). Each
+// category is a row of 3 in the 3-col grid. Some tiles are specific uploaded
+// images (wallpapers/category/<key>/<file>); the rest keep existing catalog
+// images. Edit the list below to recurate.
+const SB_URL = process.env.EXPO_PUBLIC_SUPABASE_URL ?? '';
+/** A specific uploaded image picked for a Best Fit tile. */
+function bfPhoto(key: string, file: string): CategoryPhoto {
+  return {
+    id: `bf-${key}-${file.replace(/\.[^.]+$/, '')}`,
+    image: `${SB_URL}/storage/v1/object/public/wallpapers/category/${key}/${file}`,
+  };
+}
+/** First `n` existing catalog photos of a category (for kept tiles). */
+function catPhotos(key: string, n: number): CategoryPhoto[] {
+  return (sectionByKey('category', key)?.photos ?? []).slice(0, n);
+}
+export const bestPicks: CategoryPhoto[] = [
+  // Painting — keep #1, then two hand-picked.
+  ...catPhotos('painting', 1),
+  bfPhoto('painting', 'a3a932eb-d7bd-40e2-8692-6dd6d9222204.png'),
+  bfPhoto('painting', '734f7490-8b2f-4b8e-96f4-2f341efac069.png'),
+  // Playing-game — NEW row, right after painting.
+  bfPhoto('playing-game', '05d13085-7a4d-4569-b6e3-c07d0a09af66.png'),
+  bfPhoto('playing-game', '7d3379b3-f0a2-410a-ae03-722eeff4a50d.png'),
+  bfPhoto('playing-game', '536a274e-bbee-4445-a98c-4362ac7d1c3c.png'),
+  // Football — keep #1 #2, hand-picked #3.
+  ...catPhotos('football', 2),
+  bfPhoto('football', 'ddae626d-83f0-4de4-9aac-e70d5c141ac1.png'),
+  // Studying — keep #1 #2, hand-picked #3.
+  ...catPhotos('studying', 2),
+  bfPhoto('studying', 'fd3a40c4-8ffc-43c4-918a-16aa9248dcb8.png'),
+  // Dance — keep #1 #2, hand-picked #3.
+  ...catPhotos('dance', 2),
+  bfPhoto('dance', 'cd3c4e31-32f4-4ebd-bea8-f5494c91b246.png'),
+  // Cooking — two hand-picked, keep one catalog tile.
+  bfPhoto('cooking', '86ada00c-8d59-4bc2-ad4f-c5ac1e8dabbe.png'),
+  bfPhoto('cooking', '93496523-7db6-4527-a59f-2325e2bcbaa4.png'),
+  ...catPhotos('cooking', 1),
+  // Gardening — replaces Photography; three hand-picked.
+  bfPhoto('gardening', 'bcc748f2-1588-4559-b756-3385fdbb431e.png'),
+  bfPhoto('gardening', 'ac6aefc2-33a8-481e-a9c1-0d7e6c79b506.png'),
+  bfPhoto('gardening', '3813c364-fba4-42c3-921b-2c4a99978e0b.png'),
+  // Remain-as-is rows (already good).
+  ...catPhotos('stylish', 3),
+  ...(sectionByKey('mood', 'love')?.photos ?? []).slice(0, 2),
+  ...(sectionByKey('2d', 'mixed')?.photos ?? []).slice(0, 2),
+  ...(sectionByKey('mood', 'happy')?.photos ?? []).slice(0, 1),
 ];
-export const bestPicks: CategoryPhoto[] = BEST_PICKS.flatMap(({ group, key, n }) =>
-  (sectionByKey(group, key)?.photos ?? []).slice(0, n),
-);
 
 // The "Premium" collection — curated, subscription-gated images stored in the
 // Supabase `premium` bucket (constants/premiumCatalog + scripts/upload-premium.mjs).
@@ -198,6 +230,10 @@ export function getCategoryPhotos(id: string, count = 24): CategoryPhoto[] {
 // Curated premium hero — the best-looking spread across groups, to make the
 // home feel high-end. EDIT THIS LIST to change what headlines the home: each
 // entry pulls the first image of that section. (Owner can hand-pick later.)
+// Featured "2D Kawaii" headline — a hand-picked uploaded 2D image (free).
+const FEATURED_2D_ID = 'featured-2d-nervous';
+const FEATURED_2D_IMAGE = `${SB_URL}/storage/v1/object/public/wallpapers/2d/nervous/33bfb1fb-45c8-4eaa-8092-7f426b8040ac.png`;
+
 const FEATURED_PICKS: { group: 'category' | 'mood' | '2d'; key: string; tag: string }[] = [
   { group: 'category', key: 'stylish', tag: 'Premium' },
   { group: 'mood', key: 'love', tag: 'Trending' },
@@ -213,6 +249,10 @@ export const featured: FeaturedItem[] = FEATURED_PICKS.flatMap((p, i) => {
   if (p.tag === 'Premium' && premiumPhotos.length > 0) {
     const pp = premiumPhotoById(FEATURED_PREMIUM_ID) ?? premiumPhotos[0];
     return [{ id: pp.id, title: 'Premium', tag: 'Premium', image: pp.image, accent: Colors.gold, premium: true }];
+  }
+  // The '2D Kawaii' headline uses a hand-picked uploaded 2D image (FREE).
+  if (p.tag === '2D Kawaii') {
+    return [{ id: FEATURED_2D_ID, title: '2D Kawaii', tag: '2D Kawaii', image: FEATURED_2D_IMAGE, accent: ACCENTS[i % ACCENTS.length] }];
   }
   const sec = sectionByKey(p.group, p.key);
   const photo = sec?.photos[0];
@@ -297,6 +337,9 @@ export function getPhotoById(id: string | null | undefined): FeaturedItem | unde
   }
   const f = featured.find((x) => x.id === id);
   if (f) return f;
+  // Hand-picked Best Fit tiles (uploaded images not in the numbered catalog).
+  const bf = bestPicks.find((p) => p.id === id);
+  if (bf) return { id: bf.id, title: 'Best Fit', tag: 'Wallpaper', image: bf.image, accent: Colors.pink };
   // No real asset backs this id (CORE-7). Previously a "slug-N" id matched a
   // generic regex and got a fabricated `pic(id)` (random picsum) URL — so a
   // stale favorite id from an older catalog rendered an unrelated stock image
