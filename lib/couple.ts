@@ -257,3 +257,40 @@ export async function setCouplePaused(
   useCoupleStore.getState().setCoupleSettings({ paused });
   return { ok: true };
 }
+
+/**
+ * Switch which side (role 'a' / 'b' → e.g. Boy / Girl) the local user is, AFTER
+ * linking. The two roles must stay opposite (the `couples_roles_differ_check`
+ * constraint + the "two halves complete the picture" design), so picking my
+ * side also flips the partner to the other one — written in a single update so
+ * the post-update row never violates the differ constraint.
+ *
+ * Uses the "couples: update own" RLS policy (a member may update their couple
+ * row), so no new RPC is needed. The partner receives the swap via the
+ * `couples` realtime channel (status stays 'linked' → re-fetch → setLink), and
+ * both phones re-apply the wallpaper via the myRole-change subscriber in
+ * `coupleBootstrap`.
+ */
+export async function setMyCoupleRole(
+  role: CoupleRole,
+): Promise<{ ok: boolean; error?: string }> {
+  const link = useCoupleStore.getState().link;
+  if (!link || link.status !== 'linked') {
+    return { ok: false, error: 'Not linked yet' };
+  }
+  const opposite: CoupleRole = role === 'a' ? 'b' : 'a';
+  const creatorRole = link.isCreator ? role : opposite;
+  const partnerRole = link.isCreator ? opposite : role;
+
+  const { error } = await supabase
+    .from('couples')
+    .update({ creator_role: creatorRole, partner_role: partnerRole })
+    .eq('code', link.code);
+  if (error) return { ok: false, error: error.message };
+
+  // Reflect locally at once; realtime echoes the same values to both phones.
+  useCoupleStore
+    .getState()
+    .setLink({ ...link, myRole: role, partnerRole: opposite });
+  return { ok: true };
+}

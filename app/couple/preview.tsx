@@ -15,6 +15,8 @@ import {
 } from '../../constants/couplePacks';
 import { Colors, Spacing } from '../../constants/theme';
 import { useTheme } from '../../contexts/ThemeContext';
+import { setMyCoupleRole } from '../../lib/couple';
+import { toast } from '../../lib/toast';
 import {
   useCoupleLink,
   useCouplePackId,
@@ -60,6 +62,20 @@ export default function CouplePreview() {
 
   const onContinue = () => {
     router.push(`/couple/setup?packId=${pack.id}&role=${role}` as Href);
+  };
+
+  // Tap a side. Before linking it's just the local pick carried to setup.
+  // After linking it PERSISTS immediately — swapping the partner to the other
+  // half (roles must stay opposite) and re-applying the wallpaper.
+  const onPickSide = async (value: CoupleRole) => {
+    setRole(value); // instant highlight either way
+    if (!isLinked || value === link?.myRole) return;
+    const res = await setMyCoupleRole(value);
+    if (!res.ok) {
+      toast(res.error ?? 'Could not change side');
+      return;
+    }
+    toast(`✓ You're now ${value === 'a' ? pack.roleALabel : pack.roleBLabel}`);
   };
 
   const roles: { value: CoupleRole; label: string; emoji?: string; image: number | string }[] = [
@@ -129,7 +145,7 @@ export default function CouplePreview() {
             return (
               <SimpleButton
                 key={r.value}
-                onPress={() => setRole(r.value)}
+                onPress={() => onPickSide(r.value)}
                 style={[
                   styles.soloCard,
                   { width: soloW, height: soloH },

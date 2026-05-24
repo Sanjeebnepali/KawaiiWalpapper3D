@@ -110,6 +110,11 @@ export async function bootstrapCoupleFeature(): Promise<void> {
     if (state.proximity !== prev.proximity) {
       void applyProximityWallpaper();
     }
+    // Role changed — either we switched our side, or the partner switched and
+    // realtime swapped ours — so re-apply to show the correct solo half.
+    if (state.link?.myRole !== prev.link?.myRole) {
+      void applyProximityWallpaper();
+    }
     // Pack swap → precache new images AND apply immediately so the
     // user sees the change without waiting for the next location tick.
     if (state.couplePackId !== prev.couplePackId) {

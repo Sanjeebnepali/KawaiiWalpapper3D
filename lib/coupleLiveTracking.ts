@@ -26,7 +26,7 @@ import { useCoupleStore } from '../store/couple';
  * Module-scoped singleton timer (not per-component state) so a quick
  * blur→focus or a re-render never stacks two loops.
  */
-const LIVE_INTERVAL_MS = 3000;
+const LIVE_INTERVAL_MS = 1500;
 
 let liveTimer: ReturnType<typeof setInterval> | null = null;
 let ticking = false;
