@@ -13,6 +13,10 @@ const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL ?? '';
 export const PREMIUM_BUCKET = 'wallpapers';
 export const PREMIUM_PREFIX = 'premium/';
 
+/** Hand-picked hero image for the home Featured carousel. Change to any
+ *  'premium-<uuid>' id (from premiumPhotos) to re-headline the collection. */
+export const FEATURED_PREMIUM_ID = 'premium-6cfe0872-39df-4ffc-962e-8aacf4058e18';
+
 /** Exact object names in the bucket (kept in sync with the upload folder). */
 export const PREMIUM_FILES: readonly string[] = [
   "0cd0dc0e-5a38-4e9d-b500-d634fe9ad987.png",

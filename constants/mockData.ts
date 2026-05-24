@@ -10,7 +10,7 @@ import {
 } from './wallpaperCatalog';
 import { ACCENTS, pic } from './mockData.tokens';
 import { type CategoryPhoto, type FeaturedItem } from './mockData.types';
-import { premiumPhotoById, premiumPhotos } from './premiumCatalog';
+import { FEATURED_PREMIUM_ID, premiumPhotoById, premiumPhotos } from './premiumCatalog';
 
 // Public API preserved: symbols extracted to concern siblings are re-exported
 // here so every existing `constants/mockData` importer keeps working unchanged.
@@ -205,7 +205,7 @@ export const featured: FeaturedItem[] = FEATURED_PICKS.flatMap((p, i) => {
   // diamond + paywall on apply), not a free category image. Uses the first
   // premium image — swap premiumPhotos[0] for a hand-picked "best" one anytime.
   if (p.tag === 'Premium' && premiumPhotos.length > 0) {
-    const pp = premiumPhotos[0];
+    const pp = premiumPhotoById(FEATURED_PREMIUM_ID) ?? premiumPhotos[0];
     return [{ id: pp.id, title: 'Premium', tag: 'Premium', image: pp.image, accent: Colors.gold, premium: true }];
   }
   const sec = sectionByKey(p.group, p.key);
