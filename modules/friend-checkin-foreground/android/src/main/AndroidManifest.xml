@@ -1,0 +1,21 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+  <!-- Foreground service that ticks every N minutes so the JS-side Mood
+       "friend asks how are you feeling?" check-in prompt fires on a reliable
+       cadence while the app is closed. Uses the SPECIAL_USE FGS type (no AOSP
+       type fits a generic periodic timer). Permissions below are merged into
+       the app manifest at build time. -->
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+  <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+  <application>
+    <service
+      android:name=".FriendCheckinForegroundService"
+      android:exported="false"
+      android:foregroundServiceType="specialUse">
+      <property
+        android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+        android:value="Periodic friend check-in tick for mood prompts" />
+    </service>
+  </application>
+</manifest>

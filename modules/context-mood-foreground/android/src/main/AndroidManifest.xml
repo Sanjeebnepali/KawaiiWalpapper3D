@@ -1,0 +1,20 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+  <!-- Foreground service that ticks every N minutes so JS-side context-mood
+       inference runs while the app is closed. Uses the SPECIAL_USE FGS type
+       (no AOSP type fits a generic periodic timer). Permissions below are
+       merged into the app manifest at build time. -->
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+  <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+  <application>
+    <service
+      android:name=".ContextMoodForegroundService"
+      android:exported="false"
+      android:foregroundServiceType="specialUse">
+      <property
+        android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+        android:value="Periodic mood inference tick for wallpaper automation" />
+    </service>
+  </application>
+</manifest>

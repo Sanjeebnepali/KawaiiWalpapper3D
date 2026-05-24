@@ -1,0 +1,23 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+  <!-- Foreground service that rotates the wallpaper on a fixed interval while
+       the app is closed. Uses the SPECIAL_USE FGS type (no AOSP type fits a
+       generic periodic wallpaper timer). SET_WALLPAPER is required by
+       WallpaperManager.setBitmap. POST_NOTIFICATIONS for the ongoing
+       low-priority notification on Android 13+. Permissions below are merged
+       into the app manifest at build time. -->
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+  <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+  <uses-permission android:name="android.permission.SET_WALLPAPER" />
+
+  <application>
+    <service
+      android:name=".ShuffleForegroundService"
+      android:exported="false"
+      android:foregroundServiceType="specialUse">
+      <property
+        android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+        android:value="Periodic wallpaper rotation while app is closed" />
+    </service>
+  </application>
+</manifest>
