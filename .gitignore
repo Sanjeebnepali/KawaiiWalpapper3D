@@ -22,3 +22,5 @@ image-pipeline/_audit_hi/
 
 # IDE
 .idea/
+# Claude runtime scheduled-task lock (session state)
+.claude/scheduled_tasks.lock
