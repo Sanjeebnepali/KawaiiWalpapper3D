@@ -141,7 +141,7 @@ export function useAiGenerator() {
   const onOpenHistoryItem = useCallback(
     (g: AIGeneration) =>
       router.push({
-        pathname: '/ai/preview' as Href,
+        pathname: '/ai/preview',
         params: {
           uri: g.localUri,
           prompt: g.prompt,
@@ -209,7 +209,7 @@ export function useAiGenerator() {
             // preview auto-saves it exactly once (AI-4) — re-opens from
             // the recent strip omit the flag.
             router.push({
-              pathname: '/ai/preview' as Href,
+              pathname: '/ai/preview',
               params: {
                 uri: r.localUri,
                 prompt: trimmed,

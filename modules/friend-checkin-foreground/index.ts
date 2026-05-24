@@ -53,6 +53,10 @@ type FriendCheckinForegroundModule = NativeModule<{
   start(intervalMinutes: number): void;
   stop(): void;
   isRunning(): boolean;
+  addListener(
+    event: 'onTick',
+    listener: (ev: FriendTickEvent) => void,
+  ): EventSubscription;
 };
 
 const native = requireOptionalNativeModule<FriendCheckinForegroundModule>(

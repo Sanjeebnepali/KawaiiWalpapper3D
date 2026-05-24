@@ -38,6 +38,10 @@ type ContextMoodForegroundModule = NativeModule<{
   start(intervalMinutes: number): void;
   stop(): void;
   isRunning(): boolean;
+  addListener(
+    event: 'onTick',
+    listener: (ev: ContextMoodTickEvent) => void,
+  ): EventSubscription;
 };
 
 const native = requireOptionalNativeModule<ContextMoodForegroundModule>(

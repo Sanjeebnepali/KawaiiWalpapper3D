@@ -224,7 +224,7 @@ export default function AIPreview() {
     // Pass the prompt back to the AI tab via a router replace so the
     // user lands on the prompt input with their text pre-filled.
     router.replace({
-      pathname: '/(tabs)/ai' as Href,
+      pathname: '/(tabs)/ai',
       params: { prompt },
     });
   }, [prompt, router]);
