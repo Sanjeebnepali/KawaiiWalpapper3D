@@ -52,6 +52,11 @@ export type State = {
   // Background dedupe
   lastBgMood: MoodId | null;
 
+  /** Background mood tick: rotate within the same mood every tick (true) vs.
+   *  keep one photo per mood, only changing when the mood changes (false,
+   *  default). User-facing toggle on the Mood screen. */
+  rotateWithinMood: boolean;
+
   /** The continuous driver ('theme' | 'mood' | 'friend') the user most
    *  recently enabled. Persisted so the bootstrap single-driver
    *  normalization keeps the user's last choice instead of the fixed
@@ -79,6 +84,7 @@ export type Actions = {
   setCurrentMoodPhoto: (id: string | null) => Promise<void>;
 
   setBackgroundEnabled: (enabled: boolean) => Promise<void>;
+  setRotateWithinMood: (rotate: boolean) => Promise<void>;
   setNotifEnabled: (enabled: boolean) => Promise<void>;
   setNotifHour: (hour: number) => Promise<void>;
   setLastBgMood: (mood: MoodId | null) => Promise<void>;

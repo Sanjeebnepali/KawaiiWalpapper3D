@@ -1,14 +1,7 @@
-import { Ionicons } from '@expo/vector-icons';
-import { useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { Colors, Radius, Spacing } from '../../constants/theme';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useCoupleStore } from '../../store/couple';
-import {
-  runCoupleConnectionCheck,
-  type CoupleConnectionCheck,
-} from '../../lib/coupleDiagnostics';
-import { AnimatedButton } from '../AnimatedButton';
 
 /** Relative-age label for a `Date.now()` timestamp, or a dash when null. */
 function ageLabel(at: number | null): string {
@@ -20,10 +13,10 @@ function ageLabel(at: number | null): string {
 }
 
 /**
- * Couple connection diagnostics — surfaces the proximity feature's live state
- * + an on-demand end-to-end check, because every failure in the push/read path
- * is silenced in a release build (`if (__DEV__) console.warn`). Lets the user
- * (and us) see WHICH link is broken instead of an unexplained default distance.
+ * Couple connection status — a live read-out of the proximity feature's state
+ * (my location sent, partner location received, distance, proximity, last
+ * error). The on-demand "Run connection check" button was removed per the
+ * owner's request; the status card stays as an always-visible health view.
  */
 export function CoupleDiagnostics() {
   const theme = useTheme();
@@ -32,20 +25,6 @@ export function CoupleDiagnostics() {
   const distanceM = useCoupleStore((s) => s.partnerDistanceM);
   const proximity = useCoupleStore((s) => s.proximity);
   const error = useCoupleStore((s) => s.error);
-
-  const [running, setRunning] = useState(false);
-  const [result, setResult] = useState<CoupleConnectionCheck | null>(null);
-
-  const onRun = async () => {
-    setRunning(true);
-    try {
-      setResult(await runCoupleConnectionCheck());
-    } catch (e) {
-      setResult({ lines: [`✗ Check crashed — ${(e as Error)?.message}`], ok: false });
-    } finally {
-      setRunning(false);
-    }
-  };
 
   return (
     <View style={[styles.card, { borderColor: Colors.border }]}>
@@ -65,37 +44,6 @@ export function CoupleDiagnostics() {
       <Row label="Proximity" value={proximity} good={proximity !== 'unknown'} />
 
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
-
-      <AnimatedButton
-        onPress={onRun}
-        disabled={running}
-        style={[styles.btn, { backgroundColor: theme.primary }]}
-      >
-        {running ? (
-          <ActivityIndicator color="#131313" size="small" />
-        ) : (
-          <>
-            <Ionicons name="pulse" size={15} color="#131313" />
-            <Text style={styles.btnText}>Run connection check</Text>
-          </>
-        )}
-      </AnimatedButton>
-
-      {result ? (
-        <View style={styles.resultBox}>
-          {result.lines.map((line, i) => (
-            <Text
-              key={i}
-              style={[
-                styles.resultLine,
-                { color: line.startsWith('✗') ? Colors.gold : theme.text },
-              ]}
-            >
-              {line}
-            </Text>
-          ))}
-        </View>
-      ) : null}
     </View>
   );
 }
@@ -126,16 +74,4 @@ const styles = StyleSheet.create({
   rowLabel: { fontSize: 13 },
   rowValue: { fontSize: 13, fontWeight: '700' },
   errorText: { color: Colors.gold, fontSize: 12, marginTop: 6 },
-  btn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    paddingVertical: 10,
-    borderRadius: Radius.md,
-    marginTop: Spacing.sm,
-  },
-  btnText: { color: '#131313', fontWeight: '800', fontSize: 13 },
-  resultBox: { marginTop: Spacing.sm, gap: 3 },
-  resultLine: { fontSize: 12, lineHeight: 17 },
 });

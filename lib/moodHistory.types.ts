@@ -26,6 +26,9 @@ export type LoadedMoodMode = {
   notifEnabled: boolean;
   notifHour: number;
   lastBgMood: MoodId | null;
+  /** Background tick rotates within the same mood every tick (true) vs. one
+   *  photo per mood until the mood changes (false, default). */
+  rotateWithinMood: boolean;
   appOpenEnabled: boolean;
   appOpenTargets: TargetAppId[] | null;
   friendCheckInEnabled: boolean;

@@ -17,6 +17,7 @@ import {
   saveMoodModeEnabled,
   saveNotifEnabled,
   saveNotifHour,
+  saveRotateWithinMood,
   saveSleepWakeCustomSleep,
   saveSleepWakeCustomWake,
   saveSleepWakeEnabled,
@@ -57,6 +58,7 @@ export const useMoodStore = create<State & Actions>((set, get) => ({
   backgroundEnabled: false,
   notifEnabled: false,
   notifHour: 8,
+  rotateWithinMood: false,
   appOpenEnabled: false,
   appOpenTargets: DEFAULT_ENABLED_TARGETS,
   friendCheckInEnabled: false,
@@ -100,6 +102,7 @@ export const useMoodStore = create<State & Actions>((set, get) => ({
         backgroundEnabled: mode.bgEnabled,
         notifEnabled: mode.notifEnabled,
         notifHour: mode.notifHour,
+        rotateWithinMood: mode.rotateWithinMood,
         appOpenEnabled: mode.appOpenEnabled,
         appOpenTargets:
           mode.appOpenTargets ?? DEFAULT_ENABLED_TARGETS,
@@ -190,6 +193,11 @@ export const useMoodStore = create<State & Actions>((set, get) => ({
   setBackgroundEnabled: async (enabled) => {
     set({ backgroundEnabled: enabled });
     await saveBgEnabled(enabled);
+  },
+
+  setRotateWithinMood: async (rotate) => {
+    set({ rotateWithinMood: rotate });
+    await saveRotateWithinMood(rotate);
   },
 
   setNotifEnabled: async (enabled) => {

@@ -243,7 +243,14 @@ export default function CoupleDashboard() {
       <StatusBar style="light" />
 
       <View style={styles.header}>
-        <AnimatedButton onPress={() => router.back()} style={styles.backBtn}>
+        <AnimatedButton
+          onPress={() =>
+            router.canGoBack()
+              ? router.back()
+              : router.replace('/couple' as Href)
+          }
+          style={styles.backBtn}
+        >
           <Ionicons name="chevron-back" size={22} color={theme.text} />
         </AnimatedButton>
         <Text style={[styles.title, { color: theme.text }]}>Couple</Text>

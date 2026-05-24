@@ -37,6 +37,10 @@ export const BG_ENABLED_KEY = '@kawaii/mood/bg@v1';
 export const NOTIF_ENABLED_KEY = '@kawaii/mood/notif@v1';
 export const NOTIF_HOUR_KEY = '@kawaii/mood/notifHour@v1';
 export const LAST_BG_MOOD_KEY = '@kawaii/mood/lastBgMood@v1';
+/** When true, the background mood tick rotates to a DIFFERENT photo in the
+ *  same mood bucket every tick (lively). When false (default), it keeps one
+ *  photo per mood and only changes the wallpaper when the mood itself changes. */
+export const ROTATE_WITHIN_MOOD_KEY = '@kawaii/mood/rotateWithinMood@v1';
 export const APP_OPEN_ENABLED_KEY = '@kawaii/mood/appOpen@v1';
 export const APP_OPEN_TARGETS_KEY = '@kawaii/mood/appOpenTargets@v1';
 export const FRIEND_ENABLED_KEY = '@kawaii/mood/friend@v1';

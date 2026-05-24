@@ -187,15 +187,18 @@ export async function runMoodBackgroundOnce(): Promise<boolean> {
   const steps = await recentSteps(60);
   const ctx = inferContextMoodNow(steps);
 
-  // 2) No same-mood dedupe. The earlier version short-circuited when the
-  //    context mood matched `lastBgMood`, which meant a locked-screen user
-  //    saw NO rotation for hours because the time-bucketed mood only
-  //    changes every ~4 h (06/10/14/18/22/02 boundaries). Same UX bug the
-  //    camera path already removed (see MoodEngineHost.tsx, lines 84-91).
-  //    `pickPhotoForMood` already excludes `currentPhotoId`, so a
-  //    same-mood tick rotates to a different photo in the same bucket
-  //    instead of staying frozen. `lastBgMood` is still written below so
-  //    the store stays consistent if other code starts reading it.
+  // 2) Same-mood handling is now USER-CONTROLLED (the "images change too
+  //    frequently in the same category" fix):
+  //    - rotateWithinMood OFF (default) → keep ONE photo per mood; only
+  //      change the wallpaper when the inferred mood actually changes. We
+  //      short-circuit here when the mood matches the last background mood.
+  //    - rotateWithinMood ON → fall through every tick; `pickPhotoForMood`
+  //      excludes `currentPhotoId`, so a same-mood tick rotates to a
+  //      different photo in the same bucket (the lively behaviour the user
+  //      can opt into).
+  if (!moodState.rotateWithinMood && ctx.mood === moodState.lastBgMood) {
+    return false;
+  }
 
   // 3) Apply a fresh photo from the chosen Collection.
   const r = await applyMoodPhotoFromCollection(

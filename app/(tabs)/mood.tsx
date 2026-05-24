@@ -145,6 +145,8 @@ export default function MoodHome() {
   const moodCollectionId = useMoodStore((s) => s.moodCollectionId);
   const currentPhotoId = useMoodStore((s) => s.currentPhotoId);
   const backgroundEnabled = useMoodStore((s) => s.backgroundEnabled);
+  const rotateWithinMood = useMoodStore((s) => s.rotateWithinMood);
+  const setRotateWithinMood = useMoodStore((s) => s.setRotateWithinMood);
   const notifEnabled = useMoodStore((s) => s.notifEnabled);
   const notifHour = useMoodStore((s) => s.notifHour);
   const friendCheckInEnabled = useMoodStore((s) => s.friendCheckInEnabled);
@@ -401,6 +403,13 @@ export default function MoodHome() {
       }
     });
   }, [backgroundEnabled, moodCollectionId, setBackgroundEnabled, router]);
+
+  // ─── Toggle photo-variety (rotate within the same mood) ─────────────────
+  const onToggleRotateWithinMood = useCallback(async () => {
+    const next = !rotateWithinMood;
+    await setRotateWithinMood(next);
+    toast(next ? '✓ New photo on every check' : '✓ One photo per mood');
+  }, [rotateWithinMood, setRotateWithinMood]);
 
   // ─── Toggle Notification ─────────────────────────────────────────────────
   const onToggleNotif = useCallback(async () => {
@@ -1497,6 +1506,43 @@ export default function MoodHome() {
                 />
               </AnimatedButton>
             </View>
+
+            {/* Photo-variety toggle — only meaningful while background is on.
+                OFF (default): one photo per mood, changes only when the mood
+                changes. ON: a new photo in the same mood bucket every check. */}
+            {backgroundEnabled ? (
+              <View style={styles.subRow}>
+                <View style={styles.subRowIcon}>
+                  <Ionicons name="shuffle-outline" size={16} color={theme.secondary} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.subRowTitle, { color: theme.text }]}>
+                    Change photo every check
+                  </Text>
+                  <Text style={styles.subRowBody}>
+                    {rotateWithinMood
+                      ? 'New photo each time, even for the same mood'
+                      : 'One photo per mood — changes only when your mood does'}
+                  </Text>
+                </View>
+                <AnimatedButton
+                  onPress={onToggleRotateWithinMood}
+                  style={[
+                    styles.toggleBtn,
+                    rotateWithinMood
+                      ? { backgroundColor: theme.secondary }
+                      : { backgroundColor: Colors.surfaceHi },
+                  ]}
+                >
+                  <View
+                    style={[
+                      styles.toggleKnob,
+                      rotateWithinMood && styles.toggleKnobOn,
+                    ]}
+                  />
+                </AnimatedButton>
+              </View>
+            ) : null}
 
             {/* Notification toggle row */}
             <View style={styles.subRow}>

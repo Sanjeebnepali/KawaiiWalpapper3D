@@ -6,6 +6,7 @@ import {
   getStorage, isMissingNativeModule, LAST_BG_MOOD_KEY,
   LAST_ENABLED_DRIVER_KEY, markBridgeDead, MODE_COLLECTION_KEY,
   MODE_ENABLED_KEY, NOTIF_ENABLED_KEY, NOTIF_HOUR_KEY, parseNum,
+  ROTATE_WITHIN_MOOD_KEY,
   SW_CUSTOM_SLEEP_KEY, SW_CUSTOM_WAKE_KEY, SW_ENABLED_KEY,
   SW_LAST_SLEEP_DAY_KEY, SW_LAST_WAKE_DAY_KEY, SW_PACK_KEY,
   SW_SLEEP_HOUR_KEY, SW_WAKE_HOUR_KEY,
@@ -21,6 +22,7 @@ let memBgEnabled = false;
 let memNotifEnabled = false;
 let memNotifHour = 8;
 let memLastBgMood: MoodId | null = null;
+let memRotateWithinMood = false;
 let memAppOpenEnabled = false;
 let memAppOpenTargets: TargetAppId[] | null = null;
 let memFriendEnabled = false;
@@ -44,6 +46,7 @@ function memSnapshot(): LoadedMoodMode {
     notifEnabled: memNotifEnabled,
     notifHour: memNotifHour,
     lastBgMood: memLastBgMood,
+    rotateWithinMood: memRotateWithinMood,
     appOpenEnabled: memAppOpenEnabled,
     appOpenTargets: memAppOpenTargets,
     friendCheckInEnabled: memFriendEnabled,
@@ -66,7 +69,7 @@ export async function loadMoodMode(): Promise<LoadedMoodMode> {
   try {
     const [
       enabledRaw, collId, photoId,
-      bgRaw, notifRaw, notifHourRaw, lastBgRaw,
+      bgRaw, notifRaw, notifHourRaw, lastBgRaw, rotateRaw,
       appOpenRaw, appOpenTargetsRaw,
       friendRaw, friendMinRaw,
       swRaw, swPackRaw, swWakeRaw, swSleepRaw,
@@ -81,6 +84,7 @@ export async function loadMoodMode(): Promise<LoadedMoodMode> {
       s.getItem(NOTIF_ENABLED_KEY),
       s.getItem(NOTIF_HOUR_KEY),
       s.getItem(LAST_BG_MOOD_KEY),
+      s.getItem(ROTATE_WITHIN_MOOD_KEY),
       s.getItem(APP_OPEN_ENABLED_KEY),
       s.getItem(APP_OPEN_TARGETS_KEY),
       s.getItem(FRIEND_ENABLED_KEY),
@@ -110,6 +114,7 @@ export async function loadMoodMode(): Promise<LoadedMoodMode> {
       notifEnabled: notifRaw === '1',
       notifHour: parseNum(notifHourRaw, 8, 0, 23),
       lastBgMood: (lastBgRaw as MoodId | null) ?? null,
+      rotateWithinMood: rotateRaw === '1',
       appOpenEnabled: appOpenRaw === '1',
       appOpenTargets,
       friendCheckInEnabled: friendRaw === '1',
@@ -128,6 +133,14 @@ export async function loadMoodMode(): Promise<LoadedMoodMode> {
     if (isMissingNativeModule(e)) markBridgeDead(e);
     return memSnapshot();
   }
+}
+
+export async function saveRotateWithinMood(rotate: boolean): Promise<void> {
+  memRotateWithinMood = rotate;
+  const s = getStorage();
+  if (!s) return;
+  try { await s.setItem(ROTATE_WITHIN_MOOD_KEY, rotate ? '1' : '0'); }
+  catch (e) { if (isMissingNativeModule(e)) markBridgeDead(e); }
 }
 
 export async function saveLastEnabledDriver(driver: string | null): Promise<void> {

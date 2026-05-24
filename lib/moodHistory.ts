@@ -42,6 +42,7 @@ export {
   saveMoodModeEnabled,
   saveNotifEnabled,
   saveNotifHour,
+  saveRotateWithinMood,
   saveSleepWakeCustomSleep,
   saveSleepWakeCustomWake,
   saveSleepWakeEnabled,
