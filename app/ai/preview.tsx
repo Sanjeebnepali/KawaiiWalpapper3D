@@ -1,10 +1,8 @@
-import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { type Href, useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  ActivityIndicator,
   ScrollView,
   StyleSheet,
   Text,
@@ -12,10 +10,17 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { AnimatedButton } from '../../components/AnimatedButton';
+import { EmptyState } from '../../components/aiPreview/EmptyState';
+import {
+  PrimaryAction,
+  SecondaryActions,
+  TertiaryActions,
+} from '../../components/aiPreview/PreviewActions';
+import { PreviewHeader } from '../../components/aiPreview/PreviewHeader';
+import { styles } from '../../components/aiPreview/styles';
 import { premiumAlert } from '../../components/PremiumAlert';
 import { COLLECTION_SIZE } from '../../constants/shuffle';
-import { Colors, Radius, Spacing } from '../../constants/theme';
+import { Colors, Spacing } from '../../constants/theme';
 import { useTheme } from '../../contexts/ThemeContext';
 import { deleteGeneration } from '../../lib/ai/client';
 import { toast } from '../../lib/toast';
@@ -225,42 +230,14 @@ export default function AIPreview() {
   }, [prompt, router]);
 
   if (!uri) {
-    return (
-      <SafeAreaView style={[styles.safe, { backgroundColor: theme.bg }]} edges={['top']}>
-        <StatusBar style="light" />
-        <View style={styles.header}>
-          <AnimatedButton onPress={() => router.back()} style={styles.backBtn} hitSlop={8}>
-            <Ionicons name="chevron-back" size={22} color={theme.text} />
-          </AnimatedButton>
-          <Text style={[styles.title, { color: theme.text }]}>No image</Text>
-        </View>
-        <View style={styles.emptyWrap}>
-          <Text style={styles.emptyText}>
-            The generation link is missing its image URI. Go back and try again.
-          </Text>
-        </View>
-      </SafeAreaView>
-    );
+    return <EmptyState onBack={() => router.back()} />;
   }
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.bg }]} edges={['top']}>
       <StatusBar style="light" />
 
-      <View style={styles.header}>
-        <AnimatedButton onPress={() => router.back()} style={styles.backBtn} hitSlop={8}>
-          <Ionicons name="chevron-back" size={22} color={theme.text} />
-        </AnimatedButton>
-        <View style={{ flex: 1 }}>
-          <Text style={[styles.title, { color: theme.text }]} numberOfLines={1}>
-            AI generation
-          </Text>
-          <Text style={styles.subtitle} numberOfLines={1}>
-            {model.split('/').pop() ?? model}
-            {durationMs > 0 ? ` · ${(durationMs / 1000).toFixed(1)}s` : ''}
-          </Text>
-        </View>
-      </View>
+      <PreviewHeader onBack={() => router.back()} model={model} durationMs={durationMs} />
 
       <ScrollView
         contentContainerStyle={[
@@ -299,187 +276,22 @@ export default function AIPreview() {
 
         {/* ─── Primary action: Set as Wallpaper ────────────────────
             Full-width hero CTA — the main reason the user came here. */}
-        <AnimatedButton
-          onPress={onSet}
-          style={[styles.primaryBtn, { backgroundColor: theme.primary }]}
-          disabled={busyAction === 'set'}
-        >
-          {busyAction === 'set' ? (
-            <ActivityIndicator size="small" color="#131313" />
-          ) : (
-            <Ionicons name="phone-portrait-outline" size={18} color="#131313" />
-          )}
-          <Text style={styles.primaryBtnText}>Set as Wallpaper</Text>
-        </AnimatedButton>
+        <PrimaryAction onSet={onSet} busyAction={busyAction} />
 
         {/* ─── Secondary actions: Save + Add to pool ──────────────
             Two outlined buttons side by side. Distinct from the
             destructive / tertiary row below. */}
-        <View style={styles.secondaryRow}>
-          <AnimatedButton
-            onPress={onSave}
-            style={[styles.secondaryBtn, { borderColor: theme.primary }]}
-            disabled={busyAction === 'save'}
-          >
-            {busyAction === 'save' ? (
-              <ActivityIndicator size="small" color={theme.primary} />
-            ) : (
-              <Ionicons name="download-outline" size={16} color={theme.primary} />
-            )}
-            <Text style={[styles.secondaryBtnText, { color: theme.primary }]}>
-              Save to Gallery
-            </Text>
-          </AnimatedButton>
-          <AnimatedButton
-            onPress={onAddToMoodPool}
-            style={[styles.secondaryBtn, { borderColor: theme.primary }]}
-            disabled={busyAction === 'pool'}
-          >
-            {busyAction === 'pool' ? (
-              <ActivityIndicator size="small" color={theme.primary} />
-            ) : (
-              <Ionicons name="images-outline" size={16} color={theme.primary} />
-            )}
-            <Text style={[styles.secondaryBtnText, { color: theme.primary }]}>
-              Add to pool
-            </Text>
-          </AnimatedButton>
-        </View>
+        <SecondaryActions
+          onSave={onSave}
+          onAddToMoodPool={onAddToMoodPool}
+          busyAction={busyAction}
+        />
 
         {/* ─── Tertiary actions: Retry + Discard ──────────────────
             Lightweight ghost buttons — clearly less prominent than
             the primary/secondary set, but still tappable. */}
-        <View style={styles.tertiaryRow}>
-          <AnimatedButton onPress={onRetry} style={styles.tertiaryBtn}>
-            <Ionicons name="refresh" size={15} color={Colors.textDim} />
-            <Text style={[styles.tertiaryBtnText, { color: Colors.textDim }]}>
-              Retry with this prompt
-            </Text>
-          </AnimatedButton>
-          <AnimatedButton onPress={onDiscard} style={styles.tertiaryBtn}>
-            <Ionicons name="close-circle-outline" size={15} color={Colors.error} />
-            <Text style={[styles.tertiaryBtnText, { color: Colors.error }]}>
-              Discard
-            </Text>
-          </AnimatedButton>
-        </View>
+        <TertiaryActions onRetry={onRetry} onDiscard={onDiscard} />
       </ScrollView>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.bg },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.sm,
-    paddingBottom: Spacing.md,
-    gap: Spacing.md,
-  },
-  backBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: Radius.pill,
-    backgroundColor: Colors.surface,
-    borderColor: Colors.border,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  title: { fontSize: 17, fontWeight: '800', letterSpacing: -0.3 },
-  subtitle: { color: Colors.textDim, fontSize: 11, fontWeight: '700', marginTop: 2 },
-
-  scroll: {
-    padding: Spacing.lg,
-    gap: Spacing.lg,
-    // paddingBottom is set inline above as `insets.bottom + Spacing.xl`
-    // so the bottom tertiary row clears the OS gesture pill / nav.
-  },
-  imageWrap: {
-    width: '100%',
-    borderRadius: Radius.xl,
-    overflow: 'hidden',
-  },
-  promptBlock: {
-    // Scroll's `gap: Spacing.lg` already separates sections — no
-    // marginTop needed here.
-    padding: Spacing.md,
-    backgroundColor: Colors.surface,
-    borderRadius: Radius.lg,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  promptLabel: {
-    color: Colors.textMute,
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 0.5,
-  },
-  promptText: { fontSize: 14, fontWeight: '600', marginTop: 4, lineHeight: 19 },
-
-  // ─── Action hierarchy ────────────────────────────────────────────────
-  // Primary: the main reason the user came here (set as wallpaper)
-  // Secondary: also-useful actions (save, add to pool)
-  // Tertiary: navigational / destructive (retry, discard)
-  primaryBtn: {
-    height: 54,
-    borderRadius: Radius.pill,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 10,
-  },
-  primaryBtnText: {
-    color: '#131313',
-    fontSize: 15,
-    fontWeight: '900',
-    letterSpacing: -0.2,
-  },
-  secondaryRow: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
-  },
-  secondaryBtn: {
-    flex: 1,
-    height: 48,
-    borderRadius: Radius.pill,
-    borderWidth: 1.5,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-  },
-  secondaryBtnText: {
-    fontSize: 13,
-    fontWeight: '800',
-    letterSpacing: -0.1,
-  },
-  tertiaryRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: Spacing.sm,
-  },
-  tertiaryBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 10,
-  },
-  tertiaryBtnText: {
-    fontSize: 12,
-    fontWeight: '700',
-    letterSpacing: 0.2,
-  },
-
-  emptyWrap: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: Spacing.lg,
-  },
-  emptyText: { color: Colors.textDim, fontSize: 13, textAlign: 'center' },
-});

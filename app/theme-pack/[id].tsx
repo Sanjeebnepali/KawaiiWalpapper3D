@@ -5,7 +5,6 @@ import { useCallback, useMemo } from 'react';
 import {
   FlatList,
   type ListRenderItem,
-  StyleSheet,
   Text,
   useWindowDimensions,
   View,
@@ -15,6 +14,7 @@ import { AnimatedButton } from '../../components/AnimatedButton';
 import { gatePremium } from '../../components/PremiumLock';
 import { premiumAlert } from '../../components/PremiumAlert';
 import { WallpaperGridCell } from '../../components/WallpaperGridCell';
+import { styles } from '../../components/themePackDetail/styles';
 import {
   getThemePackById,
   getThemePackPhotos,
@@ -24,7 +24,7 @@ import {
   getCollectionIntervalMinutes,
   TIMER_OPTIONS,
 } from '../../constants/shuffle';
-import { Colors, Radius, Spacing } from '../../constants/theme';
+import { Spacing } from '../../constants/theme';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useDeferredMount } from '../../hooks/useDeferredMount';
 import { useSettingsStore } from '../../store/settings';
@@ -239,64 +239,3 @@ export default function ThemePackDetailScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.bg },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.sm,
-    paddingBottom: Spacing.md,
-    gap: Spacing.md,
-  },
-  backBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: Radius.pill,
-    backgroundColor: Colors.surface,
-    borderColor: Colors.border,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  title: {
-    color: Colors.text,
-    fontSize: 18,
-    fontWeight: '800',
-    letterSpacing: -0.3,
-  },
-  ctaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.md,
-  },
-  ctaPrimary: {
-    flex: 1,
-    height: 44,
-    borderRadius: Radius.pill,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-  },
-  ctaPrimaryText: {
-    color: '#131313',
-    fontSize: 14,
-    fontWeight: '800',
-    letterSpacing: -0.2,
-  },
-  ctaStop: {
-    width: 44,
-    height: 44,
-    borderRadius: Radius.pill,
-    backgroundColor: Colors.surface,
-    borderColor: Colors.border,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  list: { paddingHorizontal: SIDE, paddingBottom: 120 },
-});
