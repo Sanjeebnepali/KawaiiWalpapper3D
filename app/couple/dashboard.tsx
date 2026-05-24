@@ -1,28 +1,30 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Image } from 'expo-image';
 import { type Href, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useMemo, useState } from 'react';
 import {
   Linking,
   ScrollView,
-  StyleSheet,
   Text,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AnimatedButton } from '../../components/AnimatedButton';
+import { CoupleActiveWallpaperCard } from '../../components/coupleDashboard/CoupleActiveWallpaperCard';
+import { CouplePackPicker } from '../../components/coupleDashboard/CouplePackPicker';
+import { CouplePartnerCard } from '../../components/coupleDashboard/CouplePartnerCard';
+import { styles } from '../../components/coupleDashboard/styles';
 import { premiumAlert } from '../../components/PremiumAlert';
 import {
-  couplePacks,
   emojiForRole,
   getCouplePack,
   labelForRole,
   pickImageForState,
 } from '../../constants/couplePacks';
-import { Colors, Radius, Spacing } from '../../constants/theme';
+import { Colors } from '../../constants/theme';
 import { useTheme } from '../../contexts/ThemeContext';
 import { setCouplePack, setCouplePaused, unlinkCouple } from '../../lib/couple';
+import { formatDistance, formatRelative } from '../../lib/coupleDashboardFormat';
 import {
   ensureBackgroundLocationPermission,
   startCoupleLocation,
@@ -219,169 +221,28 @@ export default function CoupleDashboard() {
       </View>
 
       <ScrollView contentContainerStyle={{ paddingBottom: 80 }} showsVerticalScrollIndicator={false}>
-        {/* ─── Partner card ─── */}
-        <View style={[styles.card, { borderColor: proximityColor + '66' }]}>
-          <View style={styles.partnerRow}>
-            <View style={[styles.avatar, { backgroundColor: theme.primary }]}>
-              <Ionicons name="person" size={26} color="#131313" />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={[styles.partnerName, { color: theme.text }]}>
-                {partnerName}{' '}
-                {partnerRoleEmoji ? (
-                  <Text style={styles.partnerRoleEmoji}>{partnerRoleEmoji}</Text>
-                ) : null}
-              </Text>
-              <Text style={styles.partnerSub}>
-                {link.code} · You: {myRoleEmoji ?? ''} {myRoleLabel} · Them:{' '}
-                {partnerRoleEmoji ?? ''} {partnerRoleLabel}
-              </Text>
-            </View>
-            <View style={[styles.statusPill, { borderColor: proximityColor }]}>
-              <View
-                style={[styles.statusDot, { backgroundColor: proximityColor }]}
-              />
-              <Text style={[styles.statusPillText, { color: proximityColor }]}>
-                {proximityLabel}
-              </Text>
-            </View>
-          </View>
+        <CouplePartnerCard
+          partnerName={partnerName}
+          partnerRoleEmoji={partnerRoleEmoji}
+          code={link.code}
+          myRoleEmoji={myRoleEmoji}
+          myRoleLabel={myRoleLabel}
+          partnerRoleLabel={partnerRoleLabel}
+          proximityColor={proximityColor}
+          proximityLabel={proximityLabel}
+          distanceLabel={distanceLabel}
+          lastUpdate={lastUpdate}
+          paused={paused}
+        />
 
-          <View style={styles.distanceRow}>
-            <Text style={[styles.distanceBig, { color: theme.text }]}>
-              {distanceLabel}
-            </Text>
-            <Text style={styles.distanceSub}>Updated {lastUpdate}</Text>
-          </View>
+        <CoupleActiveWallpaperCard
+          activeImage={activeImage}
+          activePack={activePack}
+          myRoleLabel={myRoleLabel}
+          onPreview={() => router.push('/couple/preview' as Href)}
+        />
 
-          {paused ? (
-            <View style={styles.banner}>
-              <Ionicons name="pause-circle" size={14} color={Colors.gold} />
-              <Text style={[styles.bannerText, { color: Colors.gold }]}>
-                Location sharing paused — proximity stays "apart"
-              </Text>
-            </View>
-          ) : null}
-        </View>
-
-        {/* ─── Active wallpaper card ─── */}
-        <View style={styles.card}>
-          <View style={styles.cardHeadRow}>
-            <Text style={[styles.cardTitle, { color: theme.text }]}>
-              On your screen now
-            </Text>
-            <Text style={styles.cardSubtle}>
-              {activeImage?.kind === 'together'
-                ? 'Together — both phones'
-                : `Solo (${myRoleLabel})`}
-            </Text>
-          </View>
-
-          {activeImage ? (
-            <View
-              style={[
-                styles.activeRow,
-                { borderColor: activePack.accent + '88' },
-              ]}
-            >
-              <Image
-                source={activeImage.image}
-                style={styles.activeThumb}
-                contentFit="cover"
-                transition={120}
-              />
-              <View style={{ flex: 1 }}>
-                <Text style={[styles.activeTitle, { color: theme.text }]} numberOfLines={1}>
-                  {activePack.name}
-                </Text>
-                <Text style={styles.activeSub}>
-                  {activeImage.kind === 'together'
-                    ? `Together image · applies on both phones`
-                    : `Your ${myRoleLabel} half`}
-                </Text>
-              </View>
-              <AnimatedButton
-                onPress={() => router.push('/couple/preview' as Href)}
-                style={styles.previewIconBtn}
-              >
-                <Ionicons name="eye-outline" size={18} color={Colors.textDim} />
-              </AnimatedButton>
-            </View>
-          ) : (
-            <View style={[styles.activeRow, styles.activeEmpty]}>
-              <Ionicons name="heart-outline" size={22} color={Colors.textDim} />
-              <Text style={styles.activeEmptyText}>
-                Waiting for both sides to report in.
-              </Text>
-            </View>
-          )}
-        </View>
-
-        {/* ─── Pack picker — full-width triptychs ─── */}
-        <View style={styles.card}>
-          <Text style={[styles.cardTitle, { color: theme.text }]}>
-            Choose a couple pack
-          </Text>
-          <Text style={styles.cardSubtle}>
-            Either of you can pick. The pack defines the together image AND
-            both solo halves. Role labels (Boy/Girl, Sun/Moon, …) come from
-            the pack — your side stays the same when you switch packs.
-          </Text>
-          <View style={styles.packGrid}>
-            {couplePacks.map((p) => {
-              const selected = p.id === packId;
-              return (
-                <AnimatedButton
-                  key={p.id}
-                  onPress={() => !picking && onPickPack(p.id)}
-                  style={[
-                    styles.packTile,
-                    selected && {
-                      borderColor: p.accent,
-                      borderWidth: 2,
-                    },
-                  ]}
-                >
-                  <View style={styles.packTileTriptych}>
-                    <Image
-                      source={p.roleAImage}
-                      style={styles.packTileSolo}
-                      contentFit="cover"
-                    />
-                    <Image
-                      source={p.togetherImage}
-                      style={styles.packTileTogether}
-                      contentFit="cover"
-                    />
-                    <Image
-                      source={p.roleBImage}
-                      style={styles.packTileSolo}
-                      contentFit="cover"
-                    />
-                  </View>
-                  <View style={styles.packTileMeta}>
-                    <Text
-                      style={[styles.packTileName, { color: theme.text }]}
-                      numberOfLines={1}
-                    >
-                      {p.name}
-                    </Text>
-                    <Text style={styles.packTileBlurb} numberOfLines={1}>
-                      {p.roleALabel} · {p.roleBLabel}
-                    </Text>
-                  </View>
-                  {selected ? (
-                    <View
-                      style={[styles.selectedDot, { backgroundColor: p.accent }]}
-                    >
-                      <Ionicons name="checkmark" size={12} color="#131313" />
-                    </View>
-                  ) : null}
-                </AnimatedButton>
-              );
-            })}
-          </View>
-        </View>
+        <CouplePackPicker packId={packId} picking={picking} onPickPack={onPickPack} />
 
         {/* ─── Controls ─── */}
         <View style={styles.controlsRow}>
@@ -430,195 +291,3 @@ export default function CoupleDashboard() {
     </SafeAreaView>
   );
 }
-
-// ─── Helpers ─────────────────────────────────────────────────────────────
-
-function formatDistance(m: number | null): string {
-  if (m == null) return '— m';
-  if (m < 50) return `${Math.round(m)} m`;
-  if (m < 1000) return `${Math.round(m / 10) * 10} m`;
-  if (m < 10000) return `${(m / 1000).toFixed(1)} km`;
-  return `${Math.round(m / 1000)} km`;
-}
-function formatRelative(ms: number): string {
-  if (ms < 30_000) return 'just now';
-  if (ms < 60_000) return 'seconds ago';
-  if (ms < 60 * 60_000) return `${Math.round(ms / 60_000)}m ago`;
-  if (ms < 24 * 60 * 60_000) return `${Math.round(ms / 3_600_000)}h ago`;
-  return `${Math.round(ms / 86_400_000)}d ago`;
-}
-
-const styles = StyleSheet.create({
-  safe: { flex: 1 },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-    justifyContent: 'space-between',
-  },
-  backBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  menuBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: '800',
-    letterSpacing: -0.3,
-    flex: 1,
-    textAlign: 'center',
-  },
-  card: {
-    marginHorizontal: Spacing.lg,
-    marginBottom: Spacing.md,
-    padding: Spacing.md,
-    borderRadius: Radius.lg,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    backgroundColor: Colors.surface,
-    gap: Spacing.sm,
-  },
-  partnerRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
-  avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  partnerName: { fontSize: 16, fontWeight: '800', letterSpacing: -0.2 },
-  partnerRoleEmoji: { fontSize: 14 },
-  partnerSub: { color: Colors.textDim, fontSize: 11, fontWeight: '600', marginTop: 2 },
-  statusPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: Radius.pill,
-    borderWidth: 1,
-  },
-  statusDot: { width: 6, height: 6, borderRadius: 3 },
-  statusPillText: { fontSize: 11, fontWeight: '800', letterSpacing: 0.4 },
-  distanceRow: { paddingTop: Spacing.xs },
-  distanceBig: { fontSize: 36, fontWeight: '900', letterSpacing: -1 },
-  distanceSub: { color: Colors.textDim, fontSize: 12, fontWeight: '600' },
-  banner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: Radius.md,
-    backgroundColor: 'rgba(232,194,117,0.08)',
-  },
-  bannerText: { fontSize: 12, fontWeight: '700' },
-  cardHeadRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'baseline',
-  },
-  cardTitle: { fontSize: 14, fontWeight: '800', letterSpacing: -0.2 },
-  cardSubtle: { color: Colors.textDim, fontSize: 11, fontWeight: '600' },
-  activeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-    padding: Spacing.sm,
-    borderRadius: Radius.md,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  activeThumb: { width: 64, height: 80, borderRadius: Radius.sm },
-  activeTitle: { fontSize: 14, fontWeight: '800' },
-  activeSub: { color: Colors.textDim, fontSize: 11, fontWeight: '600' },
-  activeEmpty: { justifyContent: 'flex-start', backgroundColor: Colors.bgAlt },
-  activeEmptyText: { color: Colors.textDim, fontSize: 12, flex: 1 },
-  previewIconBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  packGrid: { gap: Spacing.sm },
-  packTile: {
-    borderRadius: Radius.md,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    backgroundColor: Colors.bgAlt,
-    overflow: 'hidden',
-  },
-  packTileTriptych: { flexDirection: 'row', height: 88 },
-  packTileSolo: { flex: 1, height: '100%' },
-  packTileTogether: {
-    flex: 1.4,
-    height: '100%',
-    borderLeftWidth: 1,
-    borderRightWidth: 1,
-    borderColor: Colors.border,
-  },
-  packTileMeta: { paddingHorizontal: 10, paddingVertical: 8, gap: 2 },
-  packTileName: { fontSize: 13, fontWeight: '800', letterSpacing: -0.2 },
-  packTileBlurb: { fontSize: 10, color: Colors.textDim },
-  selectedDot: {
-    position: 'absolute',
-    top: 6,
-    right: 6,
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  controlsRow: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
-    paddingHorizontal: Spacing.lg,
-    marginBottom: Spacing.md,
-  },
-  ctrlBtn: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    paddingVertical: 12,
-    borderRadius: Radius.pill,
-  },
-  ctrlBtnText: { fontSize: 13, fontWeight: '800' },
-  primaryBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: 28,
-    borderRadius: Radius.pill,
-  },
-  primaryBtnText: { fontSize: 15, fontWeight: '800', color: '#131313' },
-  privacyText: {
-    fontSize: 11,
-    color: Colors.textDim,
-    lineHeight: 18,
-    textAlign: 'center',
-    paddingHorizontal: Spacing.lg,
-  },
-  errText: {
-    color: '#ff6b6b',
-    fontSize: 12,
-    paddingHorizontal: Spacing.lg,
-    marginTop: Spacing.sm,
-  },
-  emptyWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: Spacing.md },
-  emptyTitle: { fontSize: 18, fontWeight: '800' },
-});

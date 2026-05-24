@@ -14,11 +14,12 @@ import Animated, {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AnimatedButton } from '../../components/AnimatedButton';
 import { MoodConfidenceMeter } from '../../components/MoodConfidenceMeter';
+import { styles } from '../../components/moodCamera/styles';
 import { premiumAlert } from '../../components/PremiumAlert';
 import { gatePremium, PremiumLock } from '../../components/PremiumLock';
 import { getPhotoById } from '../../constants/mockData';
 import { getMoodOrDefault } from '../../constants/moods';
-import { Colors, Radius, Spacing } from '../../constants/theme';
+import { Colors } from '../../constants/theme';
 import { useTheme } from '../../contexts/ThemeContext';
 import {
   getCameraPermission,
@@ -295,154 +296,3 @@ export default function MoodLiveScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.bg },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.sm,
-    paddingBottom: Spacing.md,
-    gap: Spacing.md,
-  },
-  backBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: Radius.pill,
-    backgroundColor: Colors.surface,
-    borderColor: Colors.border,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  title: { fontSize: 18, fontWeight: '800', letterSpacing: -0.3 },
-  subtitle: { color: Colors.textDim, fontSize: 12, fontWeight: '700', marginTop: 2 },
-
-  heroWrap: { paddingHorizontal: Spacing.lg, paddingBottom: Spacing.md },
-  hero: {
-    borderRadius: Radius.xxl,
-    paddingVertical: Spacing.lg,
-    paddingHorizontal: Spacing.lg,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.md,
-  },
-  heroEmoji: { fontSize: 56, lineHeight: 64 },
-  heroLabel: {
-    color: '#131313',
-    fontSize: 22,
-    fontWeight: '900',
-    letterSpacing: -0.4,
-  },
-  heroTag: {
-    color: '#131313',
-    opacity: 0.78,
-    fontSize: 11,
-    fontWeight: '800',
-    marginTop: 4,
-    letterSpacing: 0.2,
-  },
-  heroDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: '#fff',
-    shadowOpacity: 0.8,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 0 },
-    shadowColor: '#fff',
-  },
-
-  card: {
-    margin: Spacing.lg,
-    padding: Spacing.lg,
-    borderRadius: Radius.xl,
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    gap: Spacing.md,
-  },
-  poolRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.md,
-    padding: Spacing.sm,
-    borderRadius: Radius.lg,
-    backgroundColor: Colors.bgAlt,
-  },
-  poolThumb: {
-    width: 48,
-    height: 60,
-    borderRadius: Radius.sm,
-    overflow: 'hidden',
-    backgroundColor: Colors.surfaceHi,
-  },
-  poolThumbEmpty: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1.5,
-    borderStyle: 'dashed',
-    borderColor: Colors.border,
-  },
-  poolLabel: {
-    color: Colors.textMute,
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 0.5,
-  },
-  poolName: { fontSize: 14, fontWeight: '800', marginTop: 2 },
-  poolMeta: { color: Colors.textDim, fontSize: 11, fontWeight: '700', marginTop: 2 },
-
-  appliedRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.md,
-    padding: Spacing.sm,
-    borderRadius: Radius.lg,
-    backgroundColor: Colors.bgAlt,
-  },
-  appliedThumb: {
-    width: 48,
-    height: 60,
-    borderRadius: Radius.sm,
-    backgroundColor: Colors.surfaceHi,
-  },
-
-  privacy: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  privacyText: {
-    color: Colors.textDim,
-    fontSize: 11,
-    fontWeight: '700',
-    flex: 1,
-  },
-
-  actions: { flexDirection: 'row', gap: Spacing.sm },
-  primaryBtn: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    height: 48,
-    borderRadius: Radius.pill,
-    overflow: 'hidden',
-  },
-  primaryText: {
-    color: '#131313',
-    fontSize: 13,
-    fontWeight: '900',
-    letterSpacing: 0.3,
-  },
-  secondaryBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    paddingHorizontal: 16,
-    height: 48,
-    borderRadius: Radius.pill,
-    borderWidth: 1.5,
-  },
-  secondaryText: { fontSize: 13, fontWeight: '800' },
-});

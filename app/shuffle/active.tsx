@@ -5,7 +5,6 @@ import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useMemo } from 'react';
 import {
-  Platform,
   StyleSheet,
   Text,
   View,
@@ -13,8 +12,10 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AnimatedButton } from '../../components/AnimatedButton';
 import { Glass } from '../../components/Glass';
+import { describeStatus } from '../../components/shuffleActive/status';
+import { styles } from '../../components/shuffleActive/styles';
 import { getPhotoById } from '../../constants/mockData';
-import { Colors, Radius, Spacing } from '../../constants/theme';
+import { Colors } from '../../constants/theme';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useShuffleEngine } from '../../hooks/useShuffleEngine';
 import { toast } from '../../lib/toast';
@@ -257,165 +258,3 @@ export default function ActiveShuffle() {
     </View>
   );
 }
-
-function describeStatus(
-  status: ReturnType<typeof useShuffleEngine>['status'],
-): { heading: string; body: string } {
-  switch (status.kind) {
-    case 'idle':
-      switch (status.reason) {
-        case 'no-active':
-          return { heading: 'Idle', body: 'No active collection' };
-        case 'empty':
-          return { heading: 'Idle', body: 'Add photos to the collection' };
-        case 'paused':
-          return { heading: 'Paused', body: 'Shuffle is paused' };
-        case 'dnd':
-          return { heading: 'Quiet hours', body: 'Shuffle resumes after DND window' };
-        case 'ios':
-          return { heading: 'iOS manual', body: 'Tap to save next wallpaper' };
-      }
-      // Defensive: TS exhaustiveness — never reached
-      return { heading: 'Idle', body: '' };
-    case 'applying':
-      return { heading: 'Updating', body: Platform.OS === 'ios' ? 'Saving to Photos…' : 'Applying wallpaper…' };
-    case 'running': {
-      const ms = Math.max(0, status.nextChangeAt - Date.now());
-      return { heading: 'Next change in', body: formatCountdown(ms) };
-    }
-  }
-}
-
-function formatCountdown(ms: number): string {
-  const totalSec = Math.floor(ms / 1000);
-  const h = Math.floor(totalSec / 3600);
-  const m = Math.floor((totalSec % 3600) / 60);
-  const s = totalSec % 60;
-  if (h > 0) return `${h}h ${m}m ${String(s).padStart(2, '0')}s`;
-  if (m > 0) return `${m}m ${String(s).padStart(2, '0')}s`;
-  return `${s}s`;
-}
-
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: Colors.bg },
-  safe: { flex: 1 },
-  chrome: { flex: 1, justifyContent: 'space-between', paddingHorizontal: Spacing.lg },
-  topRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingTop: Spacing.sm,
-    gap: Spacing.md,
-  },
-  iconBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: Radius.pill,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    borderColor: Colors.border,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  tag: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: Radius.pill,
-    borderWidth: 1,
-    backgroundColor: 'rgba(0,0,0,0.45)',
-    flex: 0,
-    maxWidth: '60%',
-  },
-  tagDot: { width: 6, height: 6, borderRadius: 3 },
-  tagText: { fontSize: 12, fontWeight: '700', letterSpacing: 0.4 },
-  dotsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-  },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: 'rgba(255,255,255,0.35)',
-  },
-  footer: { gap: Spacing.md, paddingBottom: Spacing.md },
-  iosCallout: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.md,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: 10,
-    borderRadius: Radius.lg,
-    borderWidth: 1,
-    overflow: 'hidden',
-    backgroundColor: Colors.glassFill,
-  },
-  iosTitle: { fontSize: 13, fontWeight: '800' },
-  iosBody: { color: Colors.textDim, fontSize: 11, fontWeight: '600', marginTop: 1 },
-  statusGlass: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.md,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.md,
-    borderRadius: Radius.lg,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: Colors.glassStroke,
-    backgroundColor: Colors.glassFill,
-  },
-  statusLabel: { color: Colors.textDim, fontSize: 11, fontWeight: '700', letterSpacing: 0.4, textTransform: 'uppercase' },
-  statusValue: { fontSize: 17, fontWeight: '800', letterSpacing: -0.3, marginTop: 2 },
-  statusBadge: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  actionsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-  },
-  actionBtn: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    paddingVertical: 12,
-    borderRadius: Radius.pill,
-  },
-  actionText: { fontSize: 12, fontWeight: '800' },
-  emptyWrap: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: Spacing.xl,
-    gap: Spacing.md,
-  },
-  title: { fontSize: 18, fontWeight: '800' },
-  helperText: {
-    color: Colors.textDim,
-    fontSize: 12,
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-  primaryBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingHorizontal: 18,
-    paddingVertical: 12,
-    borderRadius: Radius.pill,
-    marginTop: Spacing.sm,
-  },
-  primaryBtnText: { color: '#131313', fontSize: 13, fontWeight: '800' },
-});

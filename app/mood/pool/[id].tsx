@@ -12,12 +12,11 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { AnimatedButton } from '../../../components/AnimatedButton';
 import { premiumAlert } from '../../../components/PremiumAlert';
 import { SimpleButton } from '../../../components/SimpleButton';
 import { COLLECTION_SIZE } from '../../../constants/shuffle';
 import { getPhotoById } from '../../../constants/mockData';
-import { Colors, Radius, Spacing } from '../../../constants/theme';
+import { Colors, Spacing } from '../../../constants/theme';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { useDeferredMount } from '../../../hooks/useDeferredMount';
 import { pickGalleryImages } from '../../../lib/galleryPicker';
@@ -32,6 +31,13 @@ import {
   useCollectionById,
   useShuffleStore,
 } from '../../../store/shuffle';
+import { styles } from '../../../components/moodPool/styles';
+import {
+  PoolCta,
+  PoolFooter,
+  PoolHeader,
+  PoolNotFound,
+} from '../../../components/moodPool/PoolViews';
 
 const COLS = 2;
 const GAP = 8;
@@ -309,80 +315,22 @@ export default function MoodPoolDetailScreen() {
   );
 
   if (!collection) {
-    return (
-      <SafeAreaView style={[styles.safe, { backgroundColor: theme.bg }]} edges={['top']}>
-        <StatusBar style="light" />
-        <View style={styles.header}>
-          <AnimatedButton
-            onPress={() => router.back()}
-            style={styles.backBtn}
-            hitSlop={8}
-          >
-            <Ionicons name="chevron-back" size={22} color={theme.text} />
-          </AnimatedButton>
-          <Text style={[styles.title, { color: theme.text }]}>Pool not found</Text>
-        </View>
-        <View style={styles.emptyWrap}>
-          <Text style={styles.emptyText}>
-            This pool may have been deleted. Go back and pick another one.
-          </Text>
-        </View>
-      </SafeAreaView>
-    );
+    return <PoolNotFound onBack={() => router.back()} />;
   }
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.bg }]} edges={['top']}>
       <StatusBar style="light" />
 
-      <View style={styles.header}>
-        <AnimatedButton onPress={() => router.back()} style={styles.backBtn} hitSlop={8}>
-          <Ionicons name="chevron-back" size={22} color={theme.text} />
-        </AnimatedButton>
-        <Text style={[styles.title, { color: theme.text }]} numberOfLines={1}>
-          {collection.name}
-        </Text>
-        {isUserPool ? (
-          <AnimatedButton
-            onPress={onDeletePool}
-            style={styles.backBtn}
-            hitSlop={8}
-          >
-            <Ionicons name="trash-outline" size={18} color={Colors.error} />
-          </AnimatedButton>
-        ) : (
-          <View style={styles.headerPlaceholder} />
-        )}
-      </View>
+      <PoolHeader
+        name={collection.name}
+        isUserPool={isUserPool}
+        onBack={() => router.back()}
+        onDelete={onDeletePool}
+      />
 
       {/* CTA — use as mood pool / active indicator. */}
-      <View style={styles.ctaRow}>
-        <AnimatedButton
-          onPress={onUseAsMood}
-          style={[
-            styles.ctaPrimary,
-            isActiveMood
-              ? { backgroundColor: Colors.surface, borderColor: theme.primary, borderWidth: 1.5 }
-              : { backgroundColor: theme.primary },
-          ]}
-        >
-          <Ionicons
-            name={isActiveMood ? 'checkmark-circle' : 'sparkles-outline'}
-            size={18}
-            color={isActiveMood ? theme.primary : '#131313'}
-          />
-          <Text
-            style={[
-              styles.ctaPrimaryText,
-              { color: isActiveMood ? theme.primary : '#131313' },
-            ]}
-          >
-            {isActiveMood
-              ? 'Active for Mood Mode'
-              : 'Use this pool for Mood Mode'}
-          </Text>
-        </AnimatedButton>
-      </View>
+      <PoolCta isActiveMood={isActiveMood} onUseAsMood={onUseAsMood} />
 
       {/* Photo grid OR empty state. */}
       {listReady ? (
@@ -424,142 +372,10 @@ export default function MoodPoolDetailScreen() {
         )
       ) : null}
 
-      {/* Bottom action bar — user pools only. Curated packs can't be edited.
-       *   paddingBottom inline = the safe-area inset bottom (gesture bar /
-       *   3-button nav height) + a Spacing.md visual breathing margin, so
-       *   the button never gets clipped by the OS nav and always has a
-       *   consistent gap above the system UI. */}
+      {/* Bottom action bar — user pools only. Curated packs can't be edited. */}
       {isUserPool ? (
-        <View
-          style={[
-            styles.footer,
-            { paddingBottom: insets.bottom + Spacing.md },
-          ]}
-        >
-          <AnimatedButton
-            onPress={onAddPress}
-            style={[styles.addBtn, { borderColor: theme.primary }]}
-          >
-            <Ionicons name="add" size={18} color={theme.primary} />
-            <Text style={[styles.addBtnText, { color: theme.primary }]}>
-              Add photos
-            </Text>
-          </AnimatedButton>
-        </View>
+        <PoolFooter bottomInset={insets.bottom} onAddPress={onAddPress} />
       ) : null}
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.bg },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.sm,
-    paddingBottom: Spacing.md,
-    gap: Spacing.md,
-  },
-  backBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: Radius.pill,
-    backgroundColor: Colors.surface,
-    borderColor: Colors.border,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerPlaceholder: { width: 40, height: 40 },
-  title: {
-    flex: 1,
-    fontSize: 18,
-    fontWeight: '800',
-    letterSpacing: -0.3,
-  },
-  ctaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.md,
-  },
-  ctaPrimary: {
-    flex: 1,
-    height: 44,
-    borderRadius: Radius.pill,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-  },
-  ctaPrimaryText: {
-    fontSize: 14,
-    fontWeight: '800',
-    letterSpacing: -0.2,
-  },
-  list: {
-    paddingHorizontal: SIDE,
-    paddingBottom: 140,
-  },
-  meta: {
-    color: Colors.textDim,
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 0.3,
-    paddingBottom: Spacing.sm,
-  },
-  cell: {
-    borderRadius: Radius.lg,
-    overflow: 'hidden',
-    backgroundColor: Colors.surfaceHi,
-  },
-  emptyWrap: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: Spacing.lg,
-    gap: 8,
-  },
-  emptyTitle: {
-    color: Colors.text,
-    fontSize: 16,
-    fontWeight: '800',
-    letterSpacing: -0.2,
-  },
-  emptyText: {
-    color: Colors.textDim,
-    fontSize: 13,
-    fontWeight: '600',
-    textAlign: 'center',
-    lineHeight: 18,
-  },
-  footer: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.md,
-    // paddingBottom is set inline above via `insets.bottom + Spacing.md`
-    // so the button clears the OS gesture / 3-button nav on Vivo / MIUI.
-    backgroundColor: 'rgba(19,19,19,0.92)',
-    borderTopColor: Colors.border,
-    borderTopWidth: StyleSheet.hairlineWidth,
-  },
-  addBtn: {
-    height: 48,
-    borderRadius: Radius.pill,
-    borderWidth: 1.5,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-  },
-  addBtnText: {
-    fontSize: 14,
-    fontWeight: '800',
-    letterSpacing: -0.2,
-  },
-});
