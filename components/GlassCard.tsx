@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StyleSheet, Text, View } from 'react-native';
@@ -12,10 +13,12 @@ type Props = {
   accent: string;
   width: number;
   height: number;
+  /** Premium headline — swaps the tag dot for a diamond. */
+  premium?: boolean;
   onPress?: () => void;
 };
 
-export function GlassCard({ image, title, tag, accent, width, height, onPress }: Props) {
+export function GlassCard({ image, title, tag, accent, width, height, premium, onPress }: Props) {
   return (
     <SimpleButton
       onPressIn={() => Image.prefetch(image)}
@@ -36,7 +39,11 @@ export function GlassCard({ image, title, tag, accent, width, height, onPress }:
           style={StyleSheet.absoluteFill}
         />
         <View style={[styles.tag, { borderColor: accent }]}>
-          <View style={[styles.tagDot, { backgroundColor: accent }]} />
+          {premium ? (
+            <Ionicons name="diamond" size={10} color={accent} />
+          ) : (
+            <View style={[styles.tagDot, { backgroundColor: accent }]} />
+          )}
           <Text style={[styles.tagText, { color: accent }]}>{tag}</Text>
         </View>
 

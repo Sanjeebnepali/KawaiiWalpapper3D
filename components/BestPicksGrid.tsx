@@ -2,7 +2,7 @@ import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { memo, useCallback } from 'react';
 import { FlatList, type ListRenderItem, StyleSheet, View } from 'react-native';
-import { bestPicks, type CategoryPhoto } from '../constants/mockData';
+import { premiumHomePicks, type CategoryPhoto } from '../constants/mockData';
 import { Colors, Spacing } from '../constants/theme';
 import { SimpleButton } from './SimpleButton';
 
@@ -32,10 +32,11 @@ function BestPicksGridBase() {
   );
 
   // Embedded in the home FlatList — scrollEnabled=false hands scrolling to the
-  // parent. bestPicks is a multiple of 3 so there's no stretched partial row.
+  // parent. A 12-item slice keeps the teaser to clean 3-wide rows; "See all"
+  // opens the full premium collection.
   return (
     <FlatList
-      data={bestPicks}
+      data={premiumHomePicks}
       keyExtractor={keyExtractor}
       renderItem={renderItem}
       numColumns={COLS}

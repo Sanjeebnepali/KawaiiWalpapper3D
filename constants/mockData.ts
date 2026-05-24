@@ -154,6 +154,12 @@ const PREMIUM_SECTION: CatalogSection = {
     : bestPicks,
 };
 
+// The home "Premium" teaser grid (BestPicksGrid) shows a slice of the premium
+// collection; falls back to the free best-picks until the premium upload runs.
+export const premiumHomePicks: CategoryPhoto[] = premiumPhotos.length
+  ? premiumPhotos.slice(0, 12).map((p) => ({ id: p.id, image: p.image }))
+  : bestPicks;
+
 /**
  * Resolve a browse id to a catalog section. Accepts a composite
  * "<group>-<key>" (mood-love, 2d-mixed, category-football), a bare category
@@ -195,6 +201,13 @@ const FEATURED_PICKS: { group: 'category' | 'mood' | '2d'; key: string; tag: str
   { group: 'mood', key: 'happy', tag: 'Live' },
 ];
 export const featured: FeaturedItem[] = FEATURED_PICKS.flatMap((p, i) => {
+  // The 'Premium' headline showcases the real premium collection (gold tag +
+  // diamond + paywall on apply), not a free category image. Uses the first
+  // premium image — swap premiumPhotos[0] for a hand-picked "best" one anytime.
+  if (p.tag === 'Premium' && premiumPhotos.length > 0) {
+    const pp = premiumPhotos[0];
+    return [{ id: pp.id, title: 'Premium', tag: 'Premium', image: pp.image, accent: Colors.gold, premium: true }];
+  }
   const sec = sectionByKey(p.group, p.key);
   const photo = sec?.photos[0];
   if (!sec || !photo) return [];

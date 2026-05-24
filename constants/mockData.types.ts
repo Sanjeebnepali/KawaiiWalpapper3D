@@ -10,4 +10,6 @@ export type FeaturedItem = {
   tag: string;
   image: string;
   accent: string;
+  /** True for the premium-collection headline — drives a diamond badge. */
+  premium?: boolean;
 };

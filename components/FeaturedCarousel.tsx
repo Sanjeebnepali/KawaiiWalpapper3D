@@ -36,6 +36,7 @@ function FeaturedCarouselBase() {
         accent={item.accent}
         width={cardW}
         height={cardH}
+        premium={item.premium}
         onPress={() => onOpen(item.id)}
       />
     ),
