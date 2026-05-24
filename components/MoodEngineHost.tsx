@@ -1,5 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
+// Type-only import — fully erased at compile time, so expo-camera is still
+// loaded lazily via the require() below, never eagerly at parse time.
+import type { CameraView as ExpoCameraView } from 'expo-camera';
 import { type MoodId } from '../constants/moods';
 import { useMoodDetector } from '../hooks/useMoodDetector';
 import { applyMoodPhotoFromCollection } from '../lib/moodEngineActions';
@@ -29,7 +32,7 @@ import { useSettingsStore } from '../store/settings';
  * `ShuffleEngineHost` works around.
  */
 
-let CameraView: any = null;
+let CameraView: typeof ExpoCameraView | null = null;
 try {
 
   CameraView = require('expo-camera').CameraView;
@@ -68,7 +71,7 @@ export async function triggerImmediateMoodScan(): Promise<ImmediateScanResult> {
 }
 
 function ActiveEngine({ collectionId }: { collectionId: string }) {
-  const cameraRef = useRef<any>(null);
+  const cameraRef = useRef<ExpoCameraView | null>(null);
   const detector = useMoodDetector(cameraRef, /* enabled */ true);
 
   // Register the scan trigger so the UI's "Scan now" button can call into
@@ -117,9 +120,15 @@ function ActiveEngine({ collectionId }: { collectionId: string }) {
     })();
   }, [detector.lastMood, collectionId]);
 
+  // CameraView is guaranteed non-null here — MoodEngineHost gates on it before
+  // mounting ActiveEngine. This guard (placed after all hooks, so hook order is
+  // unchanged) re-narrows the union for the type checker.
+  if (!CameraView) return null;
+  const Camera = CameraView;
+
   return (
     <View pointerEvents="none" style={styles.hidden}>
-      <CameraView
+      <Camera
         ref={cameraRef}
         facing="front"
         mute

@@ -6,6 +6,24 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Kawaii Baby Wallpapers HD — dark-themed Zedge-style wallpaper app for AI-generated baby characters. Expo SDK 55 + Expo Router + React Native New Architecture.
 
+## Code-writing standards (review contract)
+
+Adapted from the senior-developer review checklist. The always-active rules live in
+`.claude/rules/` and govern every code change:
+
+- `.claude/rules/code-writing.md` — mandatory check order, red-flag auto-rejects, hard size limits, word semantics.
+- `.claude/rules/execution-discipline.md` — make→test→fix→test; finish multi-step work; track steps.
+- `.claude/rules/no-guessing-evidence-only.md` — every claim needs just-observed evidence.
+- `.claude/rules/four-axes-always.md` — Speed + Accuracy + Quality + No-guessing, simultaneously.
+- `.claude/rules/production-quality-bar.md` — 6-month test, types at boundaries, structured logs at decisions.
+
+For non-trivial coding tasks, explicitly read `docs/rules-ondemand/code-writing-deep.md`
+at the start — it is NOT auto-loaded.
+
+Note: the original checklist also referenced `keasy-production-ops.md` and
+`design-preferences.md` plus a "project-contract-loader" hook — those are specific to a
+different project (keasy) and do not apply here.
+
 ## Commands
 
 ```bash
