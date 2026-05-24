@@ -58,11 +58,7 @@ import {
   startSleepWakeForegroundFromStore,
   stopSleepWakeForeground,
 } from './sleepWakeForeground';
-
-/** Auto-detect cadence the FGS uses. Matches the "every ~30 min" UI
- *  copy in `app/(tabs)/mood.tsx`. Kept here as a single source of
- *  truth so a future setting can route through one constant. */
-const CONTEXT_MOOD_FGS_INTERVAL_MIN = 30;
+import { CONTEXT_MOOD_FGS_INTERVAL_MIN } from './moodBootstrap.constants';
 
 let booted = false;
 

@@ -27,77 +27,35 @@ import {
   applySleepWakePhoto,
 } from './moodEngineActions';
 import { recordMood } from './moodHistory';
+import type {
+  NotificationsLike,
+  NotificationResponseLike,
+} from './moodNotifications.types';
+import {
+  CATEGORY,
+  SW_CATEGORY,
+  NOTIF_TAG,
+  FRIEND_NOTIF_TAG,
+  SW_WAKE_TAG,
+  SW_SLEEP_TAG,
+  FRIEND_OPENERS,
+  DAILY_ID,
+  FRIEND_ID,
+  SW_WAKE_ID,
+  SW_SLEEP_ID,
+  MOOD_PROMPT_NOW_ID,
+  FRIEND_CHAIN_PREFIX,
+  FRIEND_BATCH_COUNT,
+  FRIEND_CHECK_IN_ANDROID_FLOOR,
+  clampCheckInMinutes,
+} from './moodNotifications.constants';
 
-type NotificationsLike = {
-  setNotificationHandler?: (handler: unknown) => void;
-  setNotificationCategoryAsync?: (
-    name: string,
-    actions: Array<{
-      identifier: string;
-      buttonTitle: string;
-      options?: { opensAppToForeground?: boolean };
-    }>,
-  ) => Promise<unknown>;
-  scheduleNotificationAsync?: (input: {
-    identifier?: string;
-    content: {
-      title: string;
-      body: string;
-      categoryIdentifier?: string;
-      data?: Record<string, unknown>;
-    };
-    trigger: unknown;
-  }) => Promise<string>;
-  cancelScheduledNotificationAsync?: (id: string) => Promise<void>;
-  cancelAllScheduledNotificationsAsync?: () => Promise<void>;
-  /** Remove a NOW-DISPLAYED notification from the system shade. Does NOT
-   *  affect future scheduled fires of the same identifier. */
-  dismissNotificationAsync?: (identifier: string) => Promise<void>;
-  getPermissionsAsync?: () => Promise<{
-    granted?: boolean;
-    status?: string;
-    canAskAgain?: boolean;
-  }>;
-  requestPermissionsAsync?: () => Promise<{ granted?: boolean; status?: string }>;
-  addNotificationResponseReceivedListener?: (
-    cb: (response: NotificationResponseLike) => void,
-  ) => { remove: () => void };
-  getLastNotificationResponseAsync?: () => Promise<NotificationResponseLike | null>;
-  SchedulableTriggerInputTypes?: {
-    DAILY?: unknown;
-    CALENDAR?: unknown;
-    TIME_INTERVAL?: unknown;
-  };
-  AndroidImportance?: { HIGH?: number; DEFAULT?: number };
-};
-
-type NotificationResponseLike = {
-  actionIdentifier: string;
-  notification: {
-    request: {
-      /** Identifier of the displayed notification — used to clear the
-       *  banner from the system shade after we handle the action. */
-      identifier?: string;
-      content: { data?: Record<string, unknown> };
-    };
-  };
-};
-
-const CATEGORY = 'kawaii.mood.prompt';
-const SW_CATEGORY = 'kawaii.mood.sleepwake';
-const NOTIF_TAG = 'kawaii.mood.daily';
-const FRIEND_NOTIF_TAG = 'kawaii.mood.friend';
-const SW_WAKE_TAG = 'kawaii.mood.sleepwake.wake';
-const SW_SLEEP_TAG = 'kawaii.mood.sleepwake.sleep';
-/** Bag of friendly opener lines for the recurring check-in. Picked at random
- *  per fire so it feels less like a robot. */
-const FRIEND_OPENERS: Array<{ title: string; body: string }> = [
-  { title: 'Hey 👋 how are you feeling?', body: 'Tap a mood — I’ll change your wallpaper to match.' },
-  { title: 'Quick mood check 💭', body: 'How’s the vibe right now?' },
-  { title: 'Checking in 🫶', body: 'Pick a feeling — wallpaper updates instantly.' },
-  { title: 'How’s it going? 😊', body: 'One tap below sets your wallpaper.' },
-  { title: 'Mood check-in ✨', body: 'Tell me how you feel — I’ll handle the rest.' },
-];
+// Re-export public symbols so existing importers of this module are unchanged.
+export type { NotificationsLike, NotificationResponseLike } from './moodNotifications.types';
+export {
+  FRIEND_CHECK_IN_PRESETS,
+  FRIEND_CHECK_IN_ANDROID_FLOOR,
+} from './moodNotifications.constants';
 
 let mod: NotificationsLike | null = null;
 let resolved = false;
@@ -457,29 +415,10 @@ export async function scheduleDailyMoodNotification(hour: number): Promise<boole
 // cancel one without nuking the other. Older code used
 // `cancelAllScheduledNotificationsAsync` which made daily + friend mutually
 // exclusive — toggling either off killed both.
+// (The stable identifier constants — DAILY_ID, FRIEND_ID, SW_WAKE_ID,
+//  SW_SLEEP_ID, MOOD_PROMPT_NOW_ID, FRIEND_CHAIN_PREFIX, FRIEND_BATCH_COUNT —
+//  now live in `moodNotifications.constants.ts` and are imported above.)
 
-const DAILY_ID = 'kawaii.mood.daily.v1';
-const FRIEND_ID = 'kawaii.mood.friend.v1';
-const SW_WAKE_ID = 'kawaii.mood.sw.wake.v1';
-const SW_SLEEP_ID = 'kawaii.mood.sw.sleep.v1';
-/** Stable id for the immediate "how are you feeling?" prompt fired by the
- *  friend-checkin foreground-service tick (lib/moodBootstrap.ts) and the
- *  app-usage monitor. Reused on every fire so a NEW prompt REPLACES the
- *  previous one in the system shade instead of stacking — without it each
- *  tick posted a unique-id notification and they piled up, one per interval. */
-const MOOD_PROMPT_NOW_ID = 'kawaii.mood.prompt.now.v1';
-/** Prefix for the batch of one-shot fires used when interval < 15 min.
- *  Android's WorkManager periodic floor is 15 min, so a `repeats: true`
- *  trigger at 1–14 min is silently rounded up by the OS. To get true
- *  sub-15-min cadence we schedule a CHAIN of one-shot fires (each at
- *  intervalSec*n) up to FRIEND_BATCH_COUNT ahead. The chain is rebuilt
- *  every time the app opens (bootstrap) and after each user tap on a
- *  fired friend notification (response handler), so the user never runs
- *  out as long as they interact with the app at least once per batch
- *  window. iOS caps total scheduled notifications at 64 — 30 ≈ half of
- *  that budget, safe with the daily + sleep/wake slots. */
-const FRIEND_CHAIN_PREFIX = 'kawaii.mood.friend.chain.';
-const FRIEND_BATCH_COUNT = 30;
 let scheduledDailyId: string | null = null;
 let scheduledFriendId: string | null = null;
 let scheduledSwWakeId: string | null = null;
@@ -510,23 +449,11 @@ export async function cancelMoodNotification(): Promise<void> {
 // Same 5-emoji category as the daily prompt, so the same response listener
 // turns a button tap into an `applyMoodPhotoFromCollection` call. Works
 // even when the app is fully closed.
-
-/** Allowed presets — the UI exposes these as quick options. Custom minute
- *  values (1 ≤ N ≤ 1440) are also accepted by `scheduleFriendCheckIn`.
- *  Android WorkManager's lower bound for repeating alarms is 15 min — values
- *  below that get silently rounded up by the OS. The UI surfaces this when
- *  the user enters < 15. */
-export const FRIEND_CHECK_IN_PRESETS = [15, 30, 60, 120, 240, 360] as const;
-/** Android's silent rounding floor — UI uses this to warn the user. */
-export const FRIEND_CHECK_IN_ANDROID_FLOOR = 15;
-
-const FRIEND_CHECK_IN_MIN = 1;        // user's lower bound (Android rounds up <15)
-const FRIEND_CHECK_IN_MAX = 24 * 60;  // 24 h ceiling — beyond that, use daily
-
-function clampCheckInMinutes(n: number): number {
-  if (!Number.isFinite(n)) return 60;
-  return Math.max(FRIEND_CHECK_IN_MIN, Math.min(FRIEND_CHECK_IN_MAX, Math.round(n)));
-}
+//
+// The presets (FRIEND_CHECK_IN_PRESETS), the Android floor
+// (FRIEND_CHECK_IN_ANDROID_FLOOR), the min/max bounds, and the pure
+// `clampCheckInMinutes` helper now live in `moodNotifications.constants.ts`
+// and are imported above (the two public ones are re-exported there).
 
 export async function scheduleFriendCheckInNotification(
   intervalMinutes: number,
