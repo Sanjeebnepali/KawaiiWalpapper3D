@@ -2,7 +2,6 @@ import * as FileSystem from 'expo-file-system/legacy';
 import { create } from 'zustand';
 import {
   type Collection,
-  type CollectionPurpose,
   COLLECTION_SIZE,
   FREE_COLLECTION_LIMIT,
   HISTORY_LIMIT,
@@ -11,6 +10,8 @@ import {
   type ShuffleMode,
   type ShuffleState,
 } from '../constants/shuffle';
+import type { ShuffleStore } from './shuffle.types';
+import { genId, schedulePersist, STATE_FILE } from './shuffle.persistence';
 
 /**
  * Auto-shuffle store + persistence.
@@ -18,96 +19,14 @@ import {
  * Persistence uses `expo-file-system/legacy` (already a project dep, no
  * native rebuild). State is written to a single JSON file in cacheDirectory;
  * AsyncStorage would need a fresh native build and was rejected for Phase 1
- * — see changes/021.
+ * — see changes/021. The state-file path + debounced writer now live in
+ * `shuffle.persistence.ts`; the action/store types in `shuffle.types.ts`.
  *
  * The store boots in an `unhydrated` state. The first component that mounts
  * calls `hydrateShuffleStore()`, which reads the file off-thread and merges
  * defaults. Writes are debounced (250 ms) so a flurry of mutations (e.g. the
  * 10-image picker tapping rapidly) coalesces into one fs write.
  */
-
-type Actions = {
-  /** True once `hydrate()` has resolved. UI can show a tiny spinner until then. */
-  hydrated: boolean;
-  hydrate: () => Promise<void>;
-
-  createCollection: (name: string, purpose?: CollectionPurpose) => Collection;
-  updateCollection: (id: string, patch: Partial<Collection>) => void;
-  deleteCollection: (id: string) => void;
-  setActive: (id: string | null) => void;
-
-  setPaused: (paused: boolean) => void;
-  setDnd: (start: string | null, end: string | null) => void;
-
-  /** Move to the explicit `nextIndex` and append history. Engine-owned. */
-  recordChange: (item: ShuffleHistoryItem, nextIndex: number) => void;
-  /** Reset history (e.g. on collection delete). */
-  clearHistory: () => void;
-
-  /** Number of collections that count against the free-tier limit. */
-  countCollections: () => number;
-  /** Free tier may build ONE custom collection PER PURPOSE — Shuffle and
-   *  Mood are independent slots so the user can have both without
-   *  upgrading. Built-in packs are always exempt (see `seedPackId`). */
-  canAddCollection: (isPremium: boolean, purpose?: CollectionPurpose) => boolean;
-
-  /**
-   * Upsert-and-activate a built-in theme pack. If a collection already exists
-   * with this `seedPackId`, just flip the active id; otherwise create one and
-   * activate it. Always exempt from the free-tier limit (see seedPackId
-   * docs on `Collection`).
-   *
-   * Returns the (possibly newly-created) collection id.
-   */
-  activateBuiltinPack: (
-    seedPackId: string,
-    name: string,
-    photoIds: string[],
-  ) => string;
-
-  /**
-   * Get-or-create the Collection backing a built-in pack WITHOUT activating
-   * it. Used by the "configure before shuffling" path so the user can open
-   * the edit screen (set timer/mode) without immediately starting a
-   * wallpaper change. Returns the collection id.
-   */
-  ensureBuiltinPackCollection: (
-    seedPackId: string,
-    name: string,
-    photoIds: string[],
-  ) => string;
-};
-
-type ShuffleStore = ShuffleState & Actions;
-
-const STATE_FILE = `${FileSystem.cacheDirectory ?? ''}shuffle-state.json`;
-
-// Debounced JSON writer. Captures the latest state on every mutation; only
-// the most recent call wins. Fire-and-forget — failures log to console; the
-// in-memory state is the source of truth for the live session.
-let writeTimer: ReturnType<typeof setTimeout> | null = null;
-function schedulePersist(state: ShuffleState) {
-  if (writeTimer) clearTimeout(writeTimer);
-  writeTimer = setTimeout(() => {
-    const payload: ShuffleState = {
-      collections: state.collections,
-      activeCollectionId: state.activeCollectionId,
-      currentIndex: state.currentIndex,
-      history: state.history,
-      paused: state.paused,
-      dndStart: state.dndStart,
-      dndEnd: state.dndEnd,
-      lastChangedAt: state.lastChangedAt,
-    };
-    FileSystem.writeAsStringAsync(STATE_FILE, JSON.stringify(payload)).catch(
-      (e) => console.warn('[shuffle] persist failed:', e),
-    );
-  }, 250);
-}
-
-function genId(): string {
-  return `c_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`;
-}
 
 // Stable promise so multiple parallel callers (cold-launch bg task + UI mount
 // + notification handler) all await the SAME hydrate, not three concurrent
