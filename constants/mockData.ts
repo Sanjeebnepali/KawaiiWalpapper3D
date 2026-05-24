@@ -1,4 +1,3 @@
-import { type CoupleImageSource, couplePacks } from './couplePacks';
 import { Colors } from './theme';
 import {
   catalogById,
@@ -9,26 +8,37 @@ import {
   sectionByKey,
   type CatalogSection,
 } from './wallpaperCatalog';
+import { ACCENTS, pic } from './mockData.tokens';
+import { type CategoryPhoto, type FeaturedItem } from './mockData.types';
 
-// Accent palette cycled across the real categories / moods / 2D sections so
-// each card glows its own color (catalog data carries no color of its own).
-const ACCENTS = [Colors.pink, Colors.cyan, Colors.lavender, Colors.gold];
-
-// Default thumb size — the single biggest perf lever in this app.
-// A 720×1280 picsum image decodes to ~3.7 MB of bitmap in RAM; multiply by
-// 30 cells in a grid and we're paging ~110 MB just for thumbnails the user
-// sees at ~180×180 px. The phone GC-pauses on every scroll. 480×854 decodes
-// to ~1.6 MB, still looks crisp at the 80–360 px sizes grids actually
-// display at, and keeps total grid memory under 50 MB.
-//
-// The wallpaper preview screen pays the bandwidth for a high-res variant via
-// `picLarge()` since it's a single image at full screen.
-const pic = (seed: string, w = 480, h = 854) =>
-  `https://picsum.photos/seed/${seed}/${w}/${h}`;
-
-/** High-res variant used by the full-screen wallpaper preview. */
-export const picLarge = (seed: string) =>
-  `https://picsum.photos/seed/${seed}/1080/1920`;
+// Public API preserved: symbols extracted to concern siblings are re-exported
+// here so every existing `constants/mockData` importer keeps working unchanged.
+export { picLarge } from './mockData.tokens';
+export type { CategoryPhoto, FeaturedItem } from './mockData.types';
+export {
+  videoWallpapers,
+  type VideoWallpaper,
+  dualWallpapers,
+  type DualPair,
+  type ThemePack,
+  themePacks,
+  moodAlbums,
+  getThemePackPhotos,
+  getThemePackById,
+} from './mockData.formats';
+export { coupleWallpapers, type CoupleWallpaper } from './mockData.couple';
+export {
+  type Mood,
+  moods,
+  getMoodById,
+  getMoodPhotos,
+} from './mockData.mood';
+export {
+  type SearchableWallpaper,
+  searchCatalog,
+  searchCategories,
+  searchWallpapers,
+} from './mockData.search';
 
 export type TopTab = { id: string; label: string };
 // Couple Theme + Mood Based live in the BOTTOM tab bar (see CustomTabBar),
@@ -71,8 +81,6 @@ export const themes: ThemeItem[] = twoDSections.map((s, i) => ({
 // CategoryId is now any catalog browse id (a bare category key like
 // "football", or a composite "mood-love" / "2d-mixed"). Was a fixed union.
 export type CategoryId = string;
-
-export type CategoryPhoto = { id: string; image: string };
 
 // Ionicons per themed category. Unmapped keys fall back to 'image'.
 const CATEGORY_ICONS: Record<string, string> = {
@@ -169,13 +177,6 @@ export function getCategoryPhotos(id: string, count = 24): CategoryPhoto[] {
   return (resolveBrowse(id)?.photos ?? []).slice(0, count);
 }
 
-export type FeaturedItem = {
-  id: string;
-  title: string;
-  tag: string;
-  image: string;
-  accent: string;
-};
 // Curated premium hero — the best-looking spread across groups, to make the
 // home feel high-end. EDIT THIS LIST to change what headlines the home: each
 // entry pulls the first image of that section. (Owner can hand-pick later.)
@@ -227,96 +228,6 @@ export const collections: Collection[] = moodSections.map((s, i) => ({
   badge: i === 0 ? 'Trending' : undefined,
 }));
 
-// --- Top-tab screen data ---
-
-export type VideoWallpaper = {
-  id: string;
-  thumb: string;
-  title: string;
-  duration: string;
-};
-export const videoWallpapers: VideoWallpaper[] = Array.from({ length: 8 }, (_, i) => ({
-  id: `video-${i}`,
-  thumb: pic(`video-${i}`),
-  title: ['Floating Hearts', 'Rain Window', 'Neon Drift', 'Sparkle Bloom', 'Cloud Dream', 'Aurora Baby', 'Petal Fall', 'Galaxy Crib'][i],
-  duration: ['0:08', '0:12', '0:06', '0:10', '0:15', '0:09', '0:07', '0:11'][i],
-}));
-
-export type DualPair = {
-  id: string;
-  lockImage: string;
-  homeImage: string;
-  title: string;
-};
-export const dualWallpapers: DualPair[] = Array.from({ length: 6 }, (_, i) => ({
-  id: `dual-${i}`,
-  lockImage: pic(`dual-lock-${i}`),
-  homeImage: pic(`dual-home-${i}`),
-  title: ['Soft Morning', 'Midnight Pair', 'Pastel Set', 'Cherry Duo', 'Frost & Glow', 'Coquette Match'][i],
-}));
-
-export type ThemePack = {
-  id: string;
-  title: string;
-  count: number;
-  thumbs: string[]; // exactly 4, for the 2x2 preview
-  photoIds: string[]; // the 10 real catalog photos in this album
-};
-
-// Default albums, each EXACTLY 10 real images. Theme-pack albums draw ONLY
-// from the themed CATEGORY sections (football, cooking, stylish, …) and
-// Mood-based albums draw ONLY from the MOOD/emotion sections (happy, love,
-// crying, …). Because the two pools come from different catalog groups they
-// are disjoint by construction AND semantically correct — Theme Packs never
-// show mood images and vice-versa.
-//
-// Previously both pools were an even/odd split of the WHOLE catalog
-// (categories + moods + 2D mixed together), which leaked mood images into the
-// Theme Packs — owner: "theme based must not include the mood based images."
-const POOL_THEME: CategoryPhoto[] = categorySections.flatMap((s) => s.photos);
-const POOL_MOOD: CategoryPhoto[] = moodSections.flatMap((s) => s.photos);
-
-function mixedAlbum(pool: CategoryPhoto[], k: number): CategoryPhoto[] {
-  const total = pool.length || 1;
-  // Stride of 17 spans the pool; per-album offset keeps the 5 albums distinct.
-  return Array.from({ length: 10 }, (_, j) => pool[(j * 17 + k * 11) % total]).filter(Boolean);
-}
-function buildAlbums(pool: CategoryPhoto[], titles: string[], idPrefix: string): ThemePack[] {
-  return titles.map((title, k) => {
-    const photos = mixedAlbum(pool, k);
-    return {
-      id: `${idPrefix}-${k + 1}`,
-      title,
-      count: photos.length,
-      thumbs: photos.slice(0, 4).map((p) => p.image),
-      photoIds: photos.map((p) => p.id),
-    };
-  });
-}
-
-const THEME_TITLES = ['Daily Mix', 'Cute Picks', 'Soft & Dreamy', 'Bold & Bright', 'Editor’s Set'];
-const MOOD_ALBUM_TITLES = ['Mood Mix', 'Feelings', 'Good Vibes', 'Heart & Soul', 'Inner World'];
-
-/** Theme Packs tab albums (POOL_THEME). */
-export const themePacks: ThemePack[] = buildAlbums(POOL_THEME, THEME_TITLES, 'album');
-/** Mood-based pool albums — completely separate images from themePacks. */
-export const moodAlbums: ThemePack[] = buildAlbums(POOL_MOOD, MOOD_ALBUM_TITLES, 'mood-album');
-
-// Resolves photos for ANY album id (theme-pack OR mood) so callers don't care
-// which list it came from.
-export function getThemePackPhotos(packId: string, count = 18): CategoryPhoto[] {
-  const pack =
-    themePacks.find((p) => p.id === packId) ?? moodAlbums.find((p) => p.id === packId);
-  if (!pack) return [];
-  return pack.photoIds
-    .map((id) => catalogById[id])
-    .filter((p): p is CategoryPhoto => !!p)
-    .slice(0, count);
-}
-
-export const getThemePackById = (id: string): ThemePack | undefined =>
-  themePacks.find((p) => p.id === id);
-
 export const getFeaturedById = (id: string): FeaturedItem | undefined =>
   featured.find((f) => f.id === id);
 
@@ -359,116 +270,4 @@ export function getPhotoById(id: string | null | undefined): FeaturedItem | unde
   // in preview/apply instead of a missing-asset state. Return undefined and
   // let the caller render an "unavailable" state.
   return undefined;
-}
-
-// --- Couple Theme screen data ---
-
-export type CoupleWallpaper = {
-  /** The couple PACK id — tapping a card opens `/couple/preview?packId=…`. */
-  id: string;
-  image: CoupleImageSource;
-  title: string;
-  accent: string;
-};
-// The couple tab shows ONE card per real pack, and only its TOGETHER image
-// (the complete two-character scene). The boy/girl solo halves are never
-// shown in the grid — they're revealed on the preview screen after a tap,
-// where each partner picks which half is theirs.
-export const coupleWallpapers: CoupleWallpaper[] = couplePacks.map((p) => ({
-  id: p.id,
-  image: p.togetherImage,
-  title: p.name,
-  accent: p.accent,
-}));
-
-// --- Mood Based screen data ---
-
-export type Mood = {
-  id: string;
-  label: string;
-  icon: 'happy-outline' | 'leaf-outline' | 'heart-outline' | 'flash-outline' | 'cloud-outline' | 'cafe-outline';
-  tint: string;
-};
-export const moods: Mood[] = [
-  { id: 'happy', label: 'Happy', icon: 'happy-outline', tint: Colors.gold },
-  { id: 'calm', label: 'Calm', icon: 'leaf-outline', tint: Colors.cyan },
-  { id: 'romantic', label: 'Romantic', icon: 'heart-outline', tint: Colors.pink },
-  { id: 'focused', label: 'Focused', icon: 'flash-outline', tint: Colors.lavender },
-  { id: 'dreamy', label: 'Dreamy', icon: 'cloud-outline', tint: Colors.lavender },
-  { id: 'cozy', label: 'Cozy', icon: 'cafe-outline', tint: Colors.gold },
-];
-export const getMoodById = (id: string): Mood | undefined =>
-  moods.find((m) => m.id === id);
-
-// sad/surprised/neutral have no own folder → nearest real content.
-const MOOD_ALIAS: Record<string, string> = {
-  sad: 'crying',
-  surprised: 'confused',
-  neutral: 'calm',
-};
-export function getMoodPhotos(moodId: string, count = 18): CategoryPhoto[] {
-  const key = MOOD_ALIAS[moodId] ?? moodId;
-  const sec = sectionByKey('mood', key);
-  return (sec?.photos ?? moodSections[0]?.photos ?? []).slice(0, count);
-}
-
-// --- Unified search catalog (Task 6) ---
-
-export type SearchableWallpaper = {
-  id: string;
-  title: string;
-  category: string;
-  tags: string[];
-  image: string;
-  accent: string;
-};
-
-const toTags = (...parts: string[]) =>
-  Array.from(
-    new Set(
-      parts
-        .join(' ')
-        .toLowerCase()
-        .split(/[^a-z0-9]+/)
-        .filter((w) => w.length > 1),
-    ),
-  );
-
-// Built from the real catalog — every category / mood / 2D photo is
-// searchable, and the same list backs the shuffle + mood-pool photo pickers.
-export const searchCatalog: SearchableWallpaper[] = catalogSections.flatMap((s) =>
-  s.photos.map((p, i) => ({
-    id: p.id,
-    title: `${s.label} ${i + 1}`,
-    category: s.label,
-    tags: toTags(s.label, s.group, 'wallpaper'),
-    image: p.image,
-    accent: Colors.pink,
-  })),
-);
-
-/** Distinct category names, for the search screen's filter chips. */
-export const searchCategories: string[] = Array.from(
-  new Set(searchCatalog.map((w) => w.category)),
-);
-
-/**
- * Filters the catalog by a free-text query (matched against title + tags) and
- * an optional set of selected categories. Empty query + empty filters returns
- * the full catalog.
- */
-export function searchWallpapers(
-  query: string,
-  categories: string[] = [],
-): SearchableWallpaper[] {
-  const q = query.trim().toLowerCase();
-  return searchCatalog.filter((w) => {
-    const matchesQuery =
-      !q ||
-      w.title.toLowerCase().includes(q) ||
-      w.tags.some((t) => t.includes(q));
-    const matchesCategory =
-      categories.length === 0 || categories.includes(w.category);
-    return matchesQuery && matchesCategory;
-  });
 }
