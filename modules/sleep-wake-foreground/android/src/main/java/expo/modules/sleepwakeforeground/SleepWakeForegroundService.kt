@@ -8,12 +8,15 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.app.WallpaperManager
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
+import android.util.DisplayMetrics
+import android.view.WindowManager
 import java.io.File
 import java.util.Calendar
 
@@ -115,6 +118,37 @@ class SleepWakeForegroundService : Service() {
 
   private fun clampHour(h: Int): Int = h.coerceIn(0, 23)
 
+  /** Cover-scale + center-crop [src] to the real screen size so applied
+   *  wallpapers aren't upscaled onto the oversized parallax canvas (zoom/crop). */
+  private fun fitBitmapToScreen(src: Bitmap): Bitmap {
+    val wm = getSystemService(Context.WINDOW_SERVICE) as WindowManager
+    val sw: Int
+    val sh: Int
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+      val b = wm.currentWindowMetrics.bounds
+      sw = b.width(); sh = b.height()
+    } else {
+      val dm = DisplayMetrics()
+      @Suppress("DEPRECATION")
+      wm.defaultDisplay.getRealMetrics(dm)
+      sw = dm.widthPixels; sh = dm.heightPixels
+    }
+    if (sw <= 0 || sh <= 0 || src.width <= 0 || src.height <= 0) return src
+    val scale = maxOf(sw.toFloat() / src.width, sh.toFloat() / src.height)
+    val scaledW = Math.round(src.width * scale)
+    val scaledH = Math.round(src.height * scale)
+    val scaled = Bitmap.createScaledBitmap(src, scaledW, scaledH, true)
+    return try {
+      val x = ((scaledW - sw) / 2).coerceIn(0, maxOf(0, scaledW - sw))
+      val y = ((scaledH - sh) / 2).coerceIn(0, maxOf(0, scaledH - sh))
+      val out = Bitmap.createBitmap(scaled, x, y, minOf(sw, scaledW), minOf(sh, scaledH))
+      if (out !== scaled) scaled.recycle()
+      out
+    } catch (e: Throwable) {
+      scaled
+    }
+  }
+
   private fun startForegroundCompat() {
     val notif = buildNotification()
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -193,10 +227,11 @@ class SleepWakeForegroundService : Service() {
       null
     } ?: return
 
+    val fitted = fitBitmapToScreen(bitmap)
     try {
       val manager = WallpaperManager.getInstance(this)
       manager.setBitmap(
-        bitmap,
+        fitted,
         null,
         true,
         WallpaperManager.FLAG_SYSTEM or WallpaperManager.FLAG_LOCK,
@@ -204,6 +239,7 @@ class SleepWakeForegroundService : Service() {
     } catch (_: Throwable) {
       // Decode/apply failure: skip this fire; arm() already re-schedules.
     } finally {
+      if (fitted !== bitmap) fitted.recycle()
       bitmap.recycle()
     }
   }

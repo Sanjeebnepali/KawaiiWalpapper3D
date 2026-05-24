@@ -310,17 +310,28 @@ export async function bootstrapMoodFeature(): Promise<void> {
     // bg-fetch is fallback for FGS death + iOS. No-op when the native
     // module isn't linked.
     if (state.backgroundEnabled !== prev.backgroundEnabled) {
-      if (state.backgroundEnabled && isContextMoodForegroundAvailable) {
-        startContextMoodForeground({
-          intervalMinutes: CONTEXT_MOOD_FGS_INTERVAL_MIN,
-        });
-        // Same precache rationale as bootstrap step 3 — without this,
-        // a user who toggles Mood Based on, immediately locks the
-        // phone, and walks away gets the first apply only after the
-        // network wakes up again. Pre-warming the cache eliminates
-        // that gap.
-        void precacheMoodCollection();
-      } else if (!state.backgroundEnabled && isContextMoodForegroundAvailable) {
+      if (state.backgroundEnabled) {
+        if (isContextMoodForegroundAvailable) {
+          startContextMoodForeground({
+            intervalMinutes: CONTEXT_MOOD_FGS_INTERVAL_MIN,
+          });
+          // Same precache rationale as bootstrap step 3 — without this,
+          // a user who toggles Mood Based on, immediately locks the
+          // phone, and walks away gets the first apply only after the
+          // network wakes up again. Pre-warming the cache eliminates
+          // that gap.
+          void precacheMoodCollection();
+        }
+        // Apply a mood wallpaper IMMEDIATELY on enable. Without this the
+        // FGS / bg-fetch only fire after one full interval (~30 min), so the
+        // user turns Mood Based on, sees NOTHING change, and reads it as
+        // "no progress" (unlike Theme shuffle / Sleep-Wake, which apply
+        // natively right away). An instant first apply gives visible
+        // feedback; the tick path then keeps rotating. Fire-and-forget, and
+        // works even without the native FGS (iOS / dev) since the apply
+        // itself is JS — runMoodBackgroundOnce re-checks all its own gates.
+        void runMoodBackgroundOnce();
+      } else if (isContextMoodForegroundAvailable) {
         stopContextMoodForeground();
       }
     }

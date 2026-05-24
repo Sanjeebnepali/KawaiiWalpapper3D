@@ -8,12 +8,15 @@ import android.app.WallpaperManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
+import android.util.DisplayMetrics
+import android.view.WindowManager
 import java.util.Calendar
 import kotlin.random.Random
 
@@ -164,11 +167,12 @@ class ShuffleForegroundService : Service() {
       null
     } ?: return // skip bad/undecodable URIs gracefully
 
+    val fitted = fitBitmapToScreen(bitmap)
     try {
       val manager = WallpaperManager.getInstance(this)
       // FLAG_SYSTEM = home, FLAG_LOCK = lock (both API 24+; minSdk is 24).
       manager.setBitmap(
-        bitmap,
+        fitted,
         null,
         true,
         WallpaperManager.FLAG_SYSTEM or WallpaperManager.FLAG_LOCK,
@@ -181,7 +185,39 @@ class ShuffleForegroundService : Service() {
     } catch (e: Throwable) {
       // Swallow — a failed apply must not crash the service or stop the timer.
     } finally {
+      if (fitted !== bitmap) fitted.recycle()
       bitmap.recycle()
+    }
+  }
+
+  /** Cover-scale + center-crop [src] to the real screen size so applied
+   *  wallpapers aren't upscaled onto the oversized parallax canvas (zoom/crop). */
+  private fun fitBitmapToScreen(src: Bitmap): Bitmap {
+    val wm = getSystemService(Context.WINDOW_SERVICE) as WindowManager
+    val sw: Int
+    val sh: Int
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+      val b = wm.currentWindowMetrics.bounds
+      sw = b.width(); sh = b.height()
+    } else {
+      val dm = DisplayMetrics()
+      @Suppress("DEPRECATION")
+      wm.defaultDisplay.getRealMetrics(dm)
+      sw = dm.widthPixels; sh = dm.heightPixels
+    }
+    if (sw <= 0 || sh <= 0 || src.width <= 0 || src.height <= 0) return src
+    val scale = maxOf(sw.toFloat() / src.width, sh.toFloat() / src.height)
+    val scaledW = Math.round(src.width * scale)
+    val scaledH = Math.round(src.height * scale)
+    val scaled = Bitmap.createScaledBitmap(src, scaledW, scaledH, true)
+    return try {
+      val x = ((scaledW - sw) / 2).coerceIn(0, maxOf(0, scaledW - sw))
+      val y = ((scaledH - sh) / 2).coerceIn(0, maxOf(0, scaledH - sh))
+      val out = Bitmap.createBitmap(scaled, x, y, minOf(sw, scaledW), minOf(sh, scaledH))
+      if (out !== scaled) scaled.recycle()
+      out
+    } catch (e: Throwable) {
+      scaled
     }
   }
 

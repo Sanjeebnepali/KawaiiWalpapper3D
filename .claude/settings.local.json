@@ -156,7 +156,18 @@
       "Bash(python3 -c ' *)",
       "Bash(python3 /d/Walpapper/components/moodHome/../../verify_keys.py)",
       "Bash(echo \"exit=$?\")",
-      "Bash(python3 /d/Walpapper/components/moodHome/__verify_keys.py)"
+      "Bash(python3 /d/Walpapper/components/moodHome/__verify_keys.py)",
+      "Bash(xxd)",
+      "Bash(sed -n '137p' hooks/moodHome.handlers.ts)",
+      "Bash(python3 /d/tmp/gen_handlers.py)",
+      "Bash(git -C /d/Walpapper show HEAD:\"app/\\(tabs\\)/mood.tsx\")",
+      "Bash(python3 gen_handlers.py)",
+      "Bash(python3 gen_hook.py)",
+      "Bash(python3 gen_screen.py)",
+      "Bash(tee /tmp/tscZ.txt)",
+      "PowerShell($env:GRADLE_USER_HOME='D:\\\\.gradle'; \"GRADLE_USER_HOME=$env:GRADLE_USER_HOME \\(skipping npm install — symlinks are live, keeps native cached\\)\"; npx expo run:android --variant release --no-bundler 2>&1)",
+      "Bash(GRADLE_USER_HOME=/d/.gradle npx expo *)",
+      "Bash(echo \"EXIT: $?\")"
     ]
   }
 }
