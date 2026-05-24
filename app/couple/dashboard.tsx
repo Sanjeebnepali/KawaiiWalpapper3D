@@ -11,6 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AnimatedButton } from '../../components/AnimatedButton';
 import { CoupleActiveWallpaperCard } from '../../components/coupleDashboard/CoupleActiveWallpaperCard';
+import { CoupleDiagnostics } from '../../components/coupleDashboard/CoupleDiagnostics';
 import { CouplePackPicker } from '../../components/coupleDashboard/CouplePackPicker';
 import { CouplePartnerCard } from '../../components/coupleDashboard/CouplePartnerCard';
 import { styles } from '../../components/coupleDashboard/styles';
@@ -234,6 +235,8 @@ export default function CoupleDashboard() {
           lastUpdate={lastUpdate}
           paused={paused}
         />
+
+        <CoupleDiagnostics />
 
         <CoupleActiveWallpaperCard
           activeImage={activeImage}
