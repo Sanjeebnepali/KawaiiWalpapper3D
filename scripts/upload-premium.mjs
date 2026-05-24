@@ -36,6 +36,16 @@ function readEnvUrl() {
   }
 }
 
+/** Decode a Supabase JWT's `role` ('anon' | 'service_role') without verifying. */
+function jwtRole(key) {
+  try {
+    const part = key.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+    return JSON.parse(Buffer.from(part, 'base64').toString('utf8')).role ?? null;
+  } catch {
+    return null;
+  }
+}
+
 function contentTypeFor(file) {
   const ext = extname(file).toLowerCase();
   if (ext === '.png') return 'image/png';
@@ -56,6 +66,14 @@ async function main() {
     console.error('✗ Set $env:SUPABASE_SERVICE_ROLE_KEY (Supabase → Project Settings → API → service_role).');
     process.exit(1);
   }
+  const role = jwtRole(key);
+  if (role && role !== 'service_role') {
+    console.error(`✗ That key's role is "${role}", not "service_role" — it can't create buckets.`);
+    console.error('  Get the SERVICE ROLE key: Supabase dashboard → Project Settings → API →');
+    console.error('  "Project API keys" → service_role → Reveal, then Copy. It is SECRET — never');
+    console.error('  put it in .env or commit it. Pass it only via $env:SUPABASE_SERVICE_ROLE_KEY.');
+    process.exit(1);
+  }
   if (!existsSync(folder)) {
     console.error(`✗ Folder not found: ${folder}`);
     process.exit(1);
@@ -69,6 +87,10 @@ async function main() {
   });
   if (bucketErr && !/already exists/i.test(bucketErr.message)) {
     console.error('✗ Could not create bucket:', bucketErr.message);
+    if (/row-level security|not authorized|permission|violates/i.test(bucketErr.message)) {
+      console.error('  → This almost always means the key is NOT the service_role key.');
+      console.error('    The anon key cannot create buckets. Use the service_role key.');
+    }
     process.exit(1);
   }
   console.log(`Bucket "${BUCKET}" ready (public).`);
