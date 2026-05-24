@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { type Href, useRouter } from 'expo-router';
+import { type Href, useFocusEffect, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useMemo, useState } from 'react';
 import {
@@ -30,6 +30,10 @@ import {
   ensureBackgroundLocationPermission,
   startCoupleLocation,
 } from '../../lib/coupleLocation';
+import {
+  startCoupleLiveTracking,
+  stopCoupleLiveTracking,
+} from '../../lib/coupleLiveTracking';
 import { applyProximityWallpaper } from '../../lib/coupleWallpaper';
 import { toast } from '../../lib/toast';
 import {
@@ -66,6 +70,17 @@ export default function CoupleDashboard() {
   const [picking, setPicking] = useState(false);
 
   const activePack = useMemo(() => getCouplePack(packId), [packId]);
+
+  // While this screen is focused, refresh our GPS + the partner's position
+  // fast (Uber-style live distance) instead of the slow battery-saving
+  // background cadence; revert on blur/unmount. Before the early return so the
+  // hook order stays stable — the tracker itself no-ops when not linked.
+  useFocusEffect(
+    useCallback(() => {
+      startCoupleLiveTracking();
+      return () => stopCoupleLiveTracking();
+    }, []),
+  );
 
   if (!link || link.status !== 'linked') {
     return (
