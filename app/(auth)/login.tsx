@@ -7,14 +7,14 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
-  StyleSheet,
   Text,
   TextInput,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AnimatedButton } from '../../components/AnimatedButton';
-import { Colors, Radius, Spacing } from '../../constants/theme';
+import { styles } from '../../components/authLogin/styles';
+import { Colors } from '../../constants/theme';
 import { useTheme } from '../../contexts/ThemeContext';
 import { classifyAuthError } from '../../lib/authErrors';
 import { useAuthStore } from '../../store/auth';
@@ -228,77 +228,3 @@ export default function Login() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.bg },
-  flex: { flex: 1 },
-  head: { paddingHorizontal: Spacing.lg, paddingTop: Spacing.sm },
-  back: {
-    width: 38,
-    height: 38,
-    borderRadius: Radius.pill,
-    backgroundColor: Colors.surface,
-    borderColor: Colors.border,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  body: {
-    flex: 1,
-    paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.xl,
-    gap: Spacing.md,
-  },
-  glyph: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: Spacing.sm,
-  },
-  title: { color: Colors.text, fontSize: 28, fontWeight: '800', letterSpacing: -0.5 },
-  sub: { color: Colors.textDim, fontSize: 14, marginBottom: Spacing.sm },
-  segment: {
-    flexDirection: 'row',
-    backgroundColor: Colors.surface,
-    borderColor: Colors.border,
-    borderWidth: 1,
-    borderRadius: Radius.pill,
-    padding: 4,
-    marginBottom: Spacing.xs,
-  },
-  segmentBtn: {
-    flex: 1,
-    paddingVertical: 10,
-    borderRadius: Radius.pill,
-    alignItems: 'center',
-  },
-  segmentText: { fontSize: 13, fontWeight: '800' },
-  field: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-    backgroundColor: Colors.surface,
-    borderColor: Colors.border,
-    borderWidth: 1,
-    borderRadius: Radius.xl,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: 14,
-  },
-  input: { flex: 1, color: Colors.text, fontSize: 15 },
-  error: { color: '#FF7A6E', fontSize: 13, fontWeight: '600' },
-  btn: {
-    paddingVertical: 14,
-    borderRadius: Radius.pill,
-    alignItems: 'center',
-    marginTop: Spacing.sm,
-  },
-  btnText: { color: '#131313', fontSize: 15, fontWeight: '800' },
-  footnote: {
-    color: Colors.textMute,
-    fontSize: 11,
-    textAlign: 'center',
-    marginTop: Spacing.sm,
-  },
-});

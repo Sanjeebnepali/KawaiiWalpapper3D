@@ -1,5 +1,4 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Image } from 'expo-image';
 import { type Href, useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -10,7 +9,6 @@ import {
   Platform,
   Pressable,
   ScrollView,
-  StyleSheet,
   Text,
   TextInput,
   View,
@@ -18,8 +16,14 @@ import {
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AnimatedButton } from '../../components/AnimatedButton';
+import { AspectChips } from '../../components/aiGenerator/AspectChips';
+import { SUGGESTIONS } from '../../components/aiGenerator/constants';
+import { QuickStarts } from '../../components/aiGenerator/QuickStarts';
+import { RecentStrip } from '../../components/aiGenerator/RecentStrip';
+import { styles } from '../../components/aiGenerator/styles';
+import { TokenHint } from '../../components/aiGenerator/TokenHint';
 import { premiumAlert } from '../../components/PremiumAlert';
-import { Colors, Radius, Spacing } from '../../constants/theme';
+import { Colors } from '../../constants/theme';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useRequireAuth } from '../../hooks/useRequireAuth';
 import {
@@ -31,21 +35,8 @@ import {
 import { getProvider } from '../../lib/ai/registry';
 import type { AspectRatio } from '../../lib/ai/types';
 import { toast } from '../../lib/toast';
+import type { AIGeneration } from '../../store/ai';
 import { hydrateAIStore, useAIStore } from '../../store/ai';
-
-const SUGGESTIONS = [
-  'Kawaii baby astronaut floating in pastel space, soft cotton candy clouds',
-  'Coquette bunny princess in lace dress, dreamy garden, fairy lights',
-  'Neon cyber kitten on a Tokyo rooftop at night, holographic billboards',
-  'Marble cherub with golden wings, baroque clouds, soft sun rays',
-];
-
-const ASPECTS: { id: AspectRatio; label: string }[] = [
-  { id: '9:16', label: 'Phone' },
-  { id: '1:1', label: 'Square' },
-  { id: '3:4', label: 'Portrait' },
-  { id: '16:9', label: 'Wide' },
-];
 
 /**
  * AI Generator — prompt entry, provider/aspect chips, Generate button,
@@ -171,6 +162,25 @@ export default function AIGenerator() {
       ],
     });
   }, []);
+
+  const onOpenHistoryItem = useCallback(
+    (g: AIGeneration) =>
+      router.push({
+        pathname: '/ai/preview' as Href,
+        params: {
+          uri: g.localUri,
+          prompt: g.prompt,
+          model: g.model,
+          // Use the persisted timing (AI-7); older
+          // history entries without it fall back to 0,
+          // which the preview renders as "no timing".
+          durationMs: String(g.durationMs ?? 0),
+          // No `fresh` flag — re-opens must not re-save
+          // (AI-4).
+        },
+      }),
+    [router],
+  );
 
   const onGenerate = useCallback(() => {
     requireAuth(
@@ -376,32 +386,7 @@ export default function AIGenerator() {
               editable={!busy}
             />
 
-            {/* Aspect chip row */}
-            <View style={styles.aspectRow}>
-              {ASPECTS.map((a) => {
-                const active = a.id === aspect;
-                return (
-                  <Pressable
-                    key={a.id}
-                    onPress={() => setAspect(a.id)}
-                    style={[
-                      styles.aspectChip,
-                      active && { backgroundColor: theme.primary, borderColor: theme.primary },
-                    ]}
-                    disabled={busy}
-                  >
-                    <Text
-                      style={[
-                        styles.aspectText,
-                        active && { color: '#131313' },
-                      ]}
-                    >
-                      {a.label} · {a.id}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
+            <AspectChips aspect={aspect} setAspect={setAspect} busy={busy} />
 
             <View style={styles.promptFoot}>
               <Pressable style={styles.dice} onPress={onSurpriseMe} disabled={busy}>
@@ -430,87 +415,21 @@ export default function AIGenerator() {
 
           {/* Token state hint */}
           {!provider.isConfigured() ? (
-            <Animated.View entering={FadeInDown.delay(170).springify().damping(18)}>
-              <Pressable
-                onPress={() => router.push('/(tabs)/profile' as Href)}
-                style={styles.tokenHint}
-              >
-                <Ionicons name="key-outline" size={14} color={Colors.gold} />
-                <Text style={styles.tokenHintText}>
-                  No {provider.displayName} token yet — tap to add in Settings.
-                </Text>
-              </Pressable>
-            </Animated.View>
+            <TokenHint
+              provider={provider}
+              onPress={() => router.push('/(tabs)/profile' as Href)}
+            />
           ) : null}
 
-          {/* Quick starts */}
-          <Animated.View entering={FadeInDown.delay(220).springify().damping(18)}>
-            <Text style={styles.section}>Quick starts</Text>
-            <View style={styles.chips}>
-              {SUGGESTIONS.map((s) => (
-                <Pressable
-                  key={s}
-                  style={styles.chip}
-                  onPress={() => setPrompt(s)}
-                  disabled={busy}
-                >
-                  <Text style={styles.chipText} numberOfLines={2}>
-                    {s}
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
-          </Animated.View>
+          <QuickStarts setPrompt={setPrompt} busy={busy} />
 
           {/* Recent generations strip */}
           {history.length > 0 ? (
-            <Animated.View entering={FadeInDown.delay(290).springify().damping(18)}>
-              <View style={styles.recentHead}>
-                <Text style={styles.section}>Recent generations</Text>
-                <Text style={styles.recentHint}>Long-press to delete</Text>
-              </View>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.recentRow}
-                alwaysBounceHorizontal
-                overScrollMode="always"
-                decelerationRate="normal"
-              >
-                {history.slice(0, 10).map((g) => (
-                  <Pressable
-                    key={g.localUri}
-                    onPress={() =>
-                      router.push({
-                        pathname: '/ai/preview' as Href,
-                        params: {
-                          uri: g.localUri,
-                          prompt: g.prompt,
-                          model: g.model,
-                          // Use the persisted timing (AI-7); older
-                          // history entries without it fall back to 0,
-                          // which the preview renders as "no timing".
-                          durationMs: String(g.durationMs ?? 0),
-                          // No `fresh` flag — re-opens must not re-save
-                          // (AI-4).
-                        },
-                      })
-                    }
-                    onLongPress={() => onDeleteHistoryItem(g.localUri)}
-                    delayLongPress={350}
-                    style={styles.recentCell}
-                  >
-                    <Image
-                      source={{ uri: g.localUri }}
-                      style={StyleSheet.absoluteFill}
-                      contentFit="cover"
-                      transition={80}
-                      cachePolicy="memory-disk"
-                    />
-                  </Pressable>
-                ))}
-              </ScrollView>
-            </Animated.View>
+            <RecentStrip
+              history={history}
+              onOpen={onOpenHistoryItem}
+              onDelete={onDeleteHistoryItem}
+            />
           ) : null}
 
           {/* Tail spacer — extra breathing room at the end of the scroll
@@ -522,116 +441,3 @@ export default function AIGenerator() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.bg },
-  // Wider gap (Spacing.lg → Spacing.xl) so the four sections
-  // (head / prompt / quick starts / recent) read as distinct cards
-  // rather than one stacked block. paddingBottom is overridden inline
-  // with the safe-area inset, but the StyleSheet entry still sets a
-  // sane fallback for the rare case where useSafeAreaInsets() hasn't
-  // resolved yet.
-  scroll: { padding: Spacing.lg, gap: Spacing.xl, paddingBottom: 200 },
-  head: { gap: 4, paddingTop: Spacing.md, paddingBottom: Spacing.xs },
-  eyebrow: { color: Colors.cyan, fontSize: 11, fontWeight: '800', letterSpacing: 1.4 },
-  title: { color: Colors.text, fontSize: 26, fontWeight: '800', letterSpacing: -0.4 },
-  sub: { color: Colors.textDim, fontSize: 12, fontWeight: '700' },
-
-  promptBox: {
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderRadius: Radius.xl,
-    padding: Spacing.md,
-    gap: Spacing.md,
-  },
-  input: {
-    fontSize: 15,
-    minHeight: 90,
-    textAlignVertical: 'top',
-  },
-  aspectRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-  },
-  aspectChip: {
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: Radius.pill,
-    backgroundColor: Colors.bgAlt,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  aspectText: {
-    color: Colors.textDim,
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 0.3,
-  },
-  promptFoot: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  dice: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  diceText: { color: Colors.textDim, fontSize: 12, fontWeight: '600' },
-  generate: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 14,
-    paddingVertical: 9,
-    borderRadius: Radius.pill,
-    shadowOpacity: 0.7,
-    shadowRadius: 12,
-  },
-  generateText: { color: '#131313', fontWeight: '800', fontSize: 13 },
-
-  tokenHint: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: Radius.lg,
-    backgroundColor: 'rgba(252,211,77,0.10)',
-    borderWidth: 1,
-    borderColor: 'rgba(252,211,77,0.35)',
-  },
-  tokenHintText: { color: Colors.gold, fontSize: 12, fontWeight: '700' },
-
-  section: { color: Colors.textDim, fontSize: 12, fontWeight: '700', letterSpacing: 0.6 },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
-  chip: {
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    backgroundColor: Colors.surface,
-    borderColor: Colors.border,
-    borderWidth: 1,
-    borderRadius: Radius.lg,
-    maxWidth: '100%',
-  },
-  chipText: { color: Colors.text, fontSize: 12, fontWeight: '600' },
-
-  recentHead: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  recentHint: {
-    color: Colors.textMute,
-    fontSize: 10,
-    fontWeight: '700',
-    letterSpacing: 0.3,
-  },
-  recentRow: { gap: Spacing.sm, paddingRight: Spacing.lg, paddingTop: Spacing.sm },
-  recentCell: {
-    width: 90,
-    height: 140,
-    borderRadius: Radius.md,
-    overflow: 'hidden',
-    backgroundColor: Colors.surfaceHi,
-  },
-  // Empty bottom block that guarantees the ScrollView always has more
-  // height than the viewport, so it's always genuinely scrollable
-  // (not just bouncy). Combined with `alwaysBounceVertical` + Android
-  // `overScrollMode="always"` this makes the screen feel "flowy"
-  // even when the four real sections fit on a tall device.
-  tailSpacer: { height: 120 },
-});

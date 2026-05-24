@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+﻿import { Ionicons } from '@expo/vector-icons';
 import type { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -23,6 +23,21 @@ import { MoodEmojiButton } from '../../components/MoodEmojiButton';
 import { premiumAlert } from '../../components/PremiumAlert';
 import { gatePremium, PremiumLock } from '../../components/PremiumLock';
 import { SimpleButton } from '../../components/SimpleButton';
+import { CustomSlot } from '../../components/moodHome/CustomSlot';
+import {
+  formatHour,
+  formatMinutes,
+  labelForSource,
+  nextDailyAt,
+  resolveCustomImage,
+  timeAgo,
+} from '../../components/moodHome/helpers';
+import {
+  customSheetStyles,
+  pickerStripStyles,
+  styles,
+  swStyles,
+} from '../../components/moodHome/styles';
 import {
   getMoodPhotos,
   getPhotoById,
@@ -90,16 +105,16 @@ const GAP = Spacing.sm + 2;
 const CAMERA_FEATURE_ENABLED = false;
 
 /**
- * Mood Home — entry point for the mood-driven auto-shuffle feature.
+ * Mood Home â€” entry point for the mood-driven auto-shuffle feature.
  *
- * Mood Mode (premium): toggle on, pick a Collection → the global
+ * Mood Mode (premium): toggle on, pick a Collection â†’ the global
  * `MoodEngineHost` runs a hidden front camera, scans every 60 s while the
  * app is foregrounded, and auto-changes the wallpaper to a photo from the
  * chosen Collection whose hash bucket matches the detected mood.
  *
  * Manual emoji buttons (free): tap to force-apply a wallpaper from the
  * current pool that matches the tapped mood. Works whether Mode is on or
- * off, but needs an active Collection — otherwise tapping just navigates
+ * off, but needs an active Collection â€” otherwise tapping just navigates
  * to the mood preview grid.
  */
 export default function MoodHome() {
@@ -159,7 +174,7 @@ export default function MoodHome() {
   const collections = useCollections();
   // For the long-press in-place album picker (introduced changes/053).
   // Materializes a built-in theme pack as a Collection WITHOUT activating
-  // it as the shuffle — see comment on the matching selector in
+  // it as the shuffle â€” see comment on the matching selector in
   // app/mood/pick-collection.tsx for why this matters.
   const ensureBuiltinPackCollection = useShuffleStore(
     (s) => s.ensureBuiltinPackCollection,
@@ -172,7 +187,7 @@ export default function MoodHome() {
   const [busy, setBusy] = useState(false);
   // When the toggle handler pushed the user to /mood/pick-collection because
   // no pool was set, we remember that intent so picking a pool auto-completes
-  // the toggle-on flow — no more "tap toggle, get pushed away, come back and
+  // the toggle-on flow â€” no more "tap toggle, get pushed away, come back and
   // tap toggle again" 2-step dance (Bug C).
   const [resumeToggle, setResumeToggle] = useState(false);
   // Custom-minutes bottom-sheet for the friend check-in.
@@ -185,7 +200,7 @@ export default function MoodHome() {
   const swCustomPickerRef = useRef<BottomSheetModal>(null);
   // URL-input bottom-sheet for the "From Internet" Custom action
   // (changes/054). The album selector itself is rendered inline at the
-  // bottom of the page — no sheet needed for it.
+  // bottom of the page â€” no sheet needed for it.
   const urlSheetRef = useRef<BottomSheetModal>(null);
   const [urlInput, setUrlInput] = useState('');
 
@@ -195,7 +210,7 @@ export default function MoodHome() {
   );
   const isCustomSleepWake = sleepWakePackId === CUSTOM_SLEEP_WAKE_ID;
 
-  /** Photo pool for the custom-pair picker — pull a handful from each
+  /** Photo pool for the custom-pair picker â€” pull a handful from each
    *  mood so the picker has variety without being overwhelming. */
   const customPhotoPool = useMemo(() => {
     const moods = ['happy', 'sad', 'angry', 'calm', 'excited', 'surprised', 'neutral'];
@@ -204,8 +219,8 @@ export default function MoodHome() {
 
   /** Pixel width per cell in the custom-pair picker grid. The bottom-sheet
    *  has horizontal padding from `PremiumSheet.content` (Spacing.lg = 16
-   *  per side) so usable width = screen width − 32. Three columns with
-   *  6 px gaps between them: usable − 2*6 / 3. */
+   *  per side) so usable width = screen width âˆ’ 32. Three columns with
+   *  6 px gaps between them: usable âˆ’ 2*6 / 3. */
   const customCellWidth = useMemo(() => {
     const sheetUsable = width - Spacing.lg * 2;
     return Math.floor((sheetUsable - 6 * 2) / 3);
@@ -219,7 +234,7 @@ export default function MoodHome() {
   // resume. Covers the case where a notification handler (Friend Check-in
   // / Daily Prompt) ran while the React process was DEAD, wrote the new
   // mood + photo + history entry to AsyncStorage, and the user later
-  // re-opens the app — without this, the live in-memory store would still
+  // re-opens the app â€” without this, the live in-memory store would still
   // show the pre-notification state because `hydrate` is one-shot.
   useEffect(() => {
     const resync = () => useMoodStore.getState().resyncFromStorage();
@@ -233,16 +248,16 @@ export default function MoodHome() {
   useEffect(() => {
     if (!resumeToggle) return;
     if (!moodCollectionId) return;        // still waiting for pick
-    if (moodModeEnabled) {                // already on — nothing to do
+    if (moodModeEnabled) {                // already on â€” nothing to do
       setResumeToggle(false);
       return;
     }
-    // The user picked a pool after we sent them to the picker — finish the
+    // The user picked a pool after we sent them to the picker â€” finish the
     // turn-on now without making them tap the toggle again.
     setResumeToggle(false);
     (async () => {
       await setMoodModeEnabled(true);
-      toast('✓ Mood Mode on — camera scanning');
+      toast('âœ“ Mood Mode on â€” camera scanning');
     })();
   }, [resumeToggle, moodCollectionId, moodModeEnabled, setMoodModeEnabled]);
 
@@ -252,10 +267,10 @@ export default function MoodHome() {
     [collections, moodCollectionId],
   );
   // currentPhoto can come from FOUR sources, resolved in priority order:
-  //   1. Gallery URI (file:// / content://) — the user's own picked photo
+  //   1. Gallery URI (file:// / content://) â€” the user's own picked photo
   //      via the Sleep/Wake custom-pair gallery option.
-  //   2. Curated Sleep/Wake pack ID (sw-…)  — from getSleepWakePhoto.
-  //   3. Mock-catalog ID (mood-happy-3, pink-lolita-0, …) — getPhotoById.
+  //   2. Curated Sleep/Wake pack ID (sw-â€¦)  â€” from getSleepWakePhoto.
+  //   3. Mock-catalog ID (mood-happy-3, pink-lolita-0, â€¦) â€” getPhotoById.
   const currentPhoto = useMemo(() => {
     if (!currentPhotoId) return null;
     if (currentPhotoId.startsWith('file://') || currentPhotoId.startsWith('content://')) {
@@ -277,10 +292,10 @@ export default function MoodHome() {
       MANUAL_MOOD_IDS.length,
   );
 
-  // ─── Toggle Mood Mode ────────────────────────────────────────────────────
+  // â”€â”€â”€ Toggle Mood Mode â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const onToggleMode = useCallback(() => {
     if (moodModeEnabled) {
-      // Turning OFF — no permission/premium dance needed.
+      // Turning OFF â€” no permission/premium dance needed.
       setMoodModeEnabled(false);
       toast('Mood Mode paused');
       return;
@@ -323,20 +338,20 @@ export default function MoodHome() {
         if (!moodCollectionId) {
           setResumeToggle(true);
           router.push('/mood/pick-collection' as Href);
-          toast('Pick a pool — Mood Mode turns on after you pick');
+          toast('Pick a pool â€” Mood Mode turns on after you pick');
           return;
         }
 
         // 3) Activate
         await setMoodModeEnabled(true);
-        toast('✓ Mood Mode on — camera scanning');
+        toast('âœ“ Mood Mode on â€” camera scanning');
       } finally {
         setBusy(false);
       }
     });
   }, [moodModeEnabled, moodCollectionId, setMoodModeEnabled, router]);
 
-  // ─── Toggle Background (camera-free, runs while app is closed) ───────────
+  // â”€â”€â”€ Toggle Background (camera-free, runs while app is closed) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const onToggleBackground = useCallback(async () => {
     if (backgroundEnabled) {
       await setBackgroundEnabled(false);
@@ -351,7 +366,7 @@ export default function MoodHome() {
       }
       // Probe the step-signal status BEFORE enabling so the toast tells the
       // user the TRUTH about whether walking influences their wallpaper.
-      // On Android the answer is always 'unsupported' — the historical-step
+      // On Android the answer is always 'unsupported' â€” the historical-step
       // read API is iOS-only (see lib/stepCount.ts), so the bg task runs on
       // time-of-day alone. `ensureMotionPermission()` is a no-op on Android
       // (no scary motion-permission prompt for a feature that can't use it);
@@ -360,34 +375,34 @@ export default function MoodHome() {
       const stepStatus = await getStepStatus();
       // Mutual exclusivity surfacing: enabling Mood-based stops every
       // other continuous driver (Theme shuffle + Friend check-in) via the
-      // bootstrap subscriber → `enforceSingleDriver`. Capture what's
+      // bootstrap subscriber â†’ `enforceSingleDriver`. Capture what's
       // running BEFORE the flip so the toast can name what got paused and
       // the disappearing feature isn't silent.
       const pausedOthers = otherActiveDriverLabels('mood');
       await setBackgroundEnabled(true);
       const baseMsg = pausedOthers.length
-        ? `Background mood on · ${pausedOthers.join(' + ')} paused`
-        : 'Background mood on — runs every 30 min';
+        ? `Background mood on Â· ${pausedOthers.join(' + ')} paused`
+        : 'Background mood on â€” runs every 30 min';
       switch (stepStatus) {
         case 'available':
-          toast(`✓ ${baseMsg} · steps tracking`);
+          toast(`âœ“ ${baseMsg} Â· steps tracking`);
           break;
         case 'no-permission':
-          toast(`✓ ${baseMsg} · steps OFF (motion permission denied)`);
+          toast(`âœ“ ${baseMsg} Â· steps OFF (motion permission denied)`);
           break;
         case 'unsupported':
           // Android (always) + iOS devices with no pedometer. Be honest:
           // walking won't move the wallpaper; it changes by time of day.
-          toast(`✓ ${baseMsg} · changes by time of day`);
+          toast(`âœ“ ${baseMsg} Â· changes by time of day`);
           break;
         case 'unlinked':
-          toast(`✓ ${baseMsg} · steps unavailable in this build`);
+          toast(`âœ“ ${baseMsg} Â· steps unavailable in this build`);
           break;
       }
     });
   }, [backgroundEnabled, moodCollectionId, setBackgroundEnabled, router]);
 
-  // ─── Toggle Notification ─────────────────────────────────────────────────
+  // â”€â”€â”€ Toggle Notification â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const onToggleNotif = useCallback(async () => {
     if (notifEnabled) {
       await setNotifEnabled(false);
@@ -414,7 +429,7 @@ export default function MoodHome() {
         return;
       }
       await setNotifEnabled(true);
-      toast(`✓ Daily prompt at ${formatHour(notifHour)}`);
+      toast(`âœ“ Daily prompt at ${formatHour(notifHour)}`);
     });
   }, [notifEnabled, moodCollectionId, notifHour, setNotifEnabled, router]);
 
@@ -448,10 +463,10 @@ export default function MoodHome() {
       return;
     }
     const ok = await runMoodBackgroundOnce();
-    toast(ok ? '✓ Wallpaper refreshed' : 'No change yet — try again shortly');
+    toast(ok ? 'âœ“ Wallpaper refreshed' : 'No change yet â€” try again shortly');
   }, [backgroundEnabled, moodCollectionId]);
 
-  // Force an immediate camera scan — used by the "Scan now" button so the
+  // Force an immediate camera scan â€” used by the "Scan now" button so the
   // user can verify the engine without waiting the 60 s cadence.
   const onScanNow = useCallback(async () => {
     if (!moodModeEnabled) {
@@ -461,10 +476,10 @@ export default function MoodHome() {
     const r = await triggerImmediateMoodScan();
     switch (r.status) {
       case 'ok':
-        toast('✓ Scan done — wallpaper updated');
+        toast('âœ“ Scan done â€” wallpaper updated');
         break;
       case 'not-ready':
-        toast('Camera warming up — try again in 2 s');
+        toast('Camera warming up â€” try again in 2 s');
         break;
       case 'failed':
         // Surface the underlying error (e.g. "Camera is in use", "No image
@@ -472,12 +487,12 @@ export default function MoodHome() {
         toast(`Scan failed: ${r.error}`);
         break;
       case 'no-engine':
-        toast('Engine off — toggle Mood Mode on, then try again');
+        toast('Engine off â€” toggle Mood Mode on, then try again');
         break;
     }
   }, [moodModeEnabled]);
 
-  // ─── Friend check-in — "be a friend who asks how you feel" ──────────────
+  // â”€â”€â”€ Friend check-in â€” "be a friend who asks how you feel" â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const onToggleFriend = useCallback(async () => {
     if (friendCheckInEnabled) {
       await setFriendCheckInEnabled(false);
@@ -494,7 +509,7 @@ export default function MoodHome() {
       if (!granted) {
         premiumAlert({
           title: 'Notifications needed',
-          message: 'I’ll send you a friendly mood check on a schedule — tap a feeling and your wallpaper updates.',
+          message: 'Iâ€™ll send you a friendly mood check on a schedule â€” tap a feeling and your wallpaper updates.',
           icon: 'notifications-outline',
           buttons: [
             { text: 'Cancel', style: 'cancel' },
@@ -505,32 +520,32 @@ export default function MoodHome() {
       }
       // Mutual exclusivity: enabling Friend check-in stops every other
       // continuous driver (Theme shuffle + Mood-based) via the bootstrap
-      // subscriber → `enforceSingleDriver`. Capture what's running BEFORE
+      // subscriber â†’ `enforceSingleDriver`. Capture what's running BEFORE
       // the flip so the toast can name what got paused.
       const pausedOthers = otherActiveDriverLabels('friend');
       await setFriendCheckInEnabled(true);
-      // Don't trust the bootstrap subscriber's silent reschedule — call
+      // Don't trust the bootstrap subscriber's silent reschedule â€” call
       // the scheduler directly and toast its real result. If the host
       // SDK is missing `SchedulableTriggerInputTypes.TIME_INTERVAL` (or
       // `scheduleNotificationAsync` throws), the subscriber path
-      // returned false silently and the user got a "✓ I'll check in"
+      // returned false silently and the user got a "âœ“ I'll check in"
       // toast that wasn't true. Confirmed root cause for the
       // "friend notification not working" complaint.
       const ok = await scheduleFriendCheckInNotification(friendCheckInMinutes);
       if (ok) {
-        const base = `✓ I’ll check in every ${formatMinutes(friendCheckInMinutes)}`;
+        const base = `âœ“ Iâ€™ll check in every ${formatMinutes(friendCheckInMinutes)}`;
         toast(
           pausedOthers.length
-            ? `${base} · ${pausedOthers.join(' + ')} paused`
+            ? `${base} Â· ${pausedOthers.join(' + ')} paused`
             : base,
         );
       } else {
         // Roll the toggle back so the UI doesn't lie.
         await setFriendCheckInEnabled(false);
         premiumAlert({
-          title: 'Couldn’t schedule check-in',
+          title: 'Couldnâ€™t schedule check-in',
           message:
-            'Your device blocked the recurring notification. Open Settings → Notifications and allow scheduled notifications for Kawaii Baby, then try again.',
+            'Your device blocked the recurring notification. Open Settings â†’ Notifications and allow scheduled notifications for Kawaii Baby, then try again.',
           icon: 'alert-circle-outline',
           buttons: [
             { text: 'Cancel', style: 'cancel' },
@@ -558,19 +573,19 @@ export default function MoodHome() {
       onPress: () => setFriendCheckInMinutes(mins),
     }));
     premiumAlert({
-      title: 'Check in every…',
+      title: 'Check in everyâ€¦',
       message: 'How often should I ask?',
       icon: 'time',
       accentColor: Colors.cyan,
       buttons: [
         ...presetOpts,
-        { text: 'Custom…', onPress: openCustomIntervalSheet },
+        { text: 'Customâ€¦', onPress: openCustomIntervalSheet },
         { text: 'Cancel', style: 'cancel' },
       ],
     });
   }, [setFriendCheckInMinutes, openCustomIntervalSheet]);
 
-  // ─── Sleep/Wake handlers ────────────────────────────────────────────────
+  // â”€â”€â”€ Sleep/Wake handlers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const onToggleSleepWake = useCallback(async () => {
     if (sleepWakeEnabled) {
       await setSleepWakeEnabled(false);
@@ -588,7 +603,7 @@ export default function MoodHome() {
         premiumAlert({
           title: 'Notifications needed',
           message:
-            'I’ll send a Good Morning ☀️ and Sleep Well 🌙 notification at your chosen times — tap to apply the wallpaper.',
+            'Iâ€™ll send a Good Morning â˜€ï¸ and Sleep Well ðŸŒ™ notification at your chosen times â€” tap to apply the wallpaper.',
           icon: 'notifications-outline',
           buttons: [
             { text: 'Cancel', style: 'cancel' },
@@ -598,7 +613,7 @@ export default function MoodHome() {
         return;
       }
       await setSleepWakeEnabled(true);
-      toast('✓ Sleep/Wake on');
+      toast('âœ“ Sleep/Wake on');
     });
   }, [sleepWakeEnabled, sleepWakePackId, setSleepWakeEnabled]);
 
@@ -606,9 +621,9 @@ export default function MoodHome() {
     swPackPickerRef.current?.present();
   }, []);
 
-  // ─── Bottom "Switch album" strip (changes/054) ──────────────────────
+  // â”€â”€â”€ Bottom "Switch album" strip (changes/054) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // Always-visible row at the bottom of the Mood Home scroll. Replaced
-  // the long-press picker from changes/053 — that gesture wasn't
+  // the long-press picker from changes/053 â€” that gesture wasn't
   // discoverable. Now every album is one tap away; a Custom card at the
   // end gives the user the choice to pull a photo from gallery or from
   // an internet URL without leaving the screen.
@@ -659,12 +674,12 @@ export default function MoodHome() {
       } else if (row.existingId) {
         cid = row.existingId;
       } else {
-        // ensureBuiltinPackCollection — materialize without activating as
+        // ensureBuiltinPackCollection â€” materialize without activating as
         // shuffle (see comment on the selector declaration above).
         cid = ensureBuiltinPackCollection(row.seedPackId, row.name, row.photoIds);
       }
       await setMoodCollection(cid);
-      toast(`✓ Mood pool: ${row.name}`);
+      toast(`âœ“ Mood pool: ${row.name}`);
     },
     [ensureBuiltinPackCollection, setMoodCollection],
   );
@@ -749,7 +764,7 @@ export default function MoodHome() {
         else if (r.reason === 'module_missing')
           toast('Gallery picker unavailable in this build');
         else if (r.reason !== 'cancelled')
-          toast('Could not pick from gallery — try one photo at a time');
+          toast('Could not pick from gallery â€” try one photo at a time');
         return;
       }
       const added = await addPhotosToCustomMoodPool(r.uris);
@@ -757,7 +772,7 @@ export default function MoodHome() {
       // Instant-apply the FIRST picked photo so the user gets immediate
       // visual feedback. Without this, photos land in the pool but the
       // wallpaper only changes on the next mood-notification tap or
-      // bg-task dispatch — which the user reads as "didn't apply
+      // bg-task dispatch â€” which the user reads as "didn't apply
       // perfectly." Errors here are surfaced but don't roll back the
       // pool addition (those photos are still in the user's album).
       const firstUri = r.uris[0];
@@ -766,17 +781,17 @@ export default function MoodHome() {
         toast(
           ar.ok
             ? added === 1
-              ? '✓ Added 1 photo · applied as wallpaper'
-              : `✓ Added ${added} photos · first one applied`
-            : `Added ${added} · couldn't apply (${ar.message})`,
+              ? 'âœ“ Added 1 photo Â· applied as wallpaper'
+              : `âœ“ Added ${added} photos Â· first one applied`
+            : `Added ${added} Â· couldn't apply (${ar.message})`,
         );
       } catch (applyErr) {
         console.warn('[mood/custom] setAsWallpaper threw:', applyErr);
-        toast(`Added ${added} photos · apply failed`);
+        toast(`Added ${added} photos Â· apply failed`);
       }
     } catch (e) {
       console.warn('[mood/custom] gallery flow crashed:', e);
-      toast('Gallery pick failed — please retry');
+      toast('Gallery pick failed â€” please retry');
     }
   }, [addPhotosToCustomMoodPool, customPoolRemaining]);
 
@@ -801,8 +816,8 @@ export default function MoodHome() {
       if (urls.length === 0) return;
       toast(
         urls.length === 1
-          ? 'Downloading…'
-          : `Downloading ${urls.length} images…`,
+          ? 'Downloadingâ€¦'
+          : `Downloading ${urls.length} imagesâ€¦`,
       );
       const results = await Promise.all(
         urls.map((u) => downloadInternetImage(u)),
@@ -843,17 +858,17 @@ export default function MoodHome() {
         toast(
           ar.ok
             ? added === 1
-              ? `✓ Added 1 · applied as wallpaper${failedMsg}`
-              : `✓ Added ${added} · first one applied${failedMsg}`
-            : `Added ${added}${failedMsg} · couldn't apply (${ar.message})`,
+              ? `âœ“ Added 1 Â· applied as wallpaper${failedMsg}`
+              : `âœ“ Added ${added} Â· first one applied${failedMsg}`
+            : `Added ${added}${failedMsg} Â· couldn't apply (${ar.message})`,
         );
       } catch (applyErr) {
         console.warn('[mood/custom] URL setAsWallpaper threw:', applyErr);
-        toast(`Added ${added}${failedMsg} · apply failed`);
+        toast(`Added ${added}${failedMsg} Â· apply failed`);
       }
     } catch (e) {
       console.warn('[mood/custom] URL flow crashed:', e);
-      toast('URL download failed — please retry');
+      toast('URL download failed â€” please retry');
     }
   }, [urlInput, addPhotosToCustomMoodPool]);
 
@@ -867,7 +882,7 @@ export default function MoodHome() {
         { text: 'From Gallery', onPress: onPickFromGalleryForCustom },
         { text: 'From Internet', onPress: onOpenUrlSheet },
         {
-          text: 'Build full album…',
+          text: 'Build full albumâ€¦',
           onPress: () => router.push('/mood/pick-collection' as Href),
         },
         { text: 'Cancel', style: 'cancel' },
@@ -882,9 +897,9 @@ export default function MoodHome() {
 
   /**
    * Tap a photo in the custom-pair picker. Three-state machine:
-   *   no slots filled  → tap fills WAKE
-   *   wake filled only → tap fills SLEEP
-   *   both filled      → tap REPLACES the slot it was the most recent fill
+   *   no slots filled  â†’ tap fills WAKE
+   *   wake filled only â†’ tap fills SLEEP
+   *   both filled      â†’ tap REPLACES the slot it was the most recent fill
    *                      of (which is sleep, by definition of getting here)
    *                      with the new pick. Wake stays.
    * Re-tapping a photo that's ALREADY in a slot clears that slot.
@@ -909,7 +924,7 @@ export default function MoodHome() {
         setSleepWakeCustomSleepId(photoId);
         return;
       }
-      // Both filled — replace the SLEEP slot (latest filled).
+      // Both filled â€” replace the SLEEP slot (latest filled).
       setSleepWakeCustomSleepId(photoId);
     },
     [
@@ -933,7 +948,7 @@ export default function MoodHome() {
         premiumAlert({
           title: 'Needs a native rebuild',
           message:
-            'expo-image-picker isn’t linked yet. Run `npx expo run:android` and reopen.',
+            'expo-image-picker isnâ€™t linked yet. Run `npx expo run:android` and reopen.',
           icon: 'construct-outline',
         });
         return;
@@ -951,7 +966,7 @@ export default function MoodHome() {
         });
         return;
       }
-      toast('Couldn’t open gallery');
+      toast('Couldnâ€™t open gallery');
       return;
     }
 
@@ -960,33 +975,33 @@ export default function MoodHome() {
     const sleepEmpty = !sleepWakeCustomSleepId;
 
     if (wakeEmpty && !sleepEmpty) {
-      // Only wake slot empty — fill it without asking.
+      // Only wake slot empty â€” fill it without asking.
       await setSleepWakeCustomWakeId(uri);
-      toast('✓ Set as ☀️ Wake');
+      toast('âœ“ Set as â˜€ï¸ Wake');
       return;
     }
     if (sleepEmpty && !wakeEmpty) {
       await setSleepWakeCustomSleepId(uri);
-      toast('✓ Set as 🌙 Sleep');
+      toast('âœ“ Set as ðŸŒ™ Sleep');
       return;
     }
-    // Both empty OR both filled — ask which slot.
+    // Both empty OR both filled â€” ask which slot.
     premiumAlert({
-      title: 'Use this photo as…',
+      title: 'Use this photo asâ€¦',
       icon: 'image-outline',
       buttons: [
         {
-          text: '☀️ Wake (morning)',
+          text: 'â˜€ï¸ Wake (morning)',
           onPress: async () => {
             await setSleepWakeCustomWakeId(uri);
-            toast('✓ Set as ☀️ Wake');
+            toast('âœ“ Set as â˜€ï¸ Wake');
           },
         },
         {
-          text: '🌙 Sleep (night)',
+          text: 'ðŸŒ™ Sleep (night)',
           onPress: async () => {
             await setSleepWakeCustomSleepId(uri);
-            toast('✓ Set as 🌙 Sleep');
+            toast('âœ“ Set as ðŸŒ™ Sleep');
           },
         },
         { text: 'Cancel', style: 'cancel' },
@@ -1006,24 +1021,24 @@ export default function MoodHome() {
     }
     await setSleepWakePackId(CUSTOM_SLEEP_WAKE_ID);
     swCustomPickerRef.current?.dismiss();
-    setTimeout(() => toast('✓ Custom pair saved'), 240);
+    setTimeout(() => toast('âœ“ Custom pair saved'), 240);
   }, [sleepWakeCustomWakeId, sleepWakeCustomSleepId, setSleepWakePackId]);
 
   const onPickWakeHour = useCallback(() => {
     // Guard: wake hour must differ from sleep hour. Equal hours collapse
     // the sleep/wake windows in runSleepWakeFallback (sleep never fires,
-    // wake fires daily) — see the degenerate guard there. Ignore + toast
+    // wake fires daily) â€” see the degenerate guard there. Ignore + toast
     // rather than persisting a broken schedule.
     const pickWake = (h: number) => {
       if (h === sleepWakeSleepHour) {
-        toast('Wake time can’t equal sleep time');
+        toast('Wake time canâ€™t equal sleep time');
         return;
       }
       setSleepWakeWakeHour(h);
     };
     premiumAlert({
       title: 'Wake-up time',
-      message: 'When should ☀️ Good Morning fire?',
+      message: 'When should â˜€ï¸ Good Morning fire?',
       icon: 'sunny',
       buttons: [
         { text: '6 AM', onPress: () => pickWake(6) },
@@ -1039,14 +1054,14 @@ export default function MoodHome() {
     // Same guard as wake: sleep hour must differ from wake hour.
     const pickSleep = (h: number) => {
       if (h === sleepWakeWakeHour) {
-        toast('Sleep time can’t equal wake time');
+        toast('Sleep time canâ€™t equal wake time');
         return;
       }
       setSleepWakeSleepHour(h);
     };
     premiumAlert({
       title: 'Sleep time',
-      message: 'When should 🌙 Sleep Well fire?',
+      message: 'When should ðŸŒ™ Sleep Well fire?',
       icon: 'moon',
       buttons: [
         { text: '9 PM', onPress: () => pickSleep(21) },
@@ -1062,47 +1077,47 @@ export default function MoodHome() {
     const trimmed = customMinInput.trim();
     const n = parseInt(trimmed, 10);
     if (!Number.isFinite(n) || n < 1) {
-      toast('Enter a number 1–1440');
+      toast('Enter a number 1â€“1440');
       return;
     }
     if (n > 1440) {
-      toast('Max is 1440 (24 h) — use Daily Mood Prompt for once-a-day');
+      toast('Max is 1440 (24 h) â€” use Daily Mood Prompt for once-a-day');
       return;
     }
     setFriendCheckInMinutes(n);
     customIntervalSheetRef.current?.dismiss();
-    // Tell the user the truth about Android's WorkManager floor —
+    // Tell the user the truth about Android's WorkManager floor â€”
     // but only when the FGS isn't available. With the FGS linked the
     // tick runs on our own Handler, bypassing AlarmManager/WorkManager
     // entirely, so sub-15-min intervals fire on time.
     setTimeout(() => {
       if (n < FRIEND_CHECK_IN_ANDROID_FLOOR && !isFriendCheckinForegroundAvailable) {
-        toast(`Set to ${n} min · Android may round up to ${FRIEND_CHECK_IN_ANDROID_FLOOR}`);
+        toast(`Set to ${n} min Â· Android may round up to ${FRIEND_CHECK_IN_ANDROID_FLOOR}`);
       } else {
-        toast(`✓ Set to ${formatMinutes(n)}`);
+        toast(`âœ“ Set to ${formatMinutes(n)}`);
       }
     }, 240);
   }, [customMinInput, setFriendCheckInMinutes]);
 
-  // ─── Manual emoji tap ────────────────────────────────────────────────────
+  // â”€â”€â”€ Manual emoji tap â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const onSelectMood = useCallback(
     async (id: MoodId) => {
       if (!activeCollection) {
-        // No pool yet — record the manual selection (the preview grid is the
+        // No pool yet â€” record the manual selection (the preview grid is the
         // user's chosen mood) and fall back to the preview grid for that mood.
         await selectMoodManual(id);
         router.push(`/mood/${id}` as Href);
         return;
       }
       // Force-apply a wallpaper from the active Collection's bucket. Only
-      // commit the manual mood to the store AFTER a successful apply —
+      // commit the manual mood to the store AFTER a successful apply â€”
       // otherwise the header would flip to the new mood while the wallpaper
       // (and currentPhotoId) stay on the old one when the apply fails.
       const r = await applyMoodPhotoFromCollection(id, activeCollection.id, currentPhotoId);
       if (r.ok && r.photoId) {
         await selectMoodManual(id);
         await setCurrentMoodPhoto(r.photoId);
-        toast(`✓ ${MOOD_BY_ID[id].label} wallpaper applied`);
+        toast(`âœ“ ${MOOD_BY_ID[id].label} wallpaper applied`);
       } else {
         toast(r.message);
       }
@@ -1137,7 +1152,7 @@ export default function MoodHome() {
           </AnimatedButton>
         </View>
 
-        {/* ─── CURRENTLY APPLIED — always visible so user sees the most
+        {/* â”€â”€â”€ CURRENTLY APPLIED â€” always visible so user sees the most
              recent wallpaper regardless of which tier set it. */}
         {currentPhoto ? (
           <View style={styles.modeWrap}>
@@ -1153,7 +1168,7 @@ export default function MoodHome() {
               />
               <View style={{ flex: 1 }}>
                 <Text style={styles.appliedLabel}>
-                  Currently applied · {activeMood.emoji} {activeMood.label}
+                  Currently applied Â· {activeMood.emoji} {activeMood.label}
                 </Text>
                 <Text style={[styles.appliedTitle, { color: theme.text }]} numberOfLines={1}>
                   {currentPhoto.title}
@@ -1167,7 +1182,7 @@ export default function MoodHome() {
           </View>
         ) : null}
 
-        {/* ─── MOOD MODE CARD — disabled via CAMERA_FEATURE_ENABLED ─── */}
+        {/* â”€â”€â”€ MOOD MODE CARD â€” disabled via CAMERA_FEATURE_ENABLED â”€â”€â”€ */}
         {CAMERA_FEATURE_ENABLED ? (
         <Animated.View entering={FadeInDown.duration(280)} style={styles.modeWrap}>
           <View
@@ -1207,7 +1222,7 @@ export default function MoodHome() {
                   </View>
                   <Text style={styles.modeBody}>
                     {moodModeEnabled
-                      ? 'Camera ON · scanning every 60s while app is open'
+                      ? 'Camera ON Â· scanning every 60s while app is open'
                       : 'Pick a pool, then turn on to auto-detect'}
                   </Text>
                 </View>
@@ -1232,7 +1247,7 @@ export default function MoodHome() {
               </AnimatedButton>
             </View>
 
-            {/* collection row — tap navigates to the full picker. The
+            {/* collection row â€” tap navigates to the full picker. The
                 bottom "Switch album" strip on this screen lets the user
                 swap in place without the navigation round-trip. */}
             <AnimatedButton
@@ -1261,7 +1276,7 @@ export default function MoodHome() {
                       {activeCollection.name}
                     </Text>
                     <Text style={styles.poolMeta}>
-                      {activeCollection.photoIds.length} photos · tap to change
+                      {activeCollection.photoIds.length} photos Â· tap to change
                     </Text>
                   </View>
                 </>
@@ -1341,13 +1356,13 @@ export default function MoodHome() {
                   <Text style={styles.liveText}>
                     Detected: <Text style={{ color: activeMood.tint }}>{activeMood.label}</Text>
                     {lastSource === 'camera'
-                      ? ` · ${Math.round(lastConfidence * 100)}%`
+                      ? ` Â· ${Math.round(lastConfidence * 100)}%`
                       : ''}
                   </Text>
                   <Text style={styles.statusLine}>
                     {lastCameraAt
-                      ? `Last camera scan ${timeAgo(lastCameraAt)} · next ~60s`
-                      : 'Waiting for first scan (≈ 3 s after camera warm-up)…'}
+                      ? `Last camera scan ${timeAgo(lastCameraAt)} Â· next ~60s`
+                      : 'Waiting for first scan (â‰ˆ 3 s after camera warm-up)â€¦'}
                   </Text>
                 </View>
               </View>
@@ -1375,7 +1390,7 @@ export default function MoodHome() {
               </AnimatedButton>
             ) : null}
 
-            {/* Scan-now — dev-only debug affordance to verify the camera
+            {/* Scan-now â€” dev-only debug affordance to verify the camera
                 works without waiting 60 s. Hidden in release builds
                 (changes/053). */}
             {__DEV__ && moodModeEnabled ? (
@@ -1401,7 +1416,7 @@ export default function MoodHome() {
         </Animated.View>
         ) : null}
 
-        {/* ─── BACKGROUND + NOTIFICATION CARD ─────────────────────────── */}
+        {/* â”€â”€â”€ BACKGROUND + NOTIFICATION CARD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
         <View style={styles.modeWrap}>
           <View
             style={[
@@ -1441,7 +1456,7 @@ export default function MoodHome() {
                     <PremiumLock />
                   </View>
                   <Text style={styles.modeBody}>
-                    Time + motion guess + daily prompt — no camera needed
+                    Time + motion guess + daily prompt â€” no camera needed
                   </Text>
                 </View>
               </View>
@@ -1457,7 +1472,7 @@ export default function MoodHome() {
                   Auto-change in background
                 </Text>
                 <Text style={styles.subRowBody}>
-                  Runs every ~30 min · time of day + step count
+                  Runs every ~30 min Â· time of day + step count
                 </Text>
                 {backgroundEnabled ? (
                   <Text style={styles.statusLine}>
@@ -1498,13 +1513,13 @@ export default function MoodHome() {
                 </Text>
                 <AnimatedButton onPress={onChangeNotifHour} hitSlop={6}>
                   <Text style={styles.subRowBody}>
-                    At {formatHour(notifHour)} · 1-tap apply from buttons
+                    At {formatHour(notifHour)} Â· 1-tap apply from buttons
                   </Text>
                 </AnimatedButton>
                 {notifEnabled ? (
                   <Text style={styles.statusLine}>
                     Next: {nextDailyAt(notifHour)}
-                    {lastNotifAt ? ` · last response ${timeAgo(lastNotifAt)}` : ''}
+                    {lastNotifAt ? ` Â· last response ${timeAgo(lastNotifAt)}` : ''}
                   </Text>
                 ) : null}
               </View>
@@ -1527,7 +1542,7 @@ export default function MoodHome() {
             </View>
 
             {/* Dev-only "Run background now" affordance. Hidden in
-                release builds (changes/053) — once the bg-task is on,
+                release builds (changes/053) â€” once the bg-task is on,
                 the user trusts the OS dispatch + the in-app history
                 row to confirm it's working. */}
             {__DEV__ && backgroundEnabled ? (
@@ -1542,7 +1557,7 @@ export default function MoodHome() {
               </AnimatedButton>
             ) : null}
 
-            {/* Honest disclosure — kept as a hint for the OEM autostart
+            {/* Honest disclosure â€” kept as a hint for the OEM autostart
                 edge case (Vivo/MIUI/ColorOS) where even the foreground
                 service can be killed unless the user whitelists the
                 app. Default cadence is reliable on stock Android. */}
@@ -1556,7 +1571,7 @@ export default function MoodHome() {
           </View>
         </View>
 
-        {/* ─── FRIEND CHECK-IN — recurring mood prompt ────────────────── */}
+        {/* â”€â”€â”€ FRIEND CHECK-IN â€” recurring mood prompt â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
         <View style={styles.modeWrap}>
           <View
             style={[
@@ -1593,7 +1608,7 @@ export default function MoodHome() {
                     <PremiumLock />
                   </View>
                   <Text style={styles.modeBody}>
-                    I’ll send a friendly notification on a schedule — tap a
+                    Iâ€™ll send a friendly notification on a schedule â€” tap a
                     feeling, your wallpaper changes. Works with the app closed.
                   </Text>
                 </View>
@@ -1643,7 +1658,7 @@ export default function MoodHome() {
                   {formatMinutes(friendCheckInMinutes)}
                 </Text>
                 <Text style={styles.poolMeta}>
-                  Tap to change · presets 15 min – 6 hr
+                  Tap to change Â· presets 15 min â€“ 6 hr
                 </Text>
               </View>
               <Ionicons name="chevron-forward" size={18} color={Colors.textDim} />
@@ -1653,22 +1668,22 @@ export default function MoodHome() {
             {friendCheckInEnabled ? (
               <Text style={styles.statusLine}>
                 {lastNotifAt
-                  ? `Last response: ${timeAgo(lastNotifAt)} · next in ~${formatMinutes(friendCheckInMinutes)}`
-                  : `Active · next notification in ~${formatMinutes(friendCheckInMinutes)}`}
+                  ? `Last response: ${timeAgo(lastNotifAt)} Â· next in ~${formatMinutes(friendCheckInMinutes)}`
+                  : `Active Â· next notification in ~${formatMinutes(friendCheckInMinutes)}`}
               </Text>
             ) : null}
 
             <View style={styles.privacyRow}>
               <Ionicons name="lock-closed" size={11} color={Colors.cyan} />
               <Text style={styles.privacyText}>
-                Local notification only — no network. Tap any emoji in the
+                Local notification only â€” no network. Tap any emoji in the
                 notification shade to update without opening the app.
               </Text>
             </View>
           </View>
         </View>
 
-        {/* ─── SLEEP / WAKE — auto-switch wallpaper morning vs night ─── */}
+        {/* â”€â”€â”€ SLEEP / WAKE â€” auto-switch wallpaper morning vs night â”€â”€â”€ */}
         <View style={styles.modeWrap}>
           <View
             style={[
@@ -1705,7 +1720,7 @@ export default function MoodHome() {
                     <PremiumLock />
                   </View>
                   <Text style={styles.modeBody}>
-                    Two wallpapers — one for morning, one for night. Tap the
+                    Two wallpapers â€” one for morning, one for night. Tap the
                     notification at wake/sleep time to apply.
                   </Text>
                 </View>
@@ -1849,7 +1864,7 @@ export default function MoodHome() {
           </View>
         </View>
 
-        {/* ─── Manual override ──────────────────────────────────────────── */}
+        {/* â”€â”€â”€ Manual override â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
         <View style={styles.sectionHead}>
           <Text style={[styles.sectionTitle, { color: theme.text }]}>
             Manual override
@@ -1873,7 +1888,7 @@ export default function MoodHome() {
           })}
         </View>
 
-        {/* ─── Browse moods ─────────────────────────────────────────────── */}
+        {/* â”€â”€â”€ Browse moods â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
         <View style={styles.sectionHead}>
           <Text style={[styles.sectionTitle, { color: theme.text }]}>
             Browse mood packs
@@ -1909,10 +1924,10 @@ export default function MoodHome() {
           })}
         </ScrollView>
 
-        {/* ─── Switch album strip (changes/054) ─────────────────────────
+        {/* â”€â”€â”€ Switch album strip (changes/054) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             Always-visible horizontal row of every available pool. Each
             card sets that pool as the mood collection in one tap. The
-            final card is "Custom" — opens a chooser for Gallery / URL /
+            final card is "Custom" â€” opens a chooser for Gallery / URL /
             full-album-editor. Replaces the long-press picker from 053
             which wasn't discoverable. */}
         <View style={styles.sectionHead}>
@@ -1977,7 +1992,7 @@ export default function MoodHome() {
               </AnimatedButton>
             );
           })}
-          {/* Custom — gallery / URL / full editor. */}
+          {/* Custom â€” gallery / URL / full editor. */}
           <AnimatedButton
             onPress={onPickCustom}
             style={[
@@ -2001,7 +2016,7 @@ export default function MoodHome() {
                 Custom
               </Text>
               <Text style={pickerStripStyles.customMeta}>
-                Gallery · URL
+                Gallery Â· URL
               </Text>
             </View>
           </AnimatedButton>
@@ -2013,7 +2028,7 @@ export default function MoodHome() {
         ref={customIntervalSheetRef}
         snapPoints={['52%']}
         title="Custom interval"
-        subtitle="How often should I ask? (1 – 1440 min)"
+        subtitle="How often should I ask? (1 â€“ 1440 min)"
         accentColor={Colors.cyan}
       >
         <View style={customSheetStyles.body}>
@@ -2079,7 +2094,7 @@ export default function MoodHome() {
         accentColor={Colors.gold}
       >
         <View style={{ gap: Spacing.sm }}>
-          {/* CUSTOM PAIR — first option so the user immediately sees they
+          {/* CUSTOM PAIR â€” first option so the user immediately sees they
               can pick their own. */}
           <AnimatedButton
             onPress={onPickCustomPair}
@@ -2105,8 +2120,8 @@ export default function MoodHome() {
               </Text>
               <Text style={[swStyles.packTag, { color: Colors.cyan }]} numberOfLines={1}>
                 {isCustomSleepWake && sleepWakeCustomWakeId && sleepWakeCustomSleepId
-                  ? '✓ Custom wake + sleep picked'
-                  : 'Pick any 2 photos — one for ☀️, one for 🌙'}
+                  ? 'âœ“ Custom wake + sleep picked'
+                  : 'Pick any 2 photos â€” one for â˜€ï¸, one for ðŸŒ™'}
               </Text>
             </View>
             <Ionicons name="chevron-forward" size={18} color={Colors.cyan} />
@@ -2120,7 +2135,7 @@ export default function MoodHome() {
                 onPress={async () => {
                   await setSleepWakePackId(pack.id);
                   swPackPickerRef.current?.dismiss();
-                  toast(`✓ Pack: ${pack.name}`);
+                  toast(`âœ“ Pack: ${pack.name}`);
                 }}
                 style={[
                   swStyles.packRow,
@@ -2160,28 +2175,28 @@ export default function MoodHome() {
         </View>
       </PremiumSheet>
 
-      {/* Custom-pair picker — two slots at top + photo grid below. */}
+      {/* Custom-pair picker â€” two slots at top + photo grid below. */}
       <PremiumSheet
         ref={swCustomPickerRef}
         snapPoints={['88%']}
         title="Pick your 2 images"
-        subtitle="Tap a photo to fill ☀️ Wake. Tap another for 🌙 Sleep. Tap again to clear."
+        subtitle="Tap a photo to fill â˜€ï¸ Wake. Tap another for ðŸŒ™ Sleep. Tap again to clear."
         accentColor={Colors.cyan}
       >
         <View style={{ gap: Spacing.md }}>
           {/* Two slots */}
           <View style={swStyles.slotRow}>
             <CustomSlot
-              label="☀️ Wake"
+              label="â˜€ï¸ Wake"
               photoId={sleepWakeCustomWakeId}
             />
             <CustomSlot
-              label="🌙 Sleep"
+              label="ðŸŒ™ Sleep"
               photoId={sleepWakeCustomSleepId}
             />
           </View>
 
-          {/* Gallery button — opens the system picker so user can pick
+          {/* Gallery button â€” opens the system picker so user can pick
               ANY photo from their own phone instead of our curated set. */}
           <SimpleButton
             onPress={onPickFromGallery}
@@ -2195,7 +2210,7 @@ export default function MoodHome() {
 
           <Text style={swStyles.divider}>or pick from below</Text>
 
-          {/* Photo grid — SimpleButton (plain Pressable, no Reanimated
+          {/* Photo grid â€” SimpleButton (plain Pressable, no Reanimated
               wrapper) so taps register inside the bottom-sheet's
               ScrollView. AnimatedButton wraps Pressable in
               Animated.createAnimatedComponent, and that combo with
@@ -2233,7 +2248,7 @@ export default function MoodHome() {
                       ]}
                     >
                       <Text style={swStyles.photoSelectedBadgeText}>
-                        {selectedWake ? '☀️' : '🌙'}
+                        {selectedWake ? 'â˜€ï¸' : 'ðŸŒ™'}
                       </Text>
                     </View>
                   ) : null}
@@ -2264,14 +2279,14 @@ export default function MoodHome() {
               ]}
             >
               {sleepWakeCustomWakeId && sleepWakeCustomSleepId
-                ? '✓ Save custom pair'
+                ? 'âœ“ Save custom pair'
                 : 'Pick both Wake and Sleep to save'}
             </Text>
           </AnimatedButton>
         </View>
       </PremiumSheet>
 
-      {/* URL-input sheet for the Custom → From Internet flow.
+      {/* URL-input sheet for the Custom â†’ From Internet flow.
           Multi-line: user can paste many URLs (one per line OR comma-
           separated) and they're all downloaded in parallel. */}
       <PremiumSheet
@@ -2309,10 +2324,10 @@ export default function MoodHome() {
             ]}
           />
           <Text style={customSheetStyles.note}>
-            Images live inside this app's cache — they do NOT touch
+            Images live inside this app's cache â€” they do NOT touch
             your phone gallery. {customPoolRemaining > 0
               ? `${customPoolRemaining} slot${customPoolRemaining === 1 ? '' : 's'} free in your custom pool.`
-              : 'Pool is full — new picks will replace the oldest.'}
+              : 'Pool is full â€” new picks will replace the oldest.'}
           </Text>
           <AnimatedButton
             onPress={onSaveUrlPhoto}
@@ -2328,720 +2343,3 @@ export default function MoodHome() {
     </SafeAreaView>
   );
 }
-
-/**
- * Resolve a custom-pair ID (either a catalog ID or a `file://` /
- * `content://` URI from the user's phone gallery) to a displayable image.
- *
- * Lives at module scope so both the in-picker `CustomSlot` and the main
- * SW card's dual-thumb can share it.
- */
-function resolveCustomImage(id: string | null | undefined): string | null {
-  if (!id) return null;
-  if (id.startsWith('file://') || id.startsWith('content://')) {
-    return id; // gallery URI — use directly
-  }
-  return getPhotoById(id)?.image ?? null;
-}
-
-/** Single slot in the custom-pair picker showing the assigned image (or
- *  a placeholder). Lives inside the same module so the styles + image
- *  resolver share scope without an extra import. */
-function CustomSlot({
-  label,
-  photoId,
-}: {
-  label: string;
-  photoId: string | null;
-}) {
-  const image = resolveCustomImage(photoId);
-  return (
-    <View style={swStyles.slot}>
-      <Text style={swStyles.slotLabel}>{label}</Text>
-      {image ? (
-        <Image
-          source={{ uri: image }}
-          style={swStyles.slotImage}
-          contentFit="cover"
-          transition={80}
-        />
-      ) : (
-        <View style={[swStyles.slotImage, swStyles.slotEmpty]}>
-          <Ionicons name="add" size={28} color={Colors.textDim} />
-        </View>
-      )}
-    </View>
-  );
-}
-
-function formatHour(h: number): string {
-  if (h === 0) return '12 AM';
-  if (h === 12) return '12 PM';
-  if (h < 12) return `${h} AM`;
-  return `${h - 12} PM`;
-}
-
-function labelForSource(s: string): string {
-  switch (s) {
-    case 'manual': return 'Manual pick';
-    case 'camera': return 'Camera scan';
-    case 'background': return 'Background (time + steps)';
-    case 'notification': return 'Notification';
-    default: return s;
-  }
-}
-
-function timeAgo(at: number | null): string {
-  if (at == null) return 'never';
-  const sec = Math.max(0, Math.floor((Date.now() - at) / 1000));
-  if (sec < 60) return `${sec}s ago`;
-  const min = Math.floor(sec / 60);
-  if (min < 60) return `${min}m ago`;
-  const hr = Math.floor(min / 60);
-  if (hr < 24) return `${hr}h ago`;
-  return `${Math.floor(hr / 24)}d ago`;
-}
-
-function formatMinutes(m: number): string {
-  if (m < 60) return `${m} min`;
-  if (m === 60) return `1 hour`;
-  if (m % 60 === 0) return `${m / 60} hours`;
-  const h = Math.floor(m / 60);
-  const rem = m % 60;
-  return `${h}h ${rem}m`;
-}
-
-function nextDailyAt(hour: number): string {
-  const now = new Date();
-  const next = new Date();
-  next.setHours(hour, 0, 0, 0);
-  if (next.getTime() <= now.getTime()) next.setDate(next.getDate() + 1);
-  const isTomorrow =
-    next.getDate() !== now.getDate() ||
-    next.getMonth() !== now.getMonth() ||
-    next.getFullYear() !== now.getFullYear();
-  return `${isTomorrow ? 'tomorrow' : 'today'} at ${formatHour(hour)}`;
-}
-
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.bg },
-  scroll: { paddingBottom: 140 },
-
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: SIDE,
-    paddingTop: Spacing.sm,
-    paddingBottom: Spacing.md,
-    gap: Spacing.md,
-  },
-  h1: { fontSize: 22, fontWeight: '800', letterSpacing: -0.4 },
-  subtitle: { color: Colors.textDim, fontSize: 12, fontWeight: '600', marginTop: 2 },
-  iconBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: Radius.pill,
-    backgroundColor: Colors.surface,
-    borderColor: Colors.border,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  iconDot: {
-    position: 'absolute',
-    top: 9,
-    right: 9,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    borderWidth: 1.5,
-    borderColor: Colors.bg,
-  },
-
-  // mode card
-  modeWrap: { paddingHorizontal: SIDE },
-  modeCard: {
-    borderRadius: Radius.xxl,
-    backgroundColor: Colors.surface,
-    borderWidth: 1.5,
-    borderColor: Colors.border,
-    padding: Spacing.lg,
-    gap: Spacing.md,
-    shadowOpacity: 0.6,
-    shadowRadius: 14,
-    shadowOffset: { width: 0, height: 6 },
-  },
-  modeHead: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
-  modeHeadLeft: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.md,
-  },
-  modeIcon: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  modeTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-  },
-  modeTitle: { fontSize: 17, fontWeight: '800', letterSpacing: -0.3 },
-  modeBody: {
-    color: Colors.textDim,
-    fontSize: 11,
-    fontWeight: '700',
-    marginTop: 2,
-  },
-  toggleBtn: {
-    width: 46,
-    height: 28,
-    borderRadius: 14,
-    padding: 2,
-    justifyContent: 'center',
-  },
-  toggleKnob: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: '#fff',
-  },
-  toggleKnobOn: {
-    alignSelf: 'flex-end',
-  },
-
-  // pool row
-  poolRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.md,
-    padding: Spacing.sm,
-    borderRadius: Radius.lg,
-    backgroundColor: Colors.bgAlt,
-  },
-  poolThumb: {
-    width: 48,
-    height: 60,
-    borderRadius: Radius.sm,
-    overflow: 'hidden',
-    backgroundColor: Colors.surfaceHi,
-  },
-  poolLabel: {
-    color: Colors.textMute,
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 0.5,
-  },
-  poolName: { fontSize: 14, fontWeight: '800', marginTop: 2 },
-  poolMeta: { color: Colors.textDim, fontSize: 11, fontWeight: '700', marginTop: 2 },
-
-  // balance
-  balanceRow: { flexDirection: 'row', gap: 4 },
-  balanceCell: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: 6,
-    borderRadius: Radius.md,
-    backgroundColor: Colors.bgAlt,
-    borderWidth: 1,
-    borderColor: 'transparent',
-    gap: 2,
-  },
-  balanceEmoji: { fontSize: 14 },
-  balanceCount: { fontSize: 10, fontWeight: '800' },
-
-  // live row
-  liveRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: 8,
-    borderRadius: Radius.md,
-    borderWidth: 1,
-    backgroundColor: Colors.bgAlt,
-  },
-  liveDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  liveText: { color: Colors.text, fontSize: 12, fontWeight: '800', flex: 1 },
-
-  // applied row (inside the original Mood Mode card — kept for fallback)
-  appliedRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.md,
-    padding: Spacing.sm,
-    borderRadius: Radius.lg,
-    backgroundColor: Colors.bgAlt,
-  },
-  appliedThumb: {
-    width: 48,
-    height: 60,
-    borderRadius: Radius.sm,
-    backgroundColor: Colors.surfaceHi,
-  },
-
-  // Promoted-to-top "Currently applied" card. Larger than the inline thumb so
-  // the user can actually see the wallpaper from across the room.
-  appliedCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.md,
-    padding: Spacing.sm + 2,
-    borderRadius: Radius.xl,
-    backgroundColor: Colors.surface,
-    borderWidth: 1.5,
-    shadowOpacity: 0.55,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 5 },
-  },
-  appliedCardThumb: {
-    width: 64,
-    height: 80,
-    borderRadius: Radius.md,
-    backgroundColor: Colors.surfaceHi,
-  },
-  appliedLabel: {
-    color: Colors.textMute,
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 0.5,
-  },
-  appliedTitle: { fontSize: 13, fontWeight: '800', marginTop: 2 },
-
-  privacyRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  privacyText: {
-    color: Colors.textDim,
-    fontSize: 11,
-    fontWeight: '700',
-    flex: 1,
-  },
-
-  // sub-rows for background / notification card
-  subRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.md,
-    paddingVertical: 6,
-  },
-  subRowIcon: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: Colors.bgAlt,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  subRowTitle: { fontSize: 13, fontWeight: '800', letterSpacing: -0.2 },
-  subRowBody: {
-    color: Colors.textDim,
-    fontSize: 11,
-    fontWeight: '700',
-    marginTop: 2,
-  },
-  testBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    paddingVertical: 8,
-    borderRadius: Radius.pill,
-    borderWidth: 1.5,
-  },
-  testBtnText: { fontSize: 11, fontWeight: '800', letterSpacing: 0.3 },
-
-  statusLine: {
-    color: Colors.textMute,
-    fontSize: 10,
-    fontWeight: '700',
-    marginTop: 4,
-    letterSpacing: 0.2,
-  },
-
-  // target-app chips for Tier 2 (deprecated; kept for shape compat)
-  chipRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-  },
-  chip: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: Radius.pill,
-    borderWidth: 1,
-    backgroundColor: Colors.bgAlt,
-  },
-  chipText: { fontSize: 11, fontWeight: '800' },
-
-  // sections
-  sectionHead: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: SIDE,
-    paddingTop: Spacing.xl,
-    paddingBottom: Spacing.md,
-    gap: Spacing.sm,
-  },
-  sectionTitle: {
-    flex: 1,
-    fontSize: 16,
-    fontWeight: '800',
-    letterSpacing: -0.2,
-  },
-  sectionHint: { color: Colors.textDim, fontSize: 11, fontWeight: '700' },
-
-  // emoji row
-  emojiRow: {
-    flexDirection: 'row',
-    paddingHorizontal: SIDE,
-    gap: GAP,
-  },
-
-  // browse
-  browseRow: {
-    paddingHorizontal: SIDE,
-    gap: 10,
-  },
-  browseCard: {
-    width: 130,
-    height: 160,
-    borderRadius: Radius.xl,
-    overflow: 'hidden',
-    padding: 12,
-    justifyContent: 'flex-end',
-  },
-  browseShade: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.18)',
-  },
-  browseBody: { gap: 2 },
-  browseEmoji: { fontSize: 30 },
-  browseLabel: {
-    color: '#131313',
-    fontSize: 14,
-    fontWeight: '900',
-    letterSpacing: -0.3,
-  },
-  browseTag: {
-    color: '#131313',
-    opacity: 0.7,
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 0.3,
-  },
-});
-
-// Custom-minutes bottom-sheet styles. Kept separate from `styles` so the
-// imperative grouping (input row → presets → note → save) stays together
-// instead of being interleaved into the main map by sort order.
-const customSheetStyles = StyleSheet.create({
-  body: { gap: Spacing.lg },
-  inputRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: Spacing.sm,
-  },
-  input: {
-    minWidth: 100,
-    textAlign: 'center',
-    fontSize: 48,
-    fontWeight: '900',
-    letterSpacing: -1,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: Radius.lg,
-    backgroundColor: Colors.bgAlt,
-  },
-  unit: {
-    color: Colors.textDim,
-    fontSize: 18,
-    fontWeight: '800',
-  },
-  quickRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    gap: 6,
-  },
-  chip: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: Radius.pill,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    backgroundColor: Colors.surface,
-  },
-  chipText: {
-    color: Colors.text,
-    fontSize: 12,
-    fontWeight: '800',
-  },
-  note: {
-    color: Colors.textDim,
-    fontSize: 11,
-    fontWeight: '600',
-    textAlign: 'center',
-    paddingHorizontal: Spacing.md,
-  },
-  saveBtn: {
-    paddingVertical: 14,
-    borderRadius: Radius.pill,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  saveBtnText: {
-    fontSize: 15,
-    fontWeight: '800',
-    color: '#131313',
-    letterSpacing: -0.2,
-  },
-});
-
-// Sleep/Wake-specific styles. The card itself reuses `styles.modeCard` /
-// `styles.poolRow` / `styles.modeHead` from the main map — only the new
-// dual-thumb (showing both pack images side-by-side) + the two time cells
-// + the picker rows need their own definitions.
-const swStyles = StyleSheet.create({
-  // Dual thumbnail showing both wake (top half) and sleep (bottom half) of
-  // a Sleep/Wake pack — used in the active-pack row + picker rows.
-  dualThumb: {
-    width: 48,
-    height: 60,
-    borderRadius: Radius.sm,
-    overflow: 'hidden',
-    backgroundColor: Colors.surfaceHi,
-  },
-  dualThumbHalf: {
-    width: '100%',
-    height: '50%',
-  },
-  // Two wake/sleep time pickers side by side.
-  timeRow: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
-  },
-  timeCell: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    paddingVertical: Spacing.sm,
-    borderRadius: Radius.md,
-    backgroundColor: Colors.bgAlt,
-  },
-  timeLabel: {
-    color: Colors.textDim,
-    fontSize: 11,
-    fontWeight: '800',
-    letterSpacing: 0.5,
-  },
-  timeValue: {
-    fontSize: 14,
-    fontWeight: '800',
-    letterSpacing: -0.2,
-  },
-  // Pack picker rows.
-  packRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.md,
-    padding: Spacing.sm,
-    borderRadius: Radius.lg,
-    backgroundColor: Colors.surface,
-    borderWidth: 1.5,
-  },
-  packPair: {
-    width: 56,
-    height: 70,
-    borderRadius: Radius.sm,
-    overflow: 'hidden',
-    backgroundColor: Colors.surfaceHi,
-  },
-  packPairHalf: {
-    width: '100%',
-    height: '50%',
-  },
-  packName: { fontSize: 14, fontWeight: '800', letterSpacing: -0.2 },
-  packTag: { fontSize: 11, fontWeight: '700' },
-
-  // ─── Custom-pair picker ─────────────────────────────────────────────
-  slotRow: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
-  },
-  slot: {
-    flex: 1,
-    alignItems: 'center',
-    gap: 4,
-  },
-  slotLabel: {
-    color: Colors.textDim,
-    fontSize: 11,
-    fontWeight: '800',
-    letterSpacing: 0.5,
-  },
-  slotImage: {
-    width: '100%',
-    aspectRatio: 3 / 4,
-    borderRadius: Radius.md,
-    backgroundColor: Colors.surfaceHi,
-  },
-  slotEmpty: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1.5,
-    borderStyle: 'dashed',
-    borderColor: Colors.border,
-  },
-  photoGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-    justifyContent: 'flex-start',
-  },
-  photoCell: {
-    // Width + height set inline from useWindowDimensions so percentage
-    // layout doesn't fight aspectRatio inside the bottom-sheet's
-    // BottomSheetScrollView (which sometimes reports unstable widths).
-    borderRadius: Radius.sm,
-    overflow: 'hidden',
-    backgroundColor: Colors.surfaceHi,
-    borderWidth: 1,
-    borderColor: 'transparent',
-  },
-  photoSelectedBadge: {
-    position: 'absolute',
-    top: 4,
-    right: 4,
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  photoSelectedBadgeText: {
-    fontSize: 13,
-  },
-  saveBtn: {
-    paddingVertical: 14,
-    borderRadius: Radius.pill,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  saveBtnText: {
-    color: '#131313',
-    fontSize: 15,
-    fontWeight: '800',
-    letterSpacing: -0.2,
-  },
-  galleryBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: Spacing.sm,
-    paddingVertical: Spacing.md,
-    borderRadius: Radius.pill,
-    borderWidth: 1.5,
-    backgroundColor: Colors.surface,
-  },
-  galleryBtnText: {
-    fontSize: 14,
-    fontWeight: '800',
-    letterSpacing: -0.2,
-  },
-  divider: {
-    color: Colors.textMute,
-    fontSize: 11,
-    fontWeight: '700',
-    textAlign: 'center',
-    letterSpacing: 0.5,
-  },
-});
-
-// Styles for the bottom "Choose album" horizontal strip (changes/054).
-const pickerStripStyles = StyleSheet.create({
-  row: {
-    paddingHorizontal: SIDE,
-    paddingBottom: Spacing.md,
-    gap: GAP,
-  },
-  card: {
-    width: 120,
-    height: 160,
-    borderRadius: Radius.lg,
-    overflow: 'hidden',
-    backgroundColor: Colors.surfaceHi,
-    borderWidth: 1.5,
-    borderColor: Colors.border,
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 3 },
-  },
-  shade: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.32)',
-  },
-  selectedBadge: {
-    position: 'absolute',
-    top: 6,
-    right: 6,
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cardFoot: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: Spacing.sm,
-    gap: 2,
-  },
-  cardName: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: '800',
-    letterSpacing: -0.2,
-  },
-  cardMeta: {
-    color: 'rgba(255,255,255,0.7)',
-    fontSize: 10,
-    fontWeight: '700',
-  },
-  customCard: {
-    borderStyle: 'dashed',
-    backgroundColor: 'rgba(220, 184, 255, 0.08)',
-  },
-  customInner: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    padding: Spacing.sm,
-  },
-  customLabel: {
-    fontSize: 14,
-    fontWeight: '800',
-    letterSpacing: -0.2,
-  },
-  customMeta: {
-    color: Colors.textDim,
-    fontSize: 10,
-    fontWeight: '700',
-  },
-});
