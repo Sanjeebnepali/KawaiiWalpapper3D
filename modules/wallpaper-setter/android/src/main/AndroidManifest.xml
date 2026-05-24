@@ -1,0 +1,6 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+  <!-- Required by WallpaperManager.setBitmap (one-tap apply). Normal
+       install-time permission — auto-granted, no runtime request. Merged
+       into the app manifest at build time. -->
+  <uses-permission android:name="android.permission.SET_WALLPAPER" />
+</manifest>
