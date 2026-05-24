@@ -24,6 +24,7 @@ import {
 } from '../../constants/couplePacks';
 import { Colors } from '../../constants/theme';
 import { useTheme } from '../../contexts/ThemeContext';
+import { enforceSingleDriver } from '../../lib/automationMode';
 import { setCouplePack, setCouplePaused, unlinkCouple } from '../../lib/couple';
 import { formatDistance, formatRelative } from '../../lib/coupleDashboardFormat';
 import {
@@ -154,9 +155,24 @@ export default function CoupleDashboard() {
   const onTogglePause = useCallback(async () => {
     setBusy(true);
     try {
+      const wasPaused = paused;
       const r = await setCouplePaused(link.code, !paused);
-      if (!r.ok) toast(r.error ?? 'Could not update');
-      else toast(paused ? '▶ Sharing resumed' : '⏸ Sharing paused');
+      if (!r.ok) {
+        toast(r.error ?? 'Could not update');
+        return;
+      }
+      if (wasPaused) {
+        // Resuming Couple = claim the driver slot: stop Theme/Mood/Friend so
+        // they don't fight over the wallpaper.
+        const stopped = await enforceSingleDriver('couple');
+        toast(
+          stopped.length
+            ? `▶ Sharing resumed · ${stopped.join(' + ')} paused`
+            : '▶ Sharing resumed',
+        );
+      } else {
+        toast('⏸ Sharing paused');
+      }
     } finally {
       setBusy(false);
     }

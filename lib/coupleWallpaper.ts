@@ -5,6 +5,7 @@ import {
   pickImageForState,
 } from '../constants/couplePacks';
 import { useCoupleStore } from '../store/couple';
+import { getActiveDrivers } from './automationMode';
 import { setAsWallpaper } from './wallpaperActions';
 
 /**
@@ -86,6 +87,15 @@ export async function applyProximityWallpaper(): Promise<{
     return { ok: false, applied: 'none' };
   }
   if (s.proximity === 'unknown') return { ok: false, applied: 'none' };
+
+  // Mutual exclusivity: if Theme shuffle / Mood / Friend check-in is driving,
+  // Couple YIELDS — it applies nothing, so the two never fight over the
+  // wallpaper. Reset the dedup so that the moment the other driver is turned
+  // off, the next location tick re-applies our couple half.
+  if (getActiveDrivers().length > 0) {
+    lastAppliedKey = null;
+    return { ok: false, applied: 'none' };
+  }
 
   const myRole = s.link.myRole;
   if (!myRole) return { ok: false, applied: 'none' };

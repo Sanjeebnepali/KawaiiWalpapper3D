@@ -18,11 +18,17 @@
  * coexist with whichever driver is active. They are intentionally never
  * touched by this coordinator.
  *
- * (The Couple-proximity feature is account-bound and GPS-driven; it is
- * deliberately left out of the exclusive set for now — stopping it has
- * cross-partner Supabase side effects. To fold it in later, add a
- * `'couple'` case to `isDriverActive` + `enforceSingleDriver` below; the
- * rest of the wiring already iterates the `DRIVERS` array.)
+ * Couple-proximity is ALSO mutually exclusive with the three above, but it
+ * works asymmetrically to avoid cross-partner Supabase side effects and
+ * boot-order fragility:
+ *   - It is NOT in the `DRIVERS` array, so the boot normalization never tries
+ *     to pause it (pausing is a shared, cross-partner write).
+ *   - Instead, `applyProximityWallpaper` YIELDS (applies nothing) whenever any
+ *     of theme/mood/friend is active — so Couple never fights them.
+ *   - When the user explicitly activates Couple (resumes sharing, or accepts a
+ *     code), the caller runs `enforceSingleDriver('couple')`, which turns the
+ *     other three OFF so Couple can drive.
+ * Sleep/Wake stays a layer and is never touched, exactly like for the others.
  *
  * ─── Why this exists ──────────────────────────────────────────────────
  *
@@ -35,19 +41,23 @@
  * restore) enforces the SAME contract.
  */
 
+import { useCoupleStore } from '../store/couple';
 import { useMoodStore } from '../store/mood';
 import { useShuffleStore } from '../store/shuffle';
 
-export type DriverId = 'theme' | 'mood' | 'friend';
+export type DriverId = 'theme' | 'mood' | 'friend' | 'couple';
 
-/** Ordered list the subscribers + UI iterate. Add `'couple'` here (and
- *  the two switch statements) to bring it under the same rule. */
+/** The drivers the boot normalization + `getActiveDrivers` iterate. Couple is
+ *  deliberately EXCLUDED here (it yields via `applyProximityWallpaper` and is
+ *  claimed via `enforceSingleDriver('couple')`) so the boot pass never issues a
+ *  cross-partner pause write. */
 export const DRIVERS: DriverId[] = ['theme', 'mood', 'friend'];
 
 export const DRIVER_LABELS: Record<DriverId, string> = {
   theme: 'Theme shuffle',
   mood: 'Mood-based',
   friend: 'Friend check-in',
+  couple: 'Couple proximity',
 };
 
 /**
@@ -75,6 +85,12 @@ export function isDriverActive(id: DriverId): boolean {
       return useMoodStore.getState().backgroundEnabled;
     case 'friend':
       return useMoodStore.getState().friendCheckInEnabled;
+    case 'couple': {
+      // "Driving" = linked and not paused. Not iterated by getActiveDrivers
+      // (Couple isn't in DRIVERS), but kept correct for any direct caller.
+      const c = useCoupleStore.getState();
+      return c.link?.status === 'linked' && !c.paused;
+    }
   }
 }
 

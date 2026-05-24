@@ -18,6 +18,7 @@ import {
 } from '../../constants/couplePacks';
 import { Colors } from '../../constants/theme';
 import { useTheme } from '../../contexts/ThemeContext';
+import { enforceSingleDriver } from '../../lib/automationMode';
 import {
   acceptCoupleCode,
   createCoupleCode,
@@ -167,6 +168,9 @@ export default function CoupleSetup() {
         toast(r.error);
         return;
       }
+      // Linking is an explicit "I want Couple now" — claim the driver slot so
+      // Couple isn't suppressed by a still-active Theme/Mood/Friend driver.
+      await enforceSingleDriver('couple');
       toast('💕 Linked');
       router.replace('/couple/dashboard' as Href);
     } finally {
