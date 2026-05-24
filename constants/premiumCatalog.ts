@@ -1,14 +1,17 @@
 /**
- * Premium wallpaper catalog — 60 curated images stored in the Supabase
- * Storage 'premium' bucket (public read). Upload them once with
+ * Premium wallpaper catalog — 60 curated images stored in the EXISTING public
+ * Supabase `wallpapers` bucket, under a `premium/` folder (alongside the other
+ * wallpaper collections, e.g. wallpapers/mood/happy/…). Upload them once with
  * scripts/upload-premium.mjs; the filenames below match that folder.
  *
  * URLs are built from EXPO_PUBLIC_SUPABASE_URL at runtime, so rotating the
- * Supabase project only needs an .env change, not a code edit.
+ * Supabase project only needs an .env change, not a code edit. PREMIUM_BUCKET +
+ * PREMIUM_PREFIX must match the script's upload target.
  */
 
 const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL ?? '';
-export const PREMIUM_BUCKET = 'premium';
+export const PREMIUM_BUCKET = 'wallpapers';
+export const PREMIUM_PREFIX = 'premium/';
 
 /** Exact object names in the bucket (kept in sync with the upload folder). */
 export const PREMIUM_FILES: readonly string[] = [
@@ -74,9 +77,9 @@ export const PREMIUM_FILES: readonly string[] = [
   "fb1ef1c1-92ff-4528-8452-53f14b4ac8ec.png",
 ];
 
-/** Public URL for one premium object. */
+/** Public URL for one premium object (wallpapers bucket → premium/ folder). */
 export function premiumImageUrl(file: string): string {
-  return `${SUPABASE_URL}/storage/v1/object/public/${PREMIUM_BUCKET}/${encodeURIComponent(file)}`;
+  return `${SUPABASE_URL}/storage/v1/object/public/${PREMIUM_BUCKET}/${PREMIUM_PREFIX}${encodeURIComponent(file)}`;
 }
 
 export type PremiumPhoto = { id: string; image: string; premium: true };

@@ -13,16 +13,18 @@
  * The Supabase URL is read from $env:SUPABASE_URL, else from .env's
  * EXPO_PUBLIC_SUPABASE_URL. The folder arg defaults to the path above.
  *
- * It creates a PUBLIC bucket `premium` (if missing) and upserts every
- * .png/.jpg/.jpeg (skipping accidental " (1)" copies). Idempotent — safe to
- * re-run. The object names match constants/premiumCatalog.ts exactly, so the
- * app's URLs resolve as soon as this finishes.
+ * It uploads into the EXISTING public `wallpapers` bucket under a `premium/`
+ * folder (alongside wallpapers/mood/…), creating the bucket only if it's
+ * somehow missing, and upserts every .png/.jpg/.jpeg (skipping accidental
+ * " (1)" copies). Idempotent — safe to re-run. The object names + folder match
+ * constants/premiumCatalog.ts exactly, so the app's URLs resolve immediately.
  */
 import { createClient } from '@supabase/supabase-js';
 import { readdirSync, readFileSync, existsSync } from 'node:fs';
 import { join, extname } from 'node:path';
 
-const BUCKET = 'premium';
+const BUCKET = 'wallpapers'; // the EXISTING public bucket (holds mood/… too)
+const PREFIX = 'premium/'; // folder within it — must match constants/premiumCatalog
 const DEFAULT_FOLDER = 'C:\\Users\\Sanju\\Downloads\\premium';
 
 function readEnvUrl() {
@@ -81,19 +83,23 @@ async function main() {
 
   const supabase = createClient(url, key, { auth: { persistSession: false } });
 
-  // Ensure a public bucket. createBucket errors if it already exists — ignore that.
-  const { error: bucketErr } = await supabase.storage.createBucket(BUCKET, {
-    public: true,
-  });
-  if (bucketErr && !/already exists/i.test(bucketErr.message)) {
-    console.error('✗ Could not create bucket:', bucketErr.message);
-    if (/row-level security|not authorized|permission|violates/i.test(bucketErr.message)) {
-      console.error('  → This almost always means the key is NOT the service_role key.');
-      console.error('    The anon key cannot create buckets. Use the service_role key.');
-    }
+  // Use the EXISTING public bucket; only create it if it's somehow missing.
+  const { data: buckets, error: listErr } = await supabase.storage.listBuckets();
+  if (listErr) {
+    console.error('✗ Could not list buckets:', listErr.message);
+    console.error('  → Almost always means the key is NOT the service_role key.');
     process.exit(1);
   }
-  console.log(`Bucket "${BUCKET}" ready (public).`);
+  if (!buckets?.some((b) => b.name === BUCKET)) {
+    const { error: createErr } = await supabase.storage.createBucket(BUCKET, { public: true });
+    if (createErr) {
+      console.error('✗ Could not create bucket:', createErr.message);
+      process.exit(1);
+    }
+    console.log(`Created public bucket "${BUCKET}".`);
+  } else {
+    console.log(`Using existing bucket "${BUCKET}" → ${PREFIX}`);
+  }
 
   const files = readdirSync(folder)
     .filter((f) => ['.png', '.jpg', '.jpeg'].includes(extname(f).toLowerCase()))
@@ -105,7 +111,7 @@ async function main() {
     const bytes = readFileSync(join(folder, file));
     const { error } = await supabase.storage
       .from(BUCKET)
-      .upload(file, bytes, { contentType: contentTypeFor(file), upsert: true });
+      .upload(PREFIX + file, bytes, { contentType: contentTypeFor(file), upsert: true });
     if (error) {
       failed++;
       console.error(`  ✗ ${file} — ${error.message}`);
@@ -117,7 +123,7 @@ async function main() {
 
   console.log(`\nDone: ${ok} uploaded, ${failed} failed.`);
   if (ok > 0) {
-    const sample = `${url}/storage/v1/object/public/${BUCKET}/${files[0]}`;
+    const sample = `${url}/storage/v1/object/public/${BUCKET}/${PREFIX}${files[0]}`;
     console.log(`Sample public URL:\n  ${sample}`);
     console.log('Open that in a browser — if the image loads, the app will too.');
   }
