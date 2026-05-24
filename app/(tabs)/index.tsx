@@ -47,7 +47,9 @@ export default function WallpapersHome() {
   const goFeatured = useCallback(() => router.push('/category/stylish'), [router]);
   const goTwoD = useCallback(() => router.push('/wallpapers/2d-kawaii'), [router]);
   const goMoods = useCallback(() => router.push('/mood'), [router]);
-  const goPremium = useCallback(() => router.push('/category/premium'), [router]);
+  // "Best Fit" See all browses FREE picks (mixed normal images) — premium is
+  // its own tab, never mixed into this free area.
+  const goBestFit = useCallback(() => router.push('/category/bestfit'), [router]);
 
   const sections = useMemo<Section[]>(
     () => [
@@ -95,13 +97,13 @@ export default function WallpapersHome() {
           <SectionTitle
             title="Best Fit"
             caption="Picked to fit your screen"
-            onSeeAll={goPremium}
+            onSeeAll={goBestFit}
           />
         ),
       },
       { id: 'premium', render: () => <BestPicksGrid /> },
     ],
-    [goFeatured, goTwoD, goMoods, goPremium],
+    [goFeatured, goTwoD, goMoods, goBestFit],
   );
 
   const renderItem: ListRenderItem<Section> = useCallback(

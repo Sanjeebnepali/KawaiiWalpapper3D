@@ -154,11 +154,16 @@ const PREMIUM_SECTION: CatalogSection = {
     : bestPicks,
 };
 
-// The home "Premium" teaser grid (BestPicksGrid) shows a slice of the premium
-// collection; falls back to the free best-picks until the premium upload runs.
-export const premiumHomePicks: CategoryPhoto[] = premiumPhotos.length
-  ? premiumPhotos.slice(0, 12).map((p) => ({ id: p.id, image: p.image }))
-  : bestPicks;
+// "Best Fit" — the FREE curated picks shown in the home teaser (BestPicksGrid)
+// AND its See-all browse (/category/bestfit). Kept entirely separate from
+// PREMIUM_SECTION so subscription images NEVER appear in this free surface.
+const BESTFIT_SECTION: CatalogSection = {
+  group: 'category',
+  key: 'bestfit',
+  label: 'Best Fit',
+  tier: 'free',
+  photos: bestPicks,
+};
 
 /**
  * Resolve a browse id to a catalog section. Accepts a composite
@@ -168,6 +173,7 @@ export const premiumHomePicks: CategoryPhoto[] = premiumPhotos.length
  */
 export function resolveBrowse(id: string): CatalogSection | undefined {
   if (id === 'premium' || id === 'category-premium') return PREMIUM_SECTION;
+  if (id === 'bestfit' || id === 'category-bestfit') return BESTFIT_SECTION;
   for (const g of ['category', 'mood', '2d'] as const) {
     if (id.startsWith(`${g}-`)) {
       const sec = sectionByKey(g, id.slice(g.length + 1));
@@ -192,6 +198,14 @@ export function getCategoryPhotos(id: string, count = 24): CategoryPhoto[] {
 // Curated premium hero — the best-looking spread across groups, to make the
 // home feel high-end. EDIT THIS LIST to change what headlines the home: each
 // entry pulls the first image of that section. (Owner can hand-pick later.)
+// Hand-picked 2D Kawaii headline for the Featured carousel — a FREE image in the
+// existing `wallpapers` bucket. Upload it with scripts/upload-file.mjs to this
+// path; until then this Featured card is blank.
+const FEATURED_2D_ID = 'featured-2d-nervous';
+const FEATURED_2D_IMAGE =
+  (process.env.EXPO_PUBLIC_SUPABASE_URL ?? '') +
+  '/storage/v1/object/public/wallpapers/2d/nervous/33bfb1fb-45c8-4eaa-8092-7f426b8040ac.png';
+
 const FEATURED_PICKS: { group: 'category' | 'mood' | '2d'; key: string; tag: string }[] = [
   { group: 'category', key: 'stylish', tag: 'Premium' },
   { group: 'mood', key: 'love', tag: 'Trending' },
@@ -207,6 +221,10 @@ export const featured: FeaturedItem[] = FEATURED_PICKS.flatMap((p, i) => {
   if (p.tag === 'Premium' && premiumPhotos.length > 0) {
     const pp = premiumPhotoById(FEATURED_PREMIUM_ID) ?? premiumPhotos[0];
     return [{ id: pp.id, title: 'Premium', tag: 'Premium', image: pp.image, accent: Colors.gold, premium: true }];
+  }
+  // The '2D Kawaii' headline uses a hand-picked 2D image (FREE, not premium).
+  if (p.tag === '2D Kawaii') {
+    return [{ id: FEATURED_2D_ID, title: '2D Kawaii', tag: '2D Kawaii', image: FEATURED_2D_IMAGE, accent: ACCENTS[i % ACCENTS.length] }];
   }
   const sec = sectionByKey(p.group, p.key);
   const photo = sec?.photos[0];
@@ -282,6 +300,10 @@ export function getPhotoById(id: string | null | undefined): FeaturedItem | unde
     if (p) {
       return { id: p.id, title: 'Premium', tag: 'Premium', image: p.image, accent: Colors.gold };
     }
+  }
+  // The Featured 2D Kawaii headline (free 2D image).
+  if (id === FEATURED_2D_ID) {
+    return { id, title: '2D Kawaii', tag: '2D Kawaii', image: FEATURED_2D_IMAGE, accent: Colors.pink };
   }
   // Real catalog photo id (e.g. "category-football-2", "mood-love-3",
   // "2d-mixed-1") → resolve to its Supabase image URL.

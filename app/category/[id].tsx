@@ -39,7 +39,11 @@ export default function CategoryScreen() {
   const browseId = id ?? '';
   const meta = browseMeta(browseId);
 
-  const { wallpapers, loading, error, refetch } = useFetchWallpapers(browseId, 30);
+  // Premium shows the whole collection (60); other categories cap at 30.
+  const { wallpapers, loading, error, refetch } = useFetchWallpapers(
+    browseId,
+    browseId === 'premium' ? 120 : 30,
+  );
   const listReady = useDeferredMount();
 
   const cellW = Math.floor((width - SIDE * 2 - GAP * (COLS - 1)) / COLS);
