@@ -16,6 +16,7 @@ import {
 } from '../constants/plans';
 import { Colors, Radius, Spacing } from '../constants/theme';
 import { useTheme } from '../contexts/ThemeContext';
+import { useRequireAuth } from '../hooks/useRequireAuth';
 import {
   type BillingPeriod,
   type PlanId,
@@ -38,6 +39,7 @@ const ALL_PLAN_IDS: PlanId[] = [...PLANS.map((p) => p.id), ALL_ACCESS.id];
 export default function SubscriptionScreen() {
   const router = useRouter();
   const theme = useTheme();
+  const { requireAuth } = useRequireAuth();
   const { highlight } = useLocalSearchParams<{ highlight?: string }>();
 
   // Raw flags (not `hasEntitlement`, which short-circuits in testing mode) so
@@ -97,9 +99,22 @@ export default function SubscriptionScreen() {
 
   const onSubscribe = () => {
     if (!canSubscribe) return;
-    purchasePlans(buyable, period);
-    toast(`✓ ${TRIAL_DAYS}-day free trial started`);
-    router.back();
+    // A subscription is tied to the user's account so it survives reinstall and
+    // restores on a new device — so it MUST be bought while signed in. Guests
+    // can browse the plans/prices above (good for conversion) but get the
+    // sign-in prompt the moment they try to buy. Authed users buy immediately.
+    requireAuth(
+      () => {
+        purchasePlans(buyable, period);
+        toast(`✓ ${TRIAL_DAYS}-day free trial started`);
+        router.back();
+      },
+      {
+        title: 'Sign in to subscribe',
+        message:
+          'Sign in so your subscription is saved to your account and can be restored on any device.',
+      },
+    );
   };
 
   return (
@@ -193,14 +208,23 @@ export default function SubscriptionScreen() {
 
         <AnimatedButton
           onPress={() =>
-            toast(
-              allAccess ||
-                entThemePacks ||
-                entMood ||
-                entCollection ||
-                isCouplePremium
-                ? '✓ Your subscription is active'
-                : 'No previous purchases to restore',
+            // Restoring reads purchases linked to the account, so it also
+            // requires sign-in (mirrors the purchase gate above).
+            requireAuth(
+              () =>
+                toast(
+                  allAccess ||
+                    entThemePacks ||
+                    entMood ||
+                    entCollection ||
+                    isCouplePremium
+                    ? '✓ Your subscription is active'
+                    : 'No previous purchases to restore',
+                ),
+              {
+                title: 'Sign in to restore',
+                message: 'Sign in to restore purchases linked to your account.',
+              },
             )
           }
           style={styles.restore}

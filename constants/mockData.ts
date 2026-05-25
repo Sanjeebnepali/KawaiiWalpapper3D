@@ -8,6 +8,7 @@ import {
   sectionByKey,
   type CatalogSection,
 } from './wallpaperCatalog';
+import { dedupeCatalogPhotos } from './catalogDedupe';
 import { ACCENTS, pic } from './mockData.tokens';
 import { type CategoryPhoto, type FeaturedItem } from './mockData.types';
 import { FEATURED_PREMIUM_ID, premiumPhotoById, premiumPhotos } from './premiumCatalog';
@@ -201,7 +202,9 @@ export function browseMeta(id: string): { title: string; accent: string } {
 }
 
 export function getCategoryPhotos(id: string, count = 24): CategoryPhoto[] {
-  return (resolveBrowse(id)?.photos ?? []).slice(0, count);
+  // Dedupe BEFORE slicing so `count` counts unique wallpapers, not the
+  // WebP+PNG doubles some bucket folders carry (see catalogDedupe).
+  return dedupeCatalogPhotos(resolveBrowse(id)?.photos ?? []).slice(0, count);
 }
 
 // Curated premium hero — the best-looking spread across groups, to make the

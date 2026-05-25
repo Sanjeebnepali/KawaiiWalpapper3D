@@ -1,3 +1,4 @@
+import { dedupeCatalogPhotos } from './catalogDedupe';
 import { Colors } from './theme';
 import { catalogSections } from './wallpaperCatalog';
 
@@ -26,7 +27,9 @@ const toTags = (...parts: string[]) =>
 // Built from the real catalog — every category / mood / 2D photo is
 // searchable, and the same list backs the shuffle + mood-pool photo pickers.
 export const searchCatalog: SearchableWallpaper[] = catalogSections.flatMap((s) =>
-  s.photos.map((p, i) => ({
+  // Drop the WebP+PNG doubles so search results (and the shuffle / mood-pool
+  // pickers this list backs) show each wallpaper once. See catalogDedupe.
+  dedupeCatalogPhotos(s.photos).map((p, i) => ({
     id: p.id,
     title: `${s.label} ${i + 1}`,
     category: s.label,
