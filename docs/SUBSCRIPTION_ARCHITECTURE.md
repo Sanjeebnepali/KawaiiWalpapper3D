@@ -7,6 +7,9 @@ where real billing (RevenueCat / Play Billing) plugs in.
 > Wired in **changes/158**. Today purchases are a **local mock** — "Subscribe"
 > flips persisted flags. The read path and every gate call site are already
 > production-shaped, so going live touches only the write path.
+>
+> 📊 For the full diagram-driven walkthrough, see
+> [`SUBSCRIPTION_DIAGRAMS.md`](./SUBSCRIPTION_DIAGRAMS.md).
 
 ---
 
