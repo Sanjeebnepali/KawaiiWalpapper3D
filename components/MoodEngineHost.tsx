@@ -7,7 +7,7 @@ import { type MoodId } from '../constants/moods';
 import { useMoodDetector } from '../hooks/useMoodDetector';
 import { applyMoodPhotoFromCollection } from '../lib/moodEngineActions';
 import { useMoodStore } from '../store/mood';
-import { useSettingsStore } from '../store/settings';
+import { useEntitlement } from '../lib/billing';
 
 /**
  * Global mood engine — the "auto-shuffle by mood" runtime.
@@ -15,7 +15,7 @@ import { useSettingsStore } from '../store/settings';
  * Mounted ONCE at the app root (`app/_layout.tsx`) next to ShuffleEngineHost.
  * When all four preconditions hold:
  *
- *   isPremium && moodModeEnabled && moodCollectionId && CameraView available
+ *   mood entitlement && moodModeEnabled && moodCollectionId && CameraView available
  *
  * …it mounts a tiny 1×1 invisible front-camera view in the corner of the
  * screen, runs the 60 s face-detection loop, and auto-applies a photo from
@@ -43,12 +43,12 @@ try {
 export function MoodEngineHost() {
   // Gate at the top. Zero hooks here so the conditional render of a
   // hook-heavy child is safe.
-  const isPremium = useSettingsStore((s) => s.isPremium);
+  const hasMood = useEntitlement('mood');
   const enabled = useMoodStore((s) => s.moodModeEnabled);
   const collectionId = useMoodStore((s) => s.moodCollectionId);
 
   if (!CameraView) return null;
-  if (!isPremium || !enabled || !collectionId) return null;
+  if (!hasMood || !enabled || !collectionId) return null;
 
   return <ActiveEngine collectionId={collectionId} />;
 }

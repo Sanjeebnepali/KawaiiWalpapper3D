@@ -21,7 +21,7 @@ import { PremiumSheet } from '../../components/PremiumSheet';
 import { AnimatedButton } from '../../components/AnimatedButton';
 import { MoodEmojiButton } from '../../components/MoodEmojiButton';
 import { premiumAlert } from '../../components/PremiumAlert';
-import { gatePremium, PremiumLock } from '../../components/PremiumLock';
+import { gateFeature, PremiumLock } from '../../components/PremiumLock';
 import { SimpleButton } from '../../components/SimpleButton';
 import { CustomSlot } from '../../components/moodHome/CustomSlot';
 import {
@@ -81,7 +81,7 @@ import {
   downloadInternetImage,
   setAsWallpaper,
 } from '../../lib/wallpaperActions';
-import { useSettingsStore } from '../../store/settings';
+import { useEntitlement } from '../../lib/billing';
 import { COLLECTION_SIZE } from '../../constants/shuffle';
 import { hydrateMoodStore, useMoodStore } from '../../store/mood';
 import { useCollections, useShuffleStore } from '../../store/shuffle';
@@ -184,7 +184,7 @@ export default function MoodHome() {
   const createCollection = useShuffleStore((s) => s.createCollection);
   const updateCollection = useShuffleStore((s) => s.updateCollection);
   const canAddCollection = useShuffleStore((s) => s.canAddCollection);
-  const isPremium = useSettingsStore((s) => s.isPremium);
+  const hasMood = useEntitlement('mood');
 
   const [busy, setBusy] = useState(false);
   // When the toggle handler pushed the user to /mood/pick-collection because
@@ -303,7 +303,7 @@ export default function MoodHome() {
       return;
     }
 
-    gatePremium(async () => {
+    gateFeature('mood', async () => {
       setBusy(true);
       try {
         // 1) Permission
@@ -360,7 +360,7 @@ export default function MoodHome() {
       toast('Background mood off');
       return;
     }
-    gatePremium(async () => {
+    gateFeature('mood', async () => {
       if (!moodCollectionId) {
         router.push('/mood/pick-collection' as Href);
         toast('Pick a pool first, then turn this on');
@@ -418,7 +418,7 @@ export default function MoodHome() {
       toast('Daily notification off');
       return;
     }
-    gatePremium(async () => {
+    gateFeature('mood', async () => {
       if (!moodCollectionId) {
         router.push('/mood/pick-collection' as Href);
         toast('Pick a pool first');
@@ -508,7 +508,7 @@ export default function MoodHome() {
       toast('Friend check-in off');
       return;
     }
-    gatePremium(async () => {
+    gateFeature('mood', async () => {
       if (!moodCollectionId) {
         router.push('/mood/pick-collection' as Href);
         toast('Pick a pool first');
@@ -601,7 +601,7 @@ export default function MoodHome() {
       toast('Sleep/Wake off');
       return;
     }
-    gatePremium(async () => {
+    gateFeature('mood', async () => {
       if (!sleepWakePackId) {
         swPackPickerRef.current?.present();
         toast('Pick a pack first');
@@ -729,8 +729,8 @@ export default function MoodHome() {
         await setMoodCollection(cid);
         return Math.min(incomingDedup.length, COLLECTION_SIZE);
       }
-      if (!canAddCollection(isPremium, 'mood')) {
-        gatePremium(() => {});
+      if (!canAddCollection(hasMood, 'mood')) {
+        gateFeature('mood', () => {});
         return 0;
       }
       const c = createCollection('My custom mood', 'mood');
@@ -745,7 +745,7 @@ export default function MoodHome() {
       updateCollection,
       createCollection,
       canAddCollection,
-      isPremium,
+      hasMood,
       setMoodCollection,
     ],
   );

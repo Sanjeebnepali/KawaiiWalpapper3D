@@ -147,8 +147,8 @@ export async function runMoodBackgroundOnce(): Promise<boolean> {
   // Cold-launched OS dispatch may invoke this BEFORE app/_layout.tsx's
   // bootstrap effect runs. All three stores expose idempotent hydrate
   // helpers; calling them here costs nothing on the warm path. Audit B1.
-  // Settings is hydrated here too so `isPremium` reads the persisted value
-  // — otherwise the bg-task short-circuits below.
+  // Settings is hydrated here too so the entitlement flags read the persisted
+  // values — otherwise the bg-task short-circuits below.
   await Promise.all([
     hydrateMoodStore(),
     hydrateShuffleStore(),
@@ -168,9 +168,9 @@ export async function runMoodBackgroundOnce(): Promise<boolean> {
   if (shuffleApplied) return true;
 
   // ─── Sleep/Wake fallback ────────────────────────────────────────────
-  // Subscription is the ENTRY gate (gatePremium at toggle-on time in
-  // mood.tsx). Once a feature is on, the runtime loop must NOT gate on
-  // isPremium — if the user lapses their subscription, an already-running
+  // Subscription is the ENTRY gate (gateFeature('mood', …) at toggle-on time
+  // in mood.tsx). Once a feature is on, the runtime loop must NOT re-check the
+  // entitlement — if the user lapses their subscription, an already-running
   // engine should keep running until they explicitly turn it off.
   if (moodState.sleepWakeEnabled && moodState.sleepWakePackId) {
     const swApplied = await runSleepWakeFallback();
@@ -178,8 +178,8 @@ export async function runMoodBackgroundOnce(): Promise<boolean> {
   }
 
   // Honour the master gates set by the user. Same rationale as above —
-  // no runtime isPremium check; that lives at the toggle-on UI in
-  // app/(tabs)/mood.tsx via gatePremium().
+  // no runtime entitlement check; that lives at the toggle-on UI in
+  // app/(tabs)/mood.tsx via gateFeature('mood', …).
   if (!moodState.backgroundEnabled) return false;
   if (!moodState.moodCollectionId) return false;
 

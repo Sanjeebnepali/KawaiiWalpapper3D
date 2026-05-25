@@ -10,7 +10,7 @@
  */
 
 import type { CoupleRole } from '../constants/couplePacks';
-import { useSettingsStore } from '../store/settings';
+import { grantCoupleEntitlement } from './billing';
 import { useCoupleStore, type CoupleLink, type PartnerProfile } from '../store/couple';
 import { useAuthStore } from '../store/auth';
 import { supabase } from './supabase';
@@ -74,7 +74,9 @@ export async function fetchActiveCouple(): Promise<CoupleLink | null> {
     other = (prof as PartnerProfile | null) ?? null;
   }
   if (rows.status === 'linked') {
-    useSettingsStore.getState().set('isCouplePremium', true);
+    // Creator generated the code → they hold the (paid) entitlement; the
+    // accepter inherited it. The source drives the unlink re-lock rule.
+    grantCoupleEntitlement(isCreator ? 'purchased' : 'inherited');
   }
   return {
     code: rows.code,
@@ -113,12 +115,14 @@ function mapCoupleRow(row: MyCoupleRow, uid: string): CoupleLink {
       }
     : null;
 
-  // Re-derive inherited Couple Premium on every hydration: the perk is written
-  // at accept time, but a reinstall rehydrates the link from the server
-  // without ever re-running accept — so a linked couple would lose the
-  // inherited perk. Setting it here makes "linked ⇒ premium" idempotent.
+  // Re-derive the Couple entitlement on every hydration: the perk is written
+  // at accept/purchase time, but a reinstall rehydrates the link from the
+  // server without re-running either — so a linked couple would otherwise
+  // lose it. Idempotent ("linked ⇒ entitled"). Source is derived from role:
+  // the creator generated the code (paid → 'purchased', kept on unlink); the
+  // accepter inherited it ('inherited' → re-locked on unlink).
   if (row.status === 'linked') {
-    useSettingsStore.getState().set('isCouplePremium', true);
+    grantCoupleEntitlement(isCreator ? 'purchased' : 'inherited');
   }
 
   return {

@@ -1,5 +1,7 @@
 import { useAuthStore } from '../store/auth';
 import { useCoupleStore } from '../store/couple';
+import { hydrateSettingsStore } from '../store/settings';
+import { reconcileCoupleEntitlement } from './billing';
 import {
   fetchActiveCouple,
   fetchCoupleSettings,
@@ -141,6 +143,15 @@ async function syncForUser(userId: string | null): Promise<void> {
   const link = await fetchActiveCouple();
   useCoupleStore.getState().setLink(link);
   useCoupleStore.getState().setHydrated(true);
+
+  // Re-lock an inherited Couple entitlement if the pair no longer exists —
+  // e.g. the partner unlinked while THIS app was closed, so the realtime
+  // 'unlinked' event never reached us. A buyer ('purchased'/All Access) keeps
+  // it. Await settings hydration first so coupleSource reads its persisted
+  // value (the fetchActiveCouple round-trip usually outlasts the AsyncStorage
+  // read, but don't rely on the race).
+  await hydrateSettingsStore();
+  reconcileCoupleEntitlement(link?.status === 'linked');
 
   if (link?.status === 'linked') {
     await enterLinkedMode(link.code, link.partner?.id ?? null);

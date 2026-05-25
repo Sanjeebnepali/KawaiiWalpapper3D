@@ -153,7 +153,7 @@ export default function AIPreview() {
     if (!uri) return;
     // Find the user's mood-purpose collection. If none exists, the AI
     // screen can't auto-create one here without going through the
-    // gatePremium flow — easier to bounce the user to the pool screen.
+    // gateFeature('mood') flow — easier to bounce the user to the pool screen.
     const moodPool = collections.find(
       (c) => !c.seedPackId && (c.purpose ?? 'shuffle') === 'mood',
     );

@@ -151,8 +151,8 @@ export function findCategoryPhoto(key: string, file: string): CategoryPhoto | un
 
 // The "Premium" collection — curated, subscription-gated images stored in the
 // Supabase `premium` bucket (constants/premiumCatalog + scripts/upload-premium.mjs).
-// Their ids ('premium-<uuid>') drive the diamond badge + the gatePremium() apply
-// lock. Falls back to the free best-picks if the catalog is empty (pre-upload).
+// Their ids ('premium-<uuid>') drive the diamond badge + the gateFeature('collection')
+// apply lock. Falls back to the free best-picks if the catalog is empty (pre-upload).
 const PREMIUM_SECTION: CatalogSection = {
   group: 'category',
   key: 'premium',

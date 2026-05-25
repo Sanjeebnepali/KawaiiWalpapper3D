@@ -159,8 +159,8 @@ export const useShuffleStore = create<ShuffleStore>((set, get) => ({
   // limit. The user can activate any number of built-in theme packs. The
   // limit is now PER PURPOSE — Shuffle and Mood are independent so a free
   // user can have one of each without paying.
-  canAddCollection: (isPremium, purpose = 'shuffle') =>
-    isPremium ||
+  canAddCollection: (unlimited, purpose = 'shuffle') =>
+    unlimited ||
     get().collections.filter(
       (c) => !c.seedPackId && (c.purpose ?? 'shuffle') === purpose,
     ).length < FREE_COLLECTION_LIMIT,

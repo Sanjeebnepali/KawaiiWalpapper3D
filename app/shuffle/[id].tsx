@@ -17,7 +17,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { AnimatedButton } from '../../components/AnimatedButton';
 import { premiumAlert } from '../../components/PremiumAlert';
 import { PremiumSheet } from '../../components/PremiumSheet';
-import { gatePremium, PremiumLock } from '../../components/PremiumLock';
+import { gateFeature, PremiumLock } from '../../components/PremiumLock';
 import { getPhotoById, searchCatalog } from '../../constants/mockData';
 import {
   COLLECTION_SIZE,
@@ -31,7 +31,7 @@ import { applyCollectionPhoto } from '../../lib/shuffleActions';
 import { toast } from '../../lib/toast';
 import { otherActiveDriverLabels } from '../../lib/automationMode';
 import { downloadInternetImage } from '../../lib/wallpaperActions';
-import { useSettingsStore } from '../../store/settings';
+import { useEntitlement } from '../../lib/billing';
 import {
   useActiveCollectionId,
   useCollectionById,
@@ -63,7 +63,7 @@ export default function CollectionDetail() {
   const { width } = useWindowDimensions();
   const collection = useCollectionById(id);
   const activeId = useActiveCollectionId();
-  const isPremium = useSettingsStore((s) => s.isPremium);
+  const hasThemePacks = useEntitlement('themePacks');
 
   const updateCollection = useShuffleStore((s) => s.updateCollection);
   const setActive = useShuffleStore((s) => s.setActive);
@@ -264,7 +264,7 @@ export default function CollectionDetail() {
   const pickTimer = useCallback(
     (timerId: string, premium: boolean) => {
       const apply = () => updateCollection(collection.id, { timerId });
-      premium ? gatePremium(apply) : apply();
+      premium ? gateFeature('themePacks', apply) : apply();
     },
     [collection.id, updateCollection],
   );
@@ -275,7 +275,7 @@ export default function CollectionDetail() {
         updateCollection(collection.id, {
           mode: mode as typeof collection.mode,
         });
-      premium ? gatePremium(apply) : apply();
+      premium ? gateFeature('themePacks', apply) : apply();
     },
     [collection.id, updateCollection],
   );
@@ -649,7 +649,7 @@ export default function CollectionDetail() {
                   </Text>
                   <Text style={styles.optionCaption}>{m.caption}</Text>
                 </View>
-                {m.premium && !isPremium ? <PremiumLock /> : null}
+                {m.premium && !hasThemePacks ? <PremiumLock /> : null}
                 {selected ? (
                   <Ionicons name="checkmark-circle" size={18} color={theme.primary} />
                 ) : null}
@@ -704,7 +704,7 @@ export default function CollectionDetail() {
                         ? `Custom (${collection.customMinutes} min)`
                         : t.label}
                     </Text>
-                    {t.premium && !isPremium ? <PremiumLock /> : null}
+                    {t.premium && !hasThemePacks ? <PremiumLock /> : null}
                     {selected ? (
                       <Ionicons name="checkmark-circle" size={18} color={theme.primary} />
                     ) : null}
@@ -712,7 +712,7 @@ export default function CollectionDetail() {
                 );
               })}
 
-              {collection.timerId === 'custom' && isPremium ? (
+              {collection.timerId === 'custom' && hasThemePacks ? (
                 <View style={styles.customRow}>
                   <Text style={styles.cardLabel}>Custom (minutes)</Text>
                   <TextInput

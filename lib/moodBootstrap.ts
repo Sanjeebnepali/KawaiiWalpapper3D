@@ -70,10 +70,10 @@ export async function bootstrapMoodFeature(): Promise<void> {
   //    task + notification action handler reach into `useShuffleStore.
   //    collections` via `applyMoodPhotoFromCollection`; without that, a
   //    cold-launched dispatch sees `collections: []` and silently no-ops
-  //    (audit B1). The settings store carries `isPremium`, which the
-  //    bg-task gates the Sleep/Wake + context-mood fallback on — if it's
-  //    still on its default (false) when the task runs, the silent
-  //    auto-apply never fires even though `sleepWakeEnabled` is true.
+  //    (audit B1). The settings store carries the premium entitlement flags,
+  //    which the toggle-on UI gates the Sleep/Wake + context-mood features on
+  //    — if they're still on their defaults (false) when the task runs, the
+  //    silent auto-apply never fires even though `sleepWakeEnabled` is true.
   await Promise.all([
     hydrateMoodStore(),
     hydrateShuffleStore(),

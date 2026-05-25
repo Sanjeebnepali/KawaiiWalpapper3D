@@ -26,7 +26,6 @@ import {
   makeClearCache,
   makeConfirmDelete,
   makeConfirmLogout,
-  makeCopyInviteCode,
   makeExportData,
 } from '../../lib/settingsActions';
 import {
@@ -56,6 +55,13 @@ export default function Settings() {
   const dailyRecommendation = useSettingsStore((st) => st.dailyRecommendation);
   const vibrationOnDownload = useSettingsStore((st) => st.vibrationOnDownload);
   const setSetting = useSettingsStore((st) => st.set);
+
+  // Entitlements — drive the Subscription row's status label (changes/158).
+  const allAccess = useSettingsStore((st) => st.allAccess);
+  const entThemePacks = useSettingsStore((st) => st.entThemePacks);
+  const entMood = useSettingsStore((st) => st.entMood);
+  const entCollection = useSettingsStore((st) => st.entCollection);
+  const isCouplePremium = useSettingsStore((st) => st.isCouplePremium);
 
   const favIds = useFavoritesStore((st) => st.ids);
   const clearFavorites = useFavoritesStore((st) => st.clear);
@@ -106,7 +112,19 @@ export default function Settings() {
   const confirmDelete = makeConfirmDelete(clearFavorites, signOut);
   const onClearCache = makeClearCache();
   const confirmLogout = makeConfirmLogout(signOut);
-  const copyInviteCode = makeCopyInviteCode(profile);
+
+  // Subscription status shown on the Manage Subscription row.
+  const ownedCount = [
+    entThemePacks,
+    entMood,
+    entCollection,
+    isCouplePremium,
+  ].filter(Boolean).length;
+  const subStatus = allAccess
+    ? 'All Access'
+    : ownedCount > 0
+      ? `${ownedCount} of 4 unlocked`
+      : 'Free';
 
   return (
     <SafeAreaView
@@ -130,23 +148,21 @@ export default function Settings() {
           }
         />
 
-        {/* 1.2b Account — invite code + sign-in CTA (shown only when authed). */}
-        {authStatus === 'authed' ? (
-          <SettingsSection title="Couple Pairing">
-            <SettingsRow
-              icon="link-outline"
-              label="Your invite code"
-              subtitle={
-                profile?.invite_code
-                  ? 'Share this code with your partner. They enter it in their app to pair.'
-                  : 'Generating…'
-              }
-              right={<RowValue text={profile?.invite_code ?? '—'} />}
-              onPress={profile?.invite_code ? copyInviteCode : undefined}
-              divider={false}
-            />
-          </SettingsSection>
-        ) : null}
+        {/* Subscription — the single payment entry point (changes/158). Opens
+            the subscription page where the four premium areas + All Access are
+            bought à la carte. Replaces the old "Couple Pairing" invite-code
+            section (couple pairing now lives entirely on the Couple tab). */}
+        <SettingsSection title="Subscription">
+          <SettingsRow
+            icon="diamond"
+            iconColor={theme.primary}
+            label="Manage Subscription"
+            subtitle="Unlock theme packs, mood, premium & couple"
+            right={<RowValue text={subStatus} />}
+            onPress={() => router.push('/subscription' as Href)}
+            divider={false}
+          />
+        </SettingsSection>
 
         <LibraryAccessSections
           favCount={favIds.length}

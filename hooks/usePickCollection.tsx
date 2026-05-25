@@ -6,8 +6,8 @@ import { Colors } from '../constants/theme';
 import { useTheme } from '../contexts/ThemeContext';
 import { hydrateMoodStore, useMoodStore } from '../store/mood';
 import { useCollections, useShuffleStore } from '../store/shuffle';
-import { useSettingsStore } from '../store/settings';
-import { gatePremium } from '../components/PremiumLock';
+import { useEntitlement } from '../lib/billing';
+import { gateFeature } from '../components/PremiumLock';
 import { premiumAlert } from '../components/PremiumAlert';
 import { CollectionRow } from '../components/moodPickCollection/CollectionRow';
 import { photoThumb } from '../components/moodPickCollection/photoThumb';
@@ -41,7 +41,7 @@ export function usePickCollection() {
   );
   const createCollection = useShuffleStore((s) => s.createCollection);
   const canAddCollection = useShuffleStore((s) => s.canAddCollection);
-  const isPremium = useSettingsStore((s) => s.isPremium);
+  const hasMood = useEntitlement('mood');
 
   useEffect(() => {
     if (!hydrated) hydrateMoodStore();
@@ -161,7 +161,7 @@ export function usePickCollection() {
     };
     // Free tier may build ONE custom MOOD pool (Shuffle hub has its own
     // independent slot). Built-in packs don't count against the cap.
-    if (!canAddCollection(isPremium, 'mood')) {
+    if (!canAddCollection(hasMood, 'mood')) {
       premiumAlert({
         title: 'Free tier limit reached',
         message:
@@ -170,7 +170,7 @@ export function usePickCollection() {
         accentColor: Colors.gold,
         buttons: [
           { text: 'Not now', style: 'cancel' },
-          { text: 'Upgrade', onPress: () => gatePremium(doCreate) },
+          { text: 'Upgrade', onPress: () => gateFeature('mood', doCreate) },
         ],
       });
       return;
@@ -178,7 +178,7 @@ export function usePickCollection() {
     doCreate();
   }, [
     canAddCollection,
-    isPremium,
+    hasMood,
     createCollection,
     setMoodCollection,
     router,

@@ -30,22 +30,34 @@ export type SettingsState = {
   // deep-link them to the battery/autostart setting exactly once and
   // never nag again. See `lib/backgroundAccess.ts`.
   bgAccessPrompted: boolean;
-  // Monetization — stub flag standing in for a RevenueCat `premium`
-  // entitlement until purchases are wired (changes/021). Flipping this
-  // unlocks the premium tier locally for testing. Phase 2 swaps the
-  // selector to `useCustomerInfo()?.entitlements.active.premium != null`.
-  isPremium: boolean;
-  // Couple Premium — separate SKU from the main premium. Gates the
-  // generate-couple-code action on the Couple page (changes/077). Set
-  // to TRUE either:
-  //   1. The user purchases Couple Premium directly (phase 2 — wire to
-  //      RevenueCat entitlement `couple_premium`).
-  //   2. The user accepts a partner's valid LOVE-XXXX code via
-  //      `accept_couple_code` — `lib/couple.ts:acceptCode` flips this
-  //      to true on success so the partner inherits the perk.
-  // Once true, it stays true even after unlinking (the user paid for /
-  // earned the perk; we don't revoke it on un-pair).
+  // ─── Entitlements (à la carte premium — changes/158) ────────────────────
+  // The app sells FOUR independently-purchasable premium areas plus an
+  // "All Access" bundle that grants all four at once. Every premium gate
+  // checks `allAccess || <the area's flag>` via `lib/billing.ts`
+  // (`hasEntitlement` / `useEntitlement`). These flags are written by the
+  // subscription page's mock purchase (`purchasePlans`) and persist across
+  // restarts. Real billing (RevenueCat) swaps the WRITE path only — the
+  // read path (these flags) and every call site stay the same.
+  //
+  // Replaces the old single `isPremium` flag; the v2→v3 migration below maps
+  // a pre-existing `isPremium: true` onto the three non-couple areas.
+  allAccess: boolean; // bundle — grants all four areas at once
+  entThemePacks: boolean; // custom albums + 15/30/custom timers + smart shuffle
+  entMood: boolean; // all mood-based features
+  entCollection: boolean; // the 60-image premium wallpaper collection
+  // Couple Theme is its own SKU. `isCouplePremium` keeps its name (many call
+  // sites + `lib/couple` write it). `coupleSource` records WHY the user holds
+  // it, which drives the unlink rule (the buyer keeps it; a partner who only
+  // entered the buyer's code is re-locked when the pair ends):
+  //   'purchased' → bought directly OR via All Access → KEPT after unlink.
+  //   'inherited' → unlocked by entering a partner's code → REVOKED on unlink.
+  //   null        → not entitled.
+  // Enforced in `lib/billing.ts:reconcileCoupleEntitlement`.
   isCouplePremium: boolean;
+  coupleSource: 'purchased' | 'inherited' | null;
+  // Billing cadence the user last chose on the subscription page. Display
+  // only for the mock; real billing tracks the period per-SKU.
+  billingPeriod: 'monthly' | 'yearly';
 };
 
 type SettingsStore = SettingsState & {
@@ -76,8 +88,13 @@ const DEFAULTS: SettingsState = {
   dailyRecommendation: true,
   vibrationOnDownload: false,
   bgAccessPrompted: false,
-  isPremium: false,
+  allAccess: false,
+  entThemePacks: false,
+  entMood: false,
+  entCollection: false,
   isCouplePremium: false,
+  coupleSource: null,
+  billingPeriod: 'monthly',
 };
 
 // ─── Persistence ──────────────────────────────────────────────────────────
@@ -86,11 +103,11 @@ const DEFAULTS: SettingsState = {
 // (pre-rebuild dev session). Writes are fire-and-forget; the in-memory
 // state is the source of truth for the live session.
 //
-// The bug that drove this: `isPremium` was previously in-memory only, so
-// every cold launch reset it to false. The mood background-task fallback
-// (lib/moodBackgroundTask.ts) gates on `isPremium`, so the silent Sleep/Wake
-// auto-apply + context-mood auto-change stopped firing after any app
-// restart — even though the FEATURE toggles (sleepWakeEnabled,
+// The bug that drove this: the premium entitlement was previously in-memory
+// only, so every cold launch reset it to false. The mood background-task
+// fallback (lib/moodBackgroundTask.ts) gates on the mood entitlement, so the
+// silent Sleep/Wake auto-apply + context-mood auto-change stopped firing after
+// any app restart — even though the FEATURE toggles (sleepWakeEnabled,
 // backgroundEnabled, …) WERE persisted in the mood store. The user saw
 // notifications fire but no automatic wallpaper change.
 
@@ -99,7 +116,7 @@ const PERSIST_KEY = '@kawaii/settings@v1';
 // run without resetting the user's whole settings object (bumping PERSIST_KEY
 // would wipe theme/toggles too). Stored as a plain integer string.
 const SCHEMA_KEY = '@kawaii/settings/schema';
-const SCHEMA_VERSION = 2;
+const SCHEMA_VERSION = 3;
 
 type AsyncStorageLike = {
   getItem: (k: string) => Promise<string | null>;
@@ -118,6 +135,12 @@ type AsyncStorageLike = {
  *   opting in. The new default is OFF (opt-in). Reset the inherited-on value
  *   exactly once so existing installs match the new behaviour. A user who
  *   genuinely wants it can re-enable it; the migration won't run again.
+ *
+ *   v2 → v3: the single `isPremium` flag was split into the four à la carte
+ *   entitlements (changes/158). Map a pre-existing `isPremium: true` onto the
+ *   three non-couple areas, and treat any held `isCouplePremium` as a real
+ *   purchase ('purchased' source) so upgrading testers aren't downgraded /
+ *   re-locked on their next unlink.
  */
 async function applyMigrations(
   s: AsyncStorageLike,
@@ -135,6 +158,19 @@ async function applyMigrations(
   const data: Partial<SettingsState> = { ...parsed };
   if (version < 2 && data.saveToGallery === true) {
     data.saveToGallery = false;
+  }
+  if (version < 3) {
+    // `isPremium` is no longer a field — read it off the legacy blob.
+    const legacy = data as Partial<SettingsState> & { isPremium?: boolean };
+    if (legacy.isPremium === true) {
+      data.entThemePacks = true;
+      data.entMood = true;
+      data.entCollection = true;
+    }
+    if (legacy.isCouplePremium === true && data.coupleSource == null) {
+      data.coupleSource = 'purchased';
+    }
+    delete legacy.isPremium;
   }
   try {
     await s.setItem(SCHEMA_KEY, String(SCHEMA_VERSION));
@@ -174,7 +210,7 @@ function schedulePersist(state: SettingsState) {
 /**
  * Settings store. `hydrate()` is idempotent and should be awaited from app
  * bootstrap BEFORE the bg-task / notification handlers run (otherwise they
- * see `isPremium: false` while AsyncStorage is still being read).
+ * see the entitlement flags as false while AsyncStorage is still being read).
  */
 export const useSettingsStore = create<SettingsStore>((set, get) => ({
   ...DEFAULTS,

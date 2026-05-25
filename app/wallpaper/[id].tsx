@@ -19,7 +19,7 @@ import {
 import { styles } from '../../components/wallpaperPreview/styles';
 import { getPhotoById } from '../../constants/mockData';
 import { isPremiumPhotoId } from '../../constants/premiumCatalog';
-import { gatePremium } from '../../components/PremiumLock';
+import { gateFeature } from '../../components/PremiumLock';
 import { Colors } from '../../constants/theme';
 import { useTheme } from '../../contexts/ThemeContext';
 import { toast } from '../../lib/toast';
@@ -134,11 +134,12 @@ export default function WallpaperPreview() {
       if (mountedRef.current) setApplying(false);
       toast(r.message);
     };
-    // Premium wallpapers require a subscription. gatePremium runs doApply
-    // immediately if the user is premium, otherwise pops the paywall (and
-    // runs it once they subscribe). Free wallpapers apply straight away.
+    // Premium-collection wallpapers require a subscription. gateFeature runs
+    // doApply immediately if the user owns the collection entitlement,
+    // otherwise routes to the subscription page. Free wallpapers apply
+    // straight away.
     if (isPremiumPhotoId(item.id)) {
-      gatePremium(() => void doApply());
+      gateFeature('collection', () => void doApply());
     } else {
       void doApply();
     }

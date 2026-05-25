@@ -33,7 +33,7 @@ type Actions = {
   /** Free tier may build ONE custom collection PER PURPOSE — Shuffle and
    *  Mood are independent slots so the user can have both without
    *  upgrading. Built-in packs are always exempt (see `seedPackId`). */
-  canAddCollection: (isPremium: boolean, purpose?: CollectionPurpose) => boolean;
+  canAddCollection: (unlimited: boolean, purpose?: CollectionPurpose) => boolean;
 
   /**
    * Upsert-and-activate a built-in theme pack. If a collection already exists

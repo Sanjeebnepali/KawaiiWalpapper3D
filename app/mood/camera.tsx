@@ -16,7 +16,7 @@ import { AnimatedButton } from '../../components/AnimatedButton';
 import { MoodConfidenceMeter } from '../../components/MoodConfidenceMeter';
 import { styles } from '../../components/moodCamera/styles';
 import { premiumAlert } from '../../components/PremiumAlert';
-import { gatePremium, PremiumLock } from '../../components/PremiumLock';
+import { gateFeature, PremiumLock } from '../../components/PremiumLock';
 import { getPhotoById } from '../../constants/mockData';
 import { getMoodOrDefault } from '../../constants/moods';
 import { Colors } from '../../constants/theme';
@@ -72,7 +72,7 @@ export default function MoodLiveScreen() {
   const pulseStyle = useAnimatedStyle(() => ({ opacity: pulse.value }));
 
   const onStart = useCallback(() => {
-    gatePremium(async () => {
+    gateFeature('mood', async () => {
       let p = await getCameraPermission();
       if (p.moduleMissing) {
         premiumAlert({

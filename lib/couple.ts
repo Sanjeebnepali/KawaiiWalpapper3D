@@ -1,8 +1,11 @@
 import type { CoupleRole } from '../constants/couplePacks';
-import { useSettingsStore } from '../store/settings';
 import { useCoupleStore, type CoupleLink } from '../store/couple';
 import { useAuthStore } from '../store/auth';
-import { hasCouplePremium } from './billing';
+import {
+  grantCoupleEntitlement,
+  hasCouplePremium,
+  reconcileCoupleEntitlement,
+} from './billing';
 import { supabase } from './supabase';
 import {
   isWellFormedCode,
@@ -101,8 +104,9 @@ export async function createCoupleCode(
  *      creator's role when `role` is null).
  *   2. Server returns the creator's profile + both roles + the active
  *      pack id so the dashboard renders without a second round-trip.
- *   3. Local flips `isCouplePremium` to true — the partner inherits
- *      the perk per the user's spec.
+ *   3. Local grants the Couple entitlement with an 'inherited' source — the
+ *      partner inherits the perk while linked, but it is revoked when the
+ *      pair ends (only the buyer keeps it). See reconcileCoupleEntitlement.
  *   4. Local store gets the new link state.
  *
  * @param role  Optional explicit slot pick. If omitted the server picks
@@ -147,8 +151,11 @@ export async function acceptCoupleCode(
     return { ok: false, error: 'Could not link — try again.' };
   }
 
-  // Inherit couple premium.
-  useSettingsStore.getState().set('isCouplePremium', true);
+  // Inherit Couple Premium with an 'inherited' source: the partner unlocks it
+  // for free while linked, and it is re-locked when the pair ends (the buyer
+  // keeps it; the partner doesn't). A user who actually PURCHASED couple (or
+  // holds All Access) stays 'purchased' — grantCoupleEntitlement guards that.
+  grantCoupleEntitlement('inherited');
 
   // From the accepter's perspective, MY role is `partner_role` and the
   // OTHER side is `creator_role`.
@@ -174,8 +181,13 @@ export async function acceptCoupleCode(
 
 /**
  * Unlink — either partner can call. Status flips to 'unlinked' on the
- * server; locations are cleared; the local store is reset. Couple
- * Premium is NOT revoked locally (paid perk persists across un-pair).
+ * server; locations are cleared; the local store is reset.
+ *
+ * Couple entitlement is then reconciled: a buyer (or All Access holder) KEEPS
+ * it, but a partner who only INHERITED it via a code is re-locked now that the
+ * pair has ended. The partner's OTHER device learns of the unlink via the
+ * realtime `status → unlinked` handler (or, if it was closed, the next
+ * cold-start reconcile in coupleBootstrap) — both call the same function.
  */
 export async function unlinkCouple(): Promise<{ ok: boolean; error?: string }> {
   const link = useCoupleStore.getState().link;
@@ -183,6 +195,7 @@ export async function unlinkCouple(): Promise<{ ok: boolean; error?: string }> {
   const { error } = await supabase.rpc('unlink_couple', { p_code: link.code });
   if (error) return { ok: false, error: translateError(error.message) };
   useCoupleStore.getState().reset();
+  reconcileCoupleEntitlement(false);
   return { ok: true };
 }
 

@@ -164,6 +164,10 @@ function RootStack() {
           options={{ animation: 'simple_push' }}
         />
         <Stack.Screen
+          name="subscription"
+          options={{ animation: 'simple_push' }}
+        />
+        <Stack.Screen
           name="wallpaper/edit"
           options={{ animation: 'simple_push' }}
         />

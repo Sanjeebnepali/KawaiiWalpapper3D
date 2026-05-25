@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AnimatedButton } from '../../components/AnimatedButton';
-import { gatePremium } from '../../components/PremiumLock';
+import { gateFeature } from '../../components/PremiumLock';
 import { premiumAlert } from '../../components/PremiumAlert';
 import { WallpaperGridCell } from '../../components/WallpaperGridCell';
 import { styles } from '../../components/themePackDetail/styles';
@@ -27,7 +27,7 @@ import {
 import { Spacing } from '../../constants/theme';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useDeferredMount } from '../../hooks/useDeferredMount';
-import { useSettingsStore } from '../../store/settings';
+import { useEntitlement } from '../../lib/billing';
 import { useShuffleStore } from '../../store/shuffle';
 import { applyCollectionPhoto } from '../../lib/shuffleActions';
 import { toast } from '../../lib/toast';
@@ -74,7 +74,7 @@ export default function ThemePackDetailScreen() {
   );
   const updateCollection = useShuffleStore((s) => s.updateCollection);
   const setActive = useShuffleStore((s) => s.setActive);
-  const isPremium = useSettingsStore((s) => s.isPremium);
+  const hasThemePacks = useEntitlement('themePacks');
 
   const cellW = Math.floor((width - SIDE * 2 - GAP * (COLS - 1)) / COLS);
   const cellH = Math.round(cellW * 1.4);
@@ -101,10 +101,10 @@ export default function ThemePackDetailScreen() {
   const onPickInterval = useCallback(() => {
     if (!id || !pack) return;
     // Build the timer-button list. Premium options are visually marked
-    // and gated by gatePremium when tapped — same convention used in the
+    // and gated by gateFeature when tapped — same convention used in the
     // rest of the app's interval-picker UIs.
     const buttons = TIMER_OPTIONS.filter((t) => t.minutes != null).map((t) => ({
-      text: t.premium && !isPremium ? `${t.label} · 💎` : t.label,
+      text: t.premium && !hasThemePacks ? `${t.label} · 💎` : t.label,
       onPress: () => {
         const apply = () => {
           // Three-step activation, in this exact order to avoid an
@@ -131,8 +131,8 @@ export default function ThemePackDetailScreen() {
             }
           });
         };
-        if (t.premium && !isPremium) {
-          gatePremium(apply);
+        if (t.premium && !hasThemePacks) {
+          gateFeature('themePacks', apply);
         } else {
           apply();
         }
@@ -155,7 +155,7 @@ export default function ThemePackDetailScreen() {
     updateCollection,
     setActive,
     activeForThisPack,
-    isPremium,
+    hasThemePacks,
   ]);
 
   const onStopShuffle = useCallback(() => {

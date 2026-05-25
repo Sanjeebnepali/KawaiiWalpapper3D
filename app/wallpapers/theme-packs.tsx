@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AnimatedButton } from '../../components/AnimatedButton';
-import { gatePremium } from '../../components/PremiumLock';
+import { gateFeature } from '../../components/PremiumLock';
 import { ActiveBanner } from '../../components/themePacks/ActiveBanner';
 import { PackCard } from '../../components/themePacks/PackCard';
 import { SectionHeader } from '../../components/themePacks/SectionHeader';
@@ -33,7 +33,7 @@ import { toast } from '../../lib/toast';
 import { otherActiveDriverLabels } from '../../lib/automationMode';
 import { confirmDeleteCollection } from '../../lib/themePackActions';
 import { PACK_ACCENTS, PACK_HEROES } from '../../lib/themePackHeroes';
-import { useSettingsStore } from '../../store/settings';
+import { useEntitlement } from '../../lib/billing';
 import {
   useActiveCollectionId,
   useCollections,
@@ -64,7 +64,7 @@ export default function ThemePacksScreen() {
 
   const collections = useCollections();
   const activeId = useActiveCollectionId();
-  const isPremium = useSettingsStore((s) => s.isPremium);
+  const hasThemePacks = useEntitlement('themePacks');
   const hydrated = useShuffleStore((s) => s.hydrated);
   const hydrate = useShuffleStore((s) => s.hydrate);
   const createCollection = useShuffleStore((s) => s.createCollection);
@@ -149,12 +149,12 @@ export default function ThemePacksScreen() {
       const c = createCollection(`Collection ${idx}`, 'shuffle');
       router.push(`/shuffle/${c.id}`);
     };
-    if (!canAddCollection(isPremium, 'shuffle')) {
-      gatePremium(proceed);
+    if (!canAddCollection(hasThemePacks, 'shuffle')) {
+      gateFeature('themePacks', proceed);
       return;
     }
     proceed();
-  }, [canAddCollection, isPremium, createCollection, router, collections]);
+  }, [canAddCollection, hasThemePacks, createCollection, router, collections]);
 
   // Only shuffle-purpose user collections live in this hub. Mood pools
   // (built via the Mood tab's Create flow) have purpose: 'mood' and are

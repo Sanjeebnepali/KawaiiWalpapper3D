@@ -1,7 +1,5 @@
-import * as Clipboard from 'expo-clipboard';
 import { Share } from 'react-native';
 import { premiumAlert } from '../components/PremiumAlert';
-import type { Profile } from '../store/auth';
 import { useAIStore } from '../store/ai';
 import { useShuffleStore } from '../store/shuffle';
 import { toast } from './settingsConstants';
@@ -97,13 +95,4 @@ export function makeConfirmLogout(signOut: () => Promise<void>) {
         { text: 'Log out', style: 'destructive', onPress: () => void signOut() },
       ],
     });
-}
-
-/** Copy the user's invite code to the clipboard. */
-export function makeCopyInviteCode(profile: Profile | null) {
-  return async () => {
-    if (!profile?.invite_code) return;
-    await Clipboard.setStringAsync(profile.invite_code);
-    toast('Invite code copied');
-  };
 }

@@ -11,6 +11,7 @@
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { useCoupleStore } from '../store/couple';
 import { useAuthStore } from '../store/auth';
+import { reconcileCoupleEntitlement } from './billing';
 import { supabase } from './supabase';
 import { fetchActiveCouple } from './couple.hydration';
 
@@ -130,6 +131,10 @@ export function subscribeCouple(code: string): () => void {
           if (link) useCoupleStore.getState().setLink(link);
         } else if (row.status === 'unlinked') {
           useCoupleStore.getState().reset();
+          // The partner unlinked us while the app was open: re-lock an
+          // inherited Couple entitlement (a buyer keeps it). Same rule as
+          // unlinkCouple — this is the device that did NOT initiate.
+          reconcileCoupleEntitlement(false);
         }
       },
     )
