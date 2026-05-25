@@ -192,7 +192,17 @@ export default function SubscriptionScreen() {
         ) : null}
 
         <AnimatedButton
-          onPress={() => toast('No previous purchases to restore')}
+          onPress={() =>
+            toast(
+              allAccess ||
+                entThemePacks ||
+                entMood ||
+                entCollection ||
+                isCouplePremium
+                ? '✓ Your subscription is active'
+                : 'No previous purchases to restore',
+            )
+          }
           style={styles.restore}
         >
           <Text style={styles.restoreText}>Restore purchases</Text>
