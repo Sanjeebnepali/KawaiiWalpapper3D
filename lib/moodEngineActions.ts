@@ -1,5 +1,5 @@
 import { type MoodId } from '../constants/moods';
-import { getPhotoById } from '../constants/mockData';
+import { getPhotoById, getThemePackPhotos, moodAlbums } from '../constants/mockData';
 import {
   CUSTOM_SLEEP_WAKE_ID,
   getSleepWakePack,
@@ -55,6 +55,38 @@ export async function applyMoodPhotoFromCollection(
     nextIndex,
   );
   return { ...r, photoId: nextPhotoId };
+}
+
+/**
+ * Resolve a usable mood-pool Collection id, MATERIALIZING a default built-in
+ * mood album if the user never set one (or set one that's since gone empty).
+ *
+ * Why: a mood-prompt notification tap ("Happy"/"Calm"/…) used to silently do
+ * nothing when `moodCollectionId` was null — the most common reason a user
+ * reported "I tap the mood and nothing happens." Friend check-in / daily
+ * prompts can be enabled without ever building a pool, so the tap had no
+ * photos to choose from. Falling back to a default album makes the tap always
+ * apply a mood-matching wallpaper, and persists the choice so it's stable.
+ *
+ * Returns null only if there are genuinely no mood albums to fall back to.
+ */
+export async function ensureMoodCollectionId(): Promise<string | null> {
+  const { moodCollectionId } = useMoodStore.getState();
+  const existing = moodCollectionId
+    ? useShuffleStore.getState().collections.find((c) => c.id === moodCollectionId)
+    : null;
+  if (existing && existing.photoIds.length > 0) return moodCollectionId;
+
+  const album = Array.isArray(moodAlbums) ? moodAlbums[0] : null;
+  if (!album) return moodCollectionId ?? null;
+  const photoIds = (getThemePackPhotos(album.id, 10) ?? []).map((p) => p.id);
+  if (photoIds.length === 0) return moodCollectionId ?? null;
+
+  const cid = useShuffleStore
+    .getState()
+    .ensureBuiltinPackCollection(album.id, album.title, photoIds);
+  await useMoodStore.getState().setMoodCollection(cid);
+  return cid;
 }
 
 /**

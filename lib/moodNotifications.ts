@@ -25,6 +25,7 @@ import { localDayKey } from './moodBackgroundTask';
 import {
   applyMoodPhotoFromCollection,
   applySleepWakePhoto,
+  ensureMoodCollectionId,
 } from './moodEngineActions';
 import { recordMood } from './moodHistory';
 import type {
@@ -335,11 +336,18 @@ async function handleResponse(response: NotificationResponseLike) {
   }
 
   const state = useMoodStore.getState();
-  if (!state.moodCollectionId) return;
+  // Tapping a mood used to silently do nothing when the user never picked a
+  // mood pool — the #1 cause of "I tap Happy and nothing happens." Fall back
+  // to a default built-in mood album so the tap always applies (changes/163).
+  const collectionId = await ensureMoodCollectionId();
+  if (!collectionId) {
+    if (__DEV__) console.warn('[MoodNotif] no mood collection available to apply');
+    return;
+  }
 
   const r = await applyMoodPhotoFromCollection(
     mood,
-    state.moodCollectionId,
+    collectionId,
     state.currentPhotoId,
   );
   if (r.ok && r.photoId) {
