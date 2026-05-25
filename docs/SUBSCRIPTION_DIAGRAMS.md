@@ -8,6 +8,98 @@ All diagrams are Mermaid — they render on GitHub and in most Markdown viewers.
 
 ---
 
+## ★ Master flow chart — the whole model in one figure
+
+Everything in sections 0–8 below, combined into a single end-to-end flow:
+a user taps a premium feature → the entitlement check → (locked) the paywall →
+purchase → the persisted flags → and the couple buyer/partner rule.
+
+```mermaid
+flowchart TD
+    U(["User taps a premium feature"])
+
+    subgraph FEAT["1 - Gated features (UI)"]
+        TP["Theme Packs<br/>custom album / 15-30m / smart"]
+        MD["Mood features (x6)"]
+        PC["Premium-collection apply"]
+        CP["Couple - generate code"]
+    end
+
+    GF["gateFeature(feature, action)<br/>components/PremiumLock.tsx"]
+    GFC["gateCouplePremium(action)"]
+
+    subgraph BILL["2 - hasEntitlement (lib/billing.ts)"]
+        SW{"SUBSCRIPTIONS_ENABLED ?"}
+        AA{"allAccess ?"}
+        FLAG{"feature's own flag set ?"}
+        TRUE["ENTITLED"]
+        FALSE["LOCKED"]
+    end
+
+    RUN(["Run the action"])
+
+    subgraph PAGE["3 - Subscription page (app/subscription.tsx)"]
+        CHK["Tick any areas, or All Access"]
+        TGL["Monthly / Yearly toggle"]
+        SUB["Subscribe (mock)"]
+        PP["purchasePlans(ids, period)"]
+    end
+
+    subgraph STORE["4 - store/settings.ts (persisted)"]
+        FLAGS[("allAccess - entThemePacks - entMood<br/>entCollection - isCouplePremium<br/>coupleSource - billingPeriod")]
+    end
+
+    subgraph COUPLE["5 - Couple buyer / partner rule"]
+        CRT["Buyer: create_couple -> LOVE-XXXX"]
+        ACC["Partner: accept_couple_code"]
+        GI["grantCoupleEntitlement('inherited')"]
+        UNL{"unlink ?"}
+        KEEP["buyer / All Access -> KEPT"]
+        REV["inherited partner -> REVOKED"]
+    end
+
+    RC["6 - Going live: swap purchasePlans body for<br/>Purchases.purchasePackage + read entitlements"]
+
+    %% entry -> gates
+    U --> TP & MD & PC & CP
+    TP --> GF
+    MD --> GF
+    PC --> GF
+    CP --> GFC --> GF
+
+    %% gate -> entitlement check
+    GF --> SW
+    SW -->|"false - testing"| TRUE
+    SW -->|"true - enforced"| AA
+    AA -->|yes| TRUE
+    AA -->|no| FLAG
+    FLAG -->|yes| TRUE
+    FLAG -->|no| FALSE
+
+    %% entitled -> run, locked -> paywall
+    TRUE --> RUN
+    FALSE -->|"router.push(/subscription?highlight=feature)"| CHK
+    CHK --> TGL --> SUB --> PP
+
+    %% purchase -> flags -> re-render
+    PP --> FLAGS
+    PP -->|"couple ticked"| CRT
+    FLAGS -.->|"useEntitlement re-render"| FEAT
+    FLAGS -.->|read| AA
+    FLAGS -.->|read| FLAG
+
+    %% couple flow
+    CRT --> ACC --> GI --> FLAGS
+    GI --> UNL
+    UNL --> KEEP --> FLAGS
+    UNL --> REV --> FLAGS
+
+    %% seam
+    PP -.->|seam| RC
+```
+
+---
+
 ## 0. What's premium
 
 Four independently-buyable areas + an All Access bundle. Each maps to one

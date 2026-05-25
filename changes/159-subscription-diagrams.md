@@ -12,9 +12,11 @@ end-to-end was wanted.
 
 ## Solution
 
-Added `docs/SUBSCRIPTION_DIAGRAMS.md` — eight Mermaid diagrams (render on GitHub)
-walking the model from top to bottom:
+Added `docs/SUBSCRIPTION_DIAGRAMS.md` — a **master flow chart** (the whole model
+in one figure: tap → entitlement check → paywall → purchase → flags → couple
+rule → going-live seam) plus eight focused Mermaid diagrams (render on GitHub):
 
+0. Master flow chart — everything end-to-end in a single figure.
 1. What's premium (areas → flags) + table.
 2. System map — the whole model on one page.
 3. Gate decision — what `hasEntitlement` returns.
