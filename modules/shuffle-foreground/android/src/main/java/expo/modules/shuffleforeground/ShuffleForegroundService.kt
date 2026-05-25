@@ -50,6 +50,11 @@ class ShuffleForegroundService : Service() {
     // persisted values (for an OS-driven START_STICKY restart where intent is
     // null or empty).
     val extraUris = intent?.getStringArrayListExtra("uris")
+    // A "fresh start" is one JS kicked off with config extras (the user just
+    // started/changed a shuffle) — as opposed to a null-intent START_STICKY
+    // restart by the OS. Only a fresh start applies the first image
+    // immediately (below), so an OS restart doesn't re-flash the wallpaper.
+    val isFreshStart = !extraUris.isNullOrEmpty()
     uris = if (!extraUris.isNullOrEmpty()) {
       extraUris.toList()
     } else {
@@ -85,7 +90,7 @@ class ShuffleForegroundService : Service() {
     }
 
     isRunning = true
-    armTick()
+    armTick(isFreshStart)
     return START_STICKY
   }
 
@@ -97,10 +102,21 @@ class ShuffleForegroundService : Service() {
     super.onDestroy()
   }
 
-  /** Re-arm a self-reposting runnable that rotates the wallpaper every interval. */
-  private fun armTick() {
+  /**
+   * Re-arm a self-reposting runnable that rotates the wallpaper every interval.
+   *
+   * When [applyNow] is true (a fresh JS-initiated start) we apply the START
+   * index IMMEDIATELY before scheduling the loop, so the very first change is
+   * instant. Previously the first `rotate()` was a full interval out, so a user
+   * who started a shuffle saw nothing change for 15–30 min unless the JS-side
+   * instant-apply happened to win — the "delay before first change" bug
+   * (changes/164). The images are already precached to local files before
+   * start(), so this immediate apply is a fast on-disk decode, not a download.
+   */
+  private fun armTick(applyNow: Boolean) {
     tickRunnable?.let { handler.removeCallbacks(it) }
     if (uris.isEmpty()) return
+    if (applyNow) applyWallpaper(currentIndex)
     val runnable = object : Runnable {
       override fun run() {
         rotate()
