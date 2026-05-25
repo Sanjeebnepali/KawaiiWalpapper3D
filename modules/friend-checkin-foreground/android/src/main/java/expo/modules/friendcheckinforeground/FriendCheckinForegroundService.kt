@@ -1,31 +1,45 @@
 package expo.modules.friendcheckinforeground
 
+import android.app.AlarmManager
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.os.Build
-import android.os.Handler
 import android.os.IBinder
-import android.os.Looper
 import androidx.core.app.NotificationCompat
 
 /**
  * Periodic-tick foreground service for the Mood friend check-in. Stays alive
- * with an ongoing low-priority notification (Android 8+ mandatory) and arms a
- * `Handler.postDelayed` loop that calls back into the JS bridge on each tick.
+ * with an ongoing low-priority notification (Android 8+ mandatory) and fires a
+ * tick every `intervalMinutes` that calls back into the JS bridge.
  *
- * Cold-restart resilient: the interval is persisted to SharedPreferences and
- * the service is START_STICKY, so if Android kills + restarts it with a null
- * intent we resume the schedule from prefs.
+ * Timing model (changes/168): the next tick is scheduled with
+ * **`AlarmManager.setExactAndAllowWhileIdle`** (falls back to
+ * `setAndAllowWhileIdle` when exact alarms aren't permitted), NOT
+ * `Handler.postDelayed`. `postDelayed` runs off `uptimeMillis`, whose clock
+ * PAUSES while the CPU sleeps in Doze (screen off) — so with the screen off the
+ * tick stalled until the user woke the phone, and the prompts arrived late / in
+ * a burst ("feels delayed / turns off when the phone is off"). AlarmManager
+ * fires at the real wall-clock time even in Doze, so the cadence holds.
+ *
+ * The alarm targets `FriendCheckinAlarmReceiver`, which re-launches THIS service
+ * with `EXTRA_FIRE`; the service emits the tick and re-arms the next alarm. So
+ * even if the OEM kills the service between fires, the system-held alarm
+ * resurrects it at the right time (provided the app is battery-whitelisted —
+ * see lib/backgroundAccess). The interval is mirrored to SharedPreferences so a
+ * fire-restart (extras carry only the marker) recovers it; `stop()` cancels the
+ * alarm and wipes it.
+ *
+ * Cold-restart resilient: START_STICKY + the persisted interval mean an
+ * OS-driven restart with a null intent resumes the schedule.
  */
 class FriendCheckinForegroundService : Service() {
-  private val handler = Handler(Looper.getMainLooper())
   private var intervalMs: Long = DEFAULT_INTERVAL_MINUTES * 60_000L
-  private var tickRunnable: Runnable? = null
 
   override fun onCreate() {
     super.onCreate()
@@ -48,8 +62,9 @@ class FriendCheckinForegroundService : Service() {
   override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
     val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
-    // A null intent means Android restarted us (START_STICKY) — fall back to
-    // the persisted interval. A fresh start carries the requested interval.
+    // A null intent means Android restarted us (START_STICKY); an alarm-fire
+    // restart carries only EXTRA_FIRE. Both fall back to the persisted
+    // interval. A fresh start from JS carries the requested interval.
     val requested = intent?.getIntExtra("intervalMinutes", -1) ?: -1
     val minutes = if (requested > 0) {
       requested.coerceIn(5, 1440)
@@ -67,22 +82,59 @@ class FriendCheckinForegroundService : Service() {
     }
 
     isRunning = true
-    armTick()
+
+    // If this start came from a fired alarm, emit the tick now. (A fresh start
+    // only arms — the first tick lands one interval out, as before.)
+    if (intent?.getBooleanExtra(EXTRA_FIRE, false) == true) {
+      FriendCheckinForegroundModule.instance?.emitTick()
+    }
+
+    // Always (re-)arm the next exact alarm.
+    scheduleNext()
     return START_STICKY
   }
 
-  private fun armTick() {
-    tickRunnable?.let { handler.removeCallbacks(it) }
-    val runnable = object : Runnable {
-      override fun run() {
-        FriendCheckinForegroundModule.instance?.emitTick()
-        // Re-post for the next interval. Reading intervalMs fresh each time
-        // lets a restart with a new interval take effect on the next tick.
-        handler.postDelayed(this, intervalMs)
+  /** Schedule the next tick at `now + intervalMs`, Doze-proof. */
+  private fun scheduleNext() {
+    val fireAt = System.currentTimeMillis() + intervalMs
+    val am = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+    val pi = firePendingIntent()
+    val canExact =
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) am.canScheduleExactAlarms() else true
+    try {
+      if (canExact) {
+        am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, fireAt, pi)
+      } else {
+        am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, fireAt, pi)
       }
+    } catch (_: SecurityException) {
+      // Some OEMs throw even when canScheduleExactAlarms() reported true.
+      am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, fireAt, pi)
     }
-    tickRunnable = runnable
-    handler.postDelayed(runnable, intervalMs)
+  }
+
+  private fun firePendingIntent(): PendingIntent {
+    val intent = Intent(this, FriendCheckinAlarmReceiver::class.java).apply {
+      action = ACTION_FIRE
+    }
+    var flags = PendingIntent.FLAG_UPDATE_CURRENT
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+      flags = flags or PendingIntent.FLAG_IMMUTABLE
+    }
+    return PendingIntent.getBroadcast(this, REQ_FIRE, intent, flags)
+  }
+
+  private fun cancelAlarm() {
+    var flags = PendingIntent.FLAG_NO_CREATE
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+      flags = flags or PendingIntent.FLAG_IMMUTABLE
+    }
+    val intent = Intent(this, FriendCheckinAlarmReceiver::class.java).apply { action = ACTION_FIRE }
+    val pi = PendingIntent.getBroadcast(this, REQ_FIRE, intent, flags)
+    if (pi != null) {
+      (getSystemService(Context.ALARM_SERVICE) as AlarmManager).cancel(pi)
+      pi.cancel()
+    }
   }
 
   private fun buildNotification(): Notification {
@@ -97,8 +149,7 @@ class FriendCheckinForegroundService : Service() {
   }
 
   override fun onDestroy() {
-    tickRunnable?.let { handler.removeCallbacks(it) }
-    tickRunnable = null
+    cancelAlarm()
     isRunning = false
     // Clear the persisted schedule so a stray START_STICKY restart doesn't
     // silently revive a service the user (via JS) asked to stop.
@@ -114,8 +165,15 @@ class FriendCheckinForegroundService : Service() {
     @Volatile
     var isRunning = false
 
+    // Set by FriendCheckinAlarmReceiver when an alarm fires — tells
+    // onStartCommand to emit a tick now (vs a fresh start, which only arms).
+    const val EXTRA_FIRE = "fire"
+    const val ACTION_FIRE = "expo.modules.friendcheckinforeground.FIRE"
+
     private const val CHANNEL_ID = "kawaii.friendcheckin.fg"
     private const val NOTIF_ID = 0xF21D // arbitrary, stable per-service id
+    // arm() schedules exactly one next-fire at a time, so one slot is enough.
+    private const val REQ_FIRE = 0xF21E
     private const val PREFS_NAME = "friend_checkin_foreground"
     private const val KEY_INTERVAL_MINUTES = "intervalMinutes"
     private const val DEFAULT_INTERVAL_MINUTES = 60

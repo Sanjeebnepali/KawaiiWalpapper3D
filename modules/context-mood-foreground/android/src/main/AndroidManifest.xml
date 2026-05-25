@@ -6,6 +6,11 @@
   <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
   <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
   <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+  <!-- Fire each inference tick at the real wall-clock time even in Doze
+       (changes/168 — Handler.postDelayed paused in deep sleep). Auto-granted on
+       Android 12/13, user-grantable on 14+; the service degrades to
+       setAndAllowWhileIdle when it isn't held, so it's not load-bearing. -->
+  <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
 
   <application>
     <service
@@ -16,5 +21,10 @@
         android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
         android:value="Periodic mood inference tick for wallpaper automation" />
     </service>
+    <!-- Receives the exact alarm; re-launches the service to emit a tick +
+         re-arm. Static so it's deliverable even after the process is killed. -->
+    <receiver
+      android:name=".ContextMoodAlarmReceiver"
+      android:exported="false" />
   </application>
 </manifest>
