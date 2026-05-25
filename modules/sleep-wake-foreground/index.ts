@@ -38,6 +38,7 @@ type SleepWakeForegroundModule = {
   ): void;
   stop(): void;
   isRunning(): boolean;
+  canScheduleExact(): boolean;
 };
 
 const native = requireOptionalNativeModule<SleepWakeForegroundModule>(
@@ -70,4 +71,15 @@ export function stopSleepWakeForeground(): void {
 export function isSleepWakeForegroundRunning(): boolean {
   if (!native) return false;
   return native.isRunning();
+}
+
+/**
+ * Whether the OS will let us schedule EXACT alarms (Android 12+ gates this
+ * behind the "Alarms & reminders" permission). When false the wake/sleep swap
+ * still fires via an inexact Doze alarm — within a few minutes — but to-the-
+ * minute accuracy needs this granted. True on Android < 12 and on iOS/unlinked.
+ */
+export function canScheduleSleepWakeExact(): boolean {
+  if (!native) return true;
+  return native.canScheduleExact();
 }

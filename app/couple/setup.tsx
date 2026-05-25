@@ -191,7 +191,10 @@ export default function CoupleSetup() {
     try {
       const restored = await restoreCouple();
       if (!restored) {
-        toast('No active pairing found for this account');
+        // Most common causes: signed into a different account than the one that
+        // paired, or the pairing was unlinked. (The server-side reconnect RPC
+        // `get_my_couple` must also be deployed — see supabase/couple_reconnect_v3.sql.)
+        toast('No active pairing found — sign in with the account that paired');
         return;
       }
       if (restored.status === 'linked') {

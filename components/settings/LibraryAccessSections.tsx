@@ -2,6 +2,7 @@ import { Platform } from 'react-native';
 import {
   openAutostartSettings,
   openBatteryOptimization,
+  openExactAlarmSettings,
 } from '../../lib/backgroundAccess';
 import { RowValue, SettingsRow, SettingsSection } from '../SettingsControls';
 
@@ -55,6 +56,15 @@ export function LibraryAccessSections({
             right={<RowValue chevron="forward" />}
             onPress={() => {
               void openBatteryOptimization();
+            }}
+          />
+          <SettingsRow
+            icon="alarm"
+            label="Exact alarm timing"
+            subtitle="Fire Sleep/Wake wallpapers to the exact minute (Android 12+)"
+            right={<RowValue chevron="forward" />}
+            onPress={() => {
+              void openExactAlarmSettings();
             }}
           />
           <SettingsRow

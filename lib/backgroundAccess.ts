@@ -62,6 +62,26 @@ export async function openBatteryOptimization(): Promise<void> {
   await openAppDetails();
 }
 
+/**
+ * Open the Android 12+ "Alarms & reminders" (exact-alarm) permission screen for
+ * our app, so the Sleep/Wake swap fires to the exact minute (changes/162). On
+ * Android < 12 there's no such screen; falls back to app-details. The feature
+ * still works without it (inexact Doze alarm, a few minutes late).
+ */
+export async function openExactAlarmSettings(): Promise<void> {
+  if (Platform.OS !== 'android') return;
+  try {
+    await IntentLauncher.startActivityAsync(
+      'android.settings.REQUEST_SCHEDULE_EXACT_ALARM',
+      { data: packageData() },
+    );
+    return;
+  } catch {
+    /* older Android / OEM without the screen — app details has it */
+  }
+  await openAppDetails();
+}
+
 /** Open our app's system "App info" page (battery, autostart, permissions
  *  and notifications all branch from here). Universal fallback. */
 export async function openAppDetails(): Promise<void> {

@@ -7,6 +7,11 @@
   <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
   <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
   <uses-permission android:name="android.permission.SET_WALLPAPER" />
+  <!-- Fire the wake/sleep swap at the exact wall-clock hour even in Doze
+       (changes/162). SCHEDULE_EXACT_ALARM is auto-granted on Android 12/13 and
+       user-grantable on 14+; the service degrades to setAndAllowWhileIdle when
+       it isn't held, so this is not load-bearing for the build to run. -->
+  <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
 
   <application>
     <service
@@ -17,5 +22,10 @@
         android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
         android:value="Time-of-day wake/sleep wallpaper while app is closed" />
     </service>
+    <!-- Receives the exact alarm; re-launches the service to apply + re-arm.
+         Static so it's deliverable even after the process is killed. -->
+    <receiver
+      android:name=".SleepWakeAlarmReceiver"
+      android:exported="false" />
   </application>
 </manifest>

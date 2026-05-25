@@ -1,8 +1,10 @@
 package expo.modules.sleepwakeforeground
 
+import android.app.AlarmManager
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Notification
+import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
@@ -12,9 +14,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
-import android.os.Handler
 import android.os.IBinder
-import android.os.Looper
 import android.util.DisplayMetrics
 import android.view.WindowManager
 import java.io.File
@@ -25,12 +25,22 @@ import java.util.Calendar
  * sleep) while the app is closed. No JS context required after launch — it
  * decodes the local bitmaps itself and calls `WallpaperManager.setBitmap`.
  *
- * Tick model: instead of a fixed interval, on each arm we compute the ms
- * until the NEXT of {wakeHour:00, sleepHour:00} (today or tomorrow,
- * whichever clock time comes sooner) and `Handler.postDelayed` to it. On
- * fire we apply that slot's wallpaper, then re-compute + re-arm. Config is
- * mirrored to SharedPreferences so a START_STICKY cold restart (extras
- * dropped by the OS) resumes the same pair/hours; `stop()` wipes it.
+ * Timing model (changes/162): the NEXT of {wakeHour:00, sleepHour:00} is
+ * scheduled with **`AlarmManager.setExactAndAllowWhileIdle`** (falls back to
+ * `setAndAllowWhileIdle` when exact alarms aren't permitted). The previous
+ * model used `Handler.postDelayed`, whose `uptimeMillis` clock PAUSES while the
+ * CPU sleeps in Doze — so a multi-hour delay (the common case: arm at noon for
+ * a 22:00 sleep) drifted by however long the phone was idle, firing late or at
+ * a random wake-up. AlarmManager fires at the real wall-clock time even in
+ * Doze, so 22:00 means 22:00.
+ *
+ * The alarm targets `SleepWakeAlarmReceiver`, which re-launches THIS service
+ * with `EXTRA_FIRE_SLOT`; the service applies that slot's wallpaper and
+ * re-arms the next one. So even if the OEM kills the service between fires, the
+ * system-held alarm resurrects it at the exact time (provided the app is
+ * battery-whitelisted — see lib/backgroundAccess). Config is mirrored to
+ * SharedPreferences so a fire-restart (extras carry only the slot) recovers the
+ * pair/hours; `stop()` cancels the alarm and wipes it.
  */
 class SleepWakeForegroundService : Service() {
 
@@ -42,18 +52,25 @@ class SleepWakeForegroundService : Service() {
     const val EXTRA_SLEEP_URI = "sleepUri"
     const val EXTRA_WAKE_HOUR = "wakeHour"
     const val EXTRA_SLEEP_HOUR = "sleepHour"
+    // Set by SleepWakeAlarmReceiver when an alarm fires — tells onStartCommand
+    // to apply this slot now (vs a normal start, which only arms).
+    const val EXTRA_FIRE_SLOT = "fireSlot"
+
+    const val ACTION_FIRE = "expo.modules.sleepwakeforeground.FIRE"
 
     private const val CHANNEL_ID = "kawaii.sleepwake.fg"
     private const val NOTIF_ID = 0x5715 // arbitrary, stable
     private const val PREFS = "kawaii.sleepwake.prefs"
+    // Single request code: arm() schedules exactly one next-fire at a time, so
+    // one PendingIntent slot is enough. Extras (the slot) don't affect
+    // PendingIntent identity (Intent.filterEquals ignores extras), so
+    // FLAG_UPDATE_CURRENT refreshes the slot each re-arm.
+    private const val REQ_FIRE = 0x5716
 
     // 0 = wake slot, 1 = sleep slot.
     private const val SLOT_WAKE = 0
     private const val SLOT_SLEEP = 1
   }
-
-  private val handler = Handler(Looper.getMainLooper())
-  private var tick: Runnable? = null
 
   private var wakeUri: String = ""
   private var sleepUri: String = ""
@@ -79,7 +96,8 @@ class SleepWakeForegroundService : Service() {
   }
 
   override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-    // Prefer fresh extras; fall back to persisted config on a sticky restart.
+    // Prefer fresh config extras; fall back to persisted config on a sticky
+    // restart OR an alarm-fire restart (which carries only EXTRA_FIRE_SLOT).
     val prefs = getSharedPreferences(PREFS, Context.MODE_PRIVATE)
     if (intent != null && intent.hasExtra(EXTRA_WAKE_URI)) {
       wakeUri = intent.getStringExtra(EXTRA_WAKE_URI) ?: ""
@@ -102,13 +120,19 @@ class SleepWakeForegroundService : Service() {
     startForegroundCompat()
     isRunning = true
 
-    arm()
+    // If this start was triggered by a fired alarm, apply that slot now.
+    val fireSlot = intent?.getIntExtra(EXTRA_FIRE_SLOT, -1) ?: -1
+    if (fireSlot == SLOT_WAKE || fireSlot == SLOT_SLEEP) {
+      applySlot(fireSlot)
+    }
+
+    // Always (re-)arm the next exact alarm.
+    scheduleNext()
     return START_STICKY
   }
 
   override fun onDestroy() {
-    tick?.let { handler.removeCallbacks(it) }
-    tick = null
+    cancelAlarm()
     isRunning = false
     // Clear cache so a later cold START_STICKY restart doesn't resume the
     // old config without an explicit start() from JS.
@@ -173,26 +197,58 @@ class SleepWakeForegroundService : Service() {
       .build()
   }
 
-  /** Compute ms until the next fire, post the runnable. */
-  private fun arm() {
-    tick?.let { handler.removeCallbacks(it) }
+  /** Broadcast PendingIntent to the alarm receiver, carrying the slot to fire. */
+  private fun firePendingIntent(slot: Int): PendingIntent {
+    val intent = Intent(this, SleepWakeAlarmReceiver::class.java).apply {
+      action = ACTION_FIRE
+      putExtra(EXTRA_FIRE_SLOT, slot)
+    }
+    var flags = PendingIntent.FLAG_UPDATE_CURRENT
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+      flags = flags or PendingIntent.FLAG_IMMUTABLE
+    }
+    return PendingIntent.getBroadcast(this, REQ_FIRE, intent, flags)
+  }
 
+  /** Schedule the next {wake | sleep} fire at the exact wall-clock time. */
+  private fun scheduleNext() {
     val now = System.currentTimeMillis()
     val nextWake = nextOccurrence(wakeHour, now)
     val nextSleep = nextOccurrence(sleepHour, now)
-
     // Whichever clock time arrives sooner wins this round.
     val slot = if (nextWake <= nextSleep) SLOT_WAKE else SLOT_SLEEP
     val fireAt = if (slot == SLOT_WAKE) nextWake else nextSleep
-    val delay = (fireAt - now).coerceAtLeast(0L)
 
-    val runnable = Runnable {
-      applySlot(slot)
-      // Re-compute against the new "now" and re-arm for the following slot.
-      arm()
+    val am = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+    val pi = firePendingIntent(slot)
+    // Exact-while-idle fires precisely even in Doze. On Android 12+ exact alarms
+    // can be denied; fall back to setAndAllowWhileIdle (still Doze-capable, but
+    // delivered within a maintenance window ≈ a few minutes late).
+    val canExact =
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) am.canScheduleExactAlarms() else true
+    try {
+      if (canExact) {
+        am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, fireAt, pi)
+      } else {
+        am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, fireAt, pi)
+      }
+    } catch (_: SecurityException) {
+      // Some OEMs throw even when canScheduleExactAlarms() reported true.
+      am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, fireAt, pi)
     }
-    tick = runnable
-    handler.postDelayed(runnable, delay)
+  }
+
+  private fun cancelAlarm() {
+    var flags = PendingIntent.FLAG_NO_CREATE
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+      flags = flags or PendingIntent.FLAG_IMMUTABLE
+    }
+    val intent = Intent(this, SleepWakeAlarmReceiver::class.java).apply { action = ACTION_FIRE }
+    val pi = PendingIntent.getBroadcast(this, REQ_FIRE, intent, flags)
+    if (pi != null) {
+      (getSystemService(Context.ALARM_SERVICE) as AlarmManager).cancel(pi)
+      pi.cancel()
+    }
   }
 
   /**
@@ -237,7 +293,7 @@ class SleepWakeForegroundService : Service() {
         WallpaperManager.FLAG_SYSTEM or WallpaperManager.FLAG_LOCK,
       )
     } catch (_: Throwable) {
-      // Decode/apply failure: skip this fire; arm() already re-schedules.
+      // Decode/apply failure: skip this fire; scheduleNext() still re-arms.
     } finally {
       if (fitted !== bitmap) fitted.recycle()
       bitmap.recycle()

@@ -1,5 +1,7 @@
 package expo.modules.sleepwakeforeground
 
+import android.app.AlarmManager
+import android.content.Context
 import android.content.Intent
 import android.os.Build
 import expo.modules.kotlin.exception.Exceptions
@@ -45,6 +47,17 @@ class SleepWakeForegroundModule : Module() {
 
     Function("isRunning") {
       SleepWakeForegroundService.isRunning
+    }
+
+    // Whether the OS will let us schedule EXACT alarms. False on Android 12+
+    // when the user hasn't granted "Alarms & reminders" — the service still
+    // works (inexact fallback), but JS can use this to offer the settings
+    // deep-link for to-the-minute accuracy. True below Android 12.
+    Function("canScheduleExact") {
+      val context = appContext.reactContext ?: return@Function false
+      if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return@Function true
+      val am = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+      am.canScheduleExactAlarms()
     }
   }
 }
