@@ -8,7 +8,7 @@ import type { BillingPeriod, PlanId } from '../lib/billing';
  * PRICES ARE PLACEHOLDERS. Edit them freely. When real billing is wired the
  * page should read the localized price STRING off the RevenueCat offering
  * (`pkg.product.priceString`) instead of these numbers — see
- * docs/SUBSCRIPTION_ARCHITECTURE.md. The `id`s map 1:1 to entitlement flags in
+ * docs/SUBSCRIPTION.md. The `id`s map 1:1 to entitlement flags in
  * `lib/billing.purchasePlans`, so don't rename them without updating that.
  */
 
@@ -26,6 +26,13 @@ export type Plan = {
 
 export const CURRENCY = '$';
 
+/**
+ * Free-trial length shown on the subscription page. The ACTUAL trial is
+ * configured on the store product (Play Console / App Store) / RevenueCat at
+ * go-live — this constant only drives the UI copy ("Start 3-day free trial").
+ */
+export const TRIAL_DAYS = 3;
+
 /** The four à la carte areas, in display order. */
 export const PLANS: Plan[] = [
   {
@@ -34,7 +41,7 @@ export const PLANS: Plan[] = [
     blurb: 'Custom albums + 15/30 min & custom shuffle timers',
     icon: 'albums',
     monthly: 1.99,
-    yearly: 14.99,
+    yearly: 11.99,
   },
   {
     id: 'mood',
@@ -42,7 +49,7 @@ export const PLANS: Plan[] = [
     blurb: 'Auto mood-based wallpapers + every mood feature',
     icon: 'happy',
     monthly: 1.99,
-    yearly: 14.99,
+    yearly: 11.99,
   },
   {
     id: 'collection',
@@ -50,7 +57,7 @@ export const PLANS: Plan[] = [
     blurb: '60 exclusive premium wallpapers',
     icon: 'diamond',
     monthly: 1.99,
-    yearly: 14.99,
+    yearly: 11.99,
   },
   {
     id: 'couple',
@@ -58,7 +65,7 @@ export const PLANS: Plan[] = [
     blurb: 'Paired wallpapers — share one code, both unlock',
     icon: 'heart',
     monthly: 1.99,
-    yearly: 14.99,
+    yearly: 11.99,
   },
 ];
 
@@ -68,8 +75,8 @@ export const ALL_ACCESS: Plan = {
   title: 'All Access',
   blurb: 'Everything above, one subscription',
   icon: 'infinite',
-  monthly: 4.99,
-  yearly: 39.99,
+  monthly: 5.99,
+  yearly: 29.99,
 };
 
 /** Price for a plan at the chosen cadence. */

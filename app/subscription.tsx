@@ -12,12 +12,12 @@ import {
   PLANS,
   type Plan,
   planPrice,
+  TRIAL_DAYS,
 } from '../constants/plans';
 import { Colors, Radius, Spacing } from '../constants/theme';
 import { useTheme } from '../contexts/ThemeContext';
 import {
   type BillingPeriod,
-  devUnlockAll,
   type PlanId,
   purchasePlans,
 } from '../lib/billing';
@@ -33,7 +33,7 @@ const ALL_PLAN_IDS: PlanId[] = [...PLANS.map((p) => p.id), ALL_ACCESS.id];
  * Checkboxes let the user buy any subset of the four areas à la carte OR the
  * All Access bundle, billed Monthly or Yearly. "Subscribe" runs the mock
  * purchase (`purchasePlans`) which flips the local entitlement flags — the
- * RevenueCat seam (see docs/SUBSCRIPTION_ARCHITECTURE.md).
+ * RevenueCat seam (see docs/SUBSCRIPTION.md).
  */
 export default function SubscriptionScreen() {
   const router = useRouter();
@@ -98,7 +98,7 @@ export default function SubscriptionScreen() {
   const onSubscribe = () => {
     if (!canSubscribe) return;
     purchasePlans(buyable, period);
-    toast('✓ Subscribed — premium unlocked');
+    toast(`✓ ${TRIAL_DAYS}-day free trial started`);
     router.back();
   };
 
@@ -180,9 +180,16 @@ export default function SubscriptionScreen() {
               { color: canSubscribe ? '#131313' : Colors.textMute },
             ]}
           >
-            {canSubscribe ? 'Subscribe' : 'Select a plan'}
+            {canSubscribe ? `Start ${TRIAL_DAYS}-day free trial` : 'Select a plan'}
           </Text>
         </AnimatedButton>
+
+        {canSubscribe ? (
+          <Text style={styles.trialNote}>
+            Free for {TRIAL_DAYS} days, then {formatPrice(total)}
+            {period === 'monthly' ? '/mo' : '/yr'}. Cancel anytime.
+          </Text>
+        ) : null}
 
         <AnimatedButton
           onPress={() => toast('No previous purchases to restore')}
@@ -191,23 +198,9 @@ export default function SubscriptionScreen() {
           <Text style={styles.restoreText}>Restore purchases</Text>
         </AnimatedButton>
 
-        {__DEV__ ? (
-          <AnimatedButton
-            onPress={() => {
-              devUnlockAll();
-              toast('Dev: All Access unlocked');
-              router.back();
-            }}
-            style={styles.devBtn}
-          >
-            <Text style={styles.devText}>Dev: unlock All Access (free)</Text>
-          </AnimatedButton>
-        ) : null}
-
         <Text style={styles.legal}>
-          Placeholder pricing. Subscriptions are simulated locally in this
-          build — no charge is made. Real billing (auto-renewing, cancel
-          anytime) is wired before launch.
+          {TRIAL_DAYS}-day free trial, then the plan auto-renews until
+          cancelled. Manage or cancel anytime in your store account.
         </Text>
       </ScrollView>
     </SafeAreaView>
@@ -260,15 +253,13 @@ const styles = StyleSheet.create({
   ctaText: { fontSize: 16, fontWeight: '800', letterSpacing: -0.2 },
   restore: { alignItems: 'center', paddingVertical: Spacing.sm },
   restoreText: { color: Colors.textDim, fontSize: 13, fontWeight: '700' },
-  devBtn: {
-    alignItems: 'center',
-    paddingVertical: 10,
-    borderRadius: Radius.md,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderStyle: 'dashed',
+  trialNote: {
+    textAlign: 'center',
+    color: Colors.textDim,
+    fontSize: 12,
+    fontWeight: '600',
+    marginTop: 2,
   },
-  devText: { color: Colors.textMute, fontSize: 12, fontWeight: '700' },
   legal: {
     fontSize: 10.5,
     color: Colors.textMute,

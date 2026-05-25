@@ -24,7 +24,7 @@ import { useSettingsStore, type SettingsState } from '../store/settings';
  * The WRITE path (`purchasePlans`) is a local mock today. Wiring real billing
  * (RevenueCat / Play Billing) replaces ONLY that body — it reads the granted
  * entitlements back off `customerInfo` instead of writing the flags directly.
- * No gate call site changes. See docs/SUBSCRIPTION_ARCHITECTURE.md.
+ * No gate call site changes. See docs/SUBSCRIPTION.md.
  */
 
 /** The four independently-purchasable premium areas. */
@@ -153,14 +153,4 @@ export function purchasePlans(planIds: PlanId[], period: BillingPeriod): void {
         break;
     }
   }
-}
-
-/**
- * DEV-only escape hatch (the "enforce gates but keep a dev unlock" decision).
- * Grants All Access for free so QA can exercise every gated flow without a
- * store sandbox. Surfaced on the subscription page behind `__DEV__`. NOT a
- * purchase — leaves the billing period untouched.
- */
-export function devUnlockAll(): void {
-  useSettingsStore.getState().set('allAccess', true);
 }
