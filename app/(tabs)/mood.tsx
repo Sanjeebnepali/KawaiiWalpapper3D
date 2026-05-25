@@ -1227,7 +1227,7 @@ export default function MoodHome() {
                     <Text style={[styles.modeTitle, { color: theme.text }]}>
                       Mood Mode
                     </Text>
-                    <PremiumLock />
+                    {!hasMood ? <PremiumLock /> : null}
                   </View>
                   <Text style={styles.modeBody}>
                     {moodModeEnabled
@@ -1462,7 +1462,7 @@ export default function MoodHome() {
                     <Text style={[styles.modeTitle, { color: theme.text }]}>
                       Even when app is closed
                     </Text>
-                    <PremiumLock />
+                    {!hasMood ? <PremiumLock /> : null}
                   </View>
                   <Text style={styles.modeBody}>
                     Time + motion guess + daily prompt — no camera needed
@@ -1651,7 +1651,7 @@ export default function MoodHome() {
                     <Text style={[styles.modeTitle, { color: theme.text }]}>
                       Friend check-in
                     </Text>
-                    <PremiumLock />
+                    {!hasMood ? <PremiumLock /> : null}
                   </View>
                   <Text style={styles.modeBody}>
                     I’ll send a friendly notification on a schedule — tap a
@@ -1763,7 +1763,7 @@ export default function MoodHome() {
                     <Text style={[styles.modeTitle, { color: theme.text }]}>
                       Sleep / Wake mode
                     </Text>
-                    <PremiumLock />
+                    {!hasMood ? <PremiumLock /> : null}
                   </View>
                   <Text style={styles.modeBody}>
                     Two wallpapers — one for morning, one for night. Tap the
