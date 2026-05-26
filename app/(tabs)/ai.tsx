@@ -15,6 +15,7 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AnimatedButton } from '../../components/AnimatedButton';
 import { AspectChips } from '../../components/aiGenerator/AspectChips';
+import { ModerationAlert } from '../../components/aiGenerator/ModerationAlert';
 import { QuickStarts } from '../../components/aiGenerator/QuickStarts';
 import { RecentStrip } from '../../components/aiGenerator/RecentStrip';
 import { styles } from '../../components/aiGenerator/styles';
@@ -53,6 +54,8 @@ export default function AIGenerator() {
     aspect,
     setAspect,
     busy,
+    moderation,
+    dismissModeration,
     onSurpriseMe,
     onCancel,
     onDeleteHistoryItem,
@@ -167,6 +170,11 @@ export default function AIGenerator() {
           <View style={styles.tailSpacer} />
         </ScrollView>
       </KeyboardAvoidingView>
+
+      {/* Content-moderation alert — shown when a prompt is blocked by the
+          prohibited-content gate (change 172). Renders as a Modal so it
+          floats above the screen + tab bar. */}
+      <ModerationAlert verdict={moderation} onDismiss={dismissModeration} />
     </SafeAreaView>
   );
 }

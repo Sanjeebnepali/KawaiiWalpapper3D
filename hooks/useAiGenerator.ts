@@ -11,6 +11,7 @@ import {
   deleteGeneration,
   generateImage,
 } from '../lib/ai/client';
+import { moderatePrompt, type ModerationVerdict } from '../lib/ai/promptModeration';
 import { getProvider } from '../lib/ai/registry';
 import type { AspectRatio } from '../lib/ai/types';
 import { toast } from '../lib/toast';
@@ -55,6 +56,9 @@ export function useAiGenerator() {
   const [prompt, setPrompt] = useState('');
   const [aspect, setAspect] = useState<AspectRatio>('9:16');
   const [busy, setBusy] = useState(false);
+  // Content-moderation verdict for the last blocked prompt. Non-null drives
+  // the animated <ModerationAlert>; cleared when the user dismisses it.
+  const [moderation, setModeration] = useState<ModerationVerdict | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   // Synchronous in-flight guard (AI-1). `busy` is async React state, so
   // two taps in the same tick both pass `if (busy) return` before
@@ -93,6 +97,8 @@ export function useAiGenerator() {
     const pick = SUGGESTIONS[Math.floor(Math.random() * SUGGESTIONS.length)];
     setPrompt(pick);
   }, []);
+
+  const dismissModeration = useCallback(() => setModeration(null), []);
 
   const onCancel = useCallback(() => {
     abortRef.current?.abort();
@@ -190,6 +196,19 @@ export function useAiGenerator() {
           const trimmed = prompt.trim();
           if (!trimmed) {
             toast('Type a prompt first');
+            return;
+          }
+
+          // Content gate (change 172): screen the prompt against the
+          // prohibited-content rules BEFORE spending a generation, hitting
+          // the network, or charging the daily quota. A blocked prompt
+          // surfaces the animated <ModerationAlert> and bails.
+          const verdict = moderatePrompt(trimmed);
+          if (!verdict.allowed) {
+            if (__DEV__) {
+              console.warn('[ai/moderation] blocked:', verdict.category, verdict.matchedTerm);
+            }
+            setModeration(verdict);
             return;
           }
 
@@ -318,6 +337,8 @@ export function useAiGenerator() {
     aspect,
     setAspect,
     busy,
+    moderation,
+    dismissModeration,
     onSurpriseMe,
     onCancel,
     onDeleteHistoryItem,
