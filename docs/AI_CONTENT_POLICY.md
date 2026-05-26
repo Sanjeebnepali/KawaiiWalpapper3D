@@ -11,9 +11,10 @@ store-rejection risks, not just taste issues.
 The enforcement code lives in:
 
 - `lib/ai/moderationTerms.ts` — the prohibited-content term tables (data).
-- `lib/ai/promptModeration.ts` — `moderatePrompt()`, the decision logic.
+- `lib/ai/promptModeration.ts` — `moderatePrompt()`, the Layer-1 keyword logic.
+- `lib/ai/promptClassifier.ts` — `classifyPrompt()`, the Layer-2 remote classifier.
 - `components/aiGenerator/ModerationAlert.tsx` — the animated "blocked" alert.
-- `hooks/useAiGenerator.ts` — calls `moderatePrompt` before any generation.
+- `hooks/useAiGenerator.ts` — runs Layer 1 then Layer 2 before any generation.
 
 ---
 
@@ -104,20 +105,34 @@ obvious cases but is **not** a complete guarantee:
 - Explicit slurs are intentionally not enumerated in source; the hate-symbol /
   group terms cover the visual cases.
 
-**Backstops & recommended additional layers (in priority order):**
+**Layered enforcement (what is actually wired):**
 
-1. **Provider safety filter** — providers return `ImageGenError` reason
-   `safety_filter`; the app already surfaces it. (Coverage varies by provider.)
-2. **Remote moderation classifier (recommended for "strict / no-copyright"):**
-   an LLM/classifier call that semantically classifies the prompt against this
-   policy before generating. Catches paraphrase and unlisted names that
-   keywords miss. Cost: per-call latency + network + a small fee. **Not yet
-   implemented** — gated on a product decision (it adds a network dependency to
-   the currently-offline-friendly free tier).
-3. **Negative prompt** — passing a "do NOT render real people / logos /
-   copyrighted characters / nudity / gore" negative prompt to the model.
-   Currently only the HuggingFace provider plumbs `negative_prompt`; the default
-   Pollinations provider ignores it, so this is inconsistent defense-in-depth.
+- **Layer 1 — local keyword/heuristic gate** (`moderatePrompt`): instant, free,
+  offline. Runs first; blocks the obvious cases with zero network.
+- **Layer 2 — remote semantic classifier** (`lib/ai/promptClassifier.ts`,
+  change 174): an LLM call (Pollinations text — free, tokenless,
+  OpenAI-compatible) that classifies prompts which passed Layer 1 against these
+  categories. Catches paraphrase ("the orange ex-president") and unlisted
+  names/characters that keywords miss. It is **best-effort and fails OPEN**: a
+  9 s timeout, HTTP error, malformed reply, or an open circuit breaker (after 2
+  consecutive failures, 3-minute cooldown) all return "allowed" rather than
+  blocking — because the free endpoint is observably flaky (a bring-up call
+  timed out at 30 s) and Layer 1 is the always-on floor. So Layer 2 can only
+  ever make moderation *stricter*, never break generation when it's down.
+  Trade-off: adds ~3–9 s of "Reviewing…" before a generation when the endpoint
+  is healthy. A blocked prompt only counts when the model returns
+  `allowed:false` AND a recognised category; anything ambiguous fails open.
+
+**Further backstops / options:**
+
+- **Provider safety filter** — providers return `ImageGenError` reason
+  `safety_filter`; the app already surfaces it. (Coverage varies by provider.)
+- **Negative prompt** — a "do NOT render real people / logos / copyrighted
+  characters / nudity / gore" negative prompt. Currently only the HuggingFace
+  provider plumbs `negative_prompt`; the default Pollinations provider ignores
+  it, so this is inconsistent defense-in-depth — not relied upon.
+- **A paid/keyed classifier** (e.g. OpenAI moderation, or a dedicated model)
+  would remove the free-tier flakiness if stricter latency/uptime is needed.
 
 ## 6. How to extend
 

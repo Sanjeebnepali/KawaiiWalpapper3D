@@ -11,6 +11,7 @@ import {
   deleteGeneration,
   generateImage,
 } from '../lib/ai/client';
+import { classifyPrompt } from '../lib/ai/promptClassifier';
 import { moderatePrompt, type ModerationVerdict } from '../lib/ai/promptModeration';
 import { getProvider } from '../lib/ai/registry';
 import type { AspectRatio } from '../lib/ai/types';
@@ -56,6 +57,9 @@ export function useAiGenerator() {
   const [prompt, setPrompt] = useState('');
   const [aspect, setAspect] = useState<AspectRatio>('9:16');
   const [busy, setBusy] = useState(false);
+  // True while the remote semantic classifier (Layer 2) is running, so the
+  // button can show "Reviewing…" rather than the generation spinner.
+  const [checking, setChecking] = useState(false);
   // Content-moderation verdict for the last blocked prompt. Non-null drives
   // the animated <ModerationAlert>; cleared when the user dismisses it.
   const [moderation, setModeration] = useState<ModerationVerdict | null>(null);
@@ -106,6 +110,7 @@ export function useAiGenerator() {
     // Release the synchronous in-flight guard (AI-1) so the user can
     // immediately fire a fresh generation after cancelling.
     inFlightRef.current = false;
+    setChecking(false);
     setBusy(false);
   }, []);
 
@@ -199,10 +204,10 @@ export function useAiGenerator() {
             return;
           }
 
-          // Content gate (change 172): screen the prompt against the
-          // prohibited-content rules BEFORE spending a generation, hitting
-          // the network, or charging the daily quota. A blocked prompt
-          // surfaces the animated <ModerationAlert> and bails.
+          // Layer 1 content gate (change 172): instant LOCAL keyword/heuristic
+          // screen BEFORE spending a generation, hitting the network, or
+          // charging the daily quota. A blocked prompt surfaces the animated
+          // <ModerationAlert> and bails.
           const verdict = moderatePrompt(trimmed);
           if (!verdict.allowed) {
             if (__DEV__) {
@@ -215,6 +220,22 @@ export function useAiGenerator() {
           const ctrl = new AbortController();
           abortRef.current = ctrl;
           setBusy(true);
+
+          // Layer 2 (change 174): remote SEMANTIC classifier — catches
+          // paraphrase / unlisted names that the keyword gate can't. It is
+          // best-effort and fails OPEN (timeout / error / breaker → allowed),
+          // so a flaky free API never blocks a legitimate prompt; Layer 1 is
+          // the always-on floor. Shares `ctrl` so Cancel aborts the check too.
+          setChecking(true);
+          const cls = await classifyPrompt(trimmed, ctrl.signal);
+          setChecking(false);
+          if (ctrl.signal.aborted) return;
+          if (!cls.allowed && cls.category) {
+            if (__DEV__) console.warn('[ai/classifier] blocked:', cls.category, cls.reason);
+            setModeration({ allowed: false, category: cls.category, matchedTerm: `ai:${cls.reason ?? ''}` });
+            return;
+          }
+
           const r = await generateImage({ prompt: trimmed, aspect }, ctrl.signal);
           // If the user cancelled, the abort path (onCancel) already
           // reset busy/guard; bail without touching state. busy/abortRef
@@ -315,6 +336,7 @@ export function useAiGenerator() {
           // tap is always accepted.
           inFlightRef.current = false;
           abortRef.current = null;
+          setChecking(false);
           setBusy(false);
         }
       },
@@ -337,6 +359,7 @@ export function useAiGenerator() {
     aspect,
     setAspect,
     busy,
+    checking,
     moderation,
     dismissModeration,
     onSurpriseMe,

@@ -54,6 +54,7 @@ export default function AIGenerator() {
     aspect,
     setAspect,
     busy,
+    checking,
     moderation,
     dismissModeration,
     onSurpriseMe,
@@ -131,7 +132,9 @@ export default function AIGenerator() {
                   style={[styles.generate, { backgroundColor: Colors.surface, borderColor: Colors.border, borderWidth: 1 }]}
                 >
                   <ActivityIndicator size="small" color={theme.primary} />
-                  <Text style={[styles.generateText, { color: theme.text }]}>Cancel</Text>
+                  <Text style={[styles.generateText, { color: theme.text }]}>
+                    {checking ? 'Reviewing…' : 'Cancel'}
+                  </Text>
                 </AnimatedButton>
               ) : (
                 <AnimatedButton

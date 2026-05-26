@@ -46,6 +46,22 @@ export type ModerationCategory =
   | 'horror'
   | 'intellectual_property';
 
+/** Runtime list of every category — used by the remote classifier to
+ *  validate the category string a model returns. Keep in sync with the
+ *  `ModerationCategory` union above. */
+export const MODERATION_CATEGORIES: readonly ModerationCategory[] = [
+  'child_safety',
+  'sexual',
+  'violence',
+  'hate',
+  'illegal',
+  'real_person',
+  'political',
+  'misinformation',
+  'horror',
+  'intellectual_property',
+];
+
 export interface ModerationVerdict {
   /** True => safe to send to the provider. */
   allowed: boolean;
