@@ -2010,30 +2010,6 @@ export const catalogSections: CatalogSection[] = [
       {
         "id": "2d-mixed-2",
         "image": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/mixed/002.webp?v=2"
-      },
-      {
-        "id": "2d-mixed-3",
-        "image": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/mixed/003.webp?v=2"
-      },
-      {
-        "id": "2d-mixed-4",
-        "image": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/mixed/004.webp?v=2"
-      },
-      {
-        "id": "2d-mixed-5",
-        "image": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/mixed/005.webp?v=2"
-      },
-      {
-        "id": "2d-mixed-6",
-        "image": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/mixed/006.webp?v=2"
-      },
-      {
-        "id": "2d-mixed-7",
-        "image": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/mixed/007.webp?v=2"
-      },
-      {
-        "id": "2d-mixed-8",
-        "image": "https://snhtsymzsfaptwhqodej.supabase.co/storage/v1/object/public/wallpapers/2d/mixed/008.webp?v=2"
       }
     ]
   },
