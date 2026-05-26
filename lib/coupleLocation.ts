@@ -162,16 +162,17 @@ export async function startCoupleLocation(): Promise<boolean> {
 
   await Location.startLocationUpdatesAsync(COUPLE_LOCATION_TASK, {
     accuracy: Location.Accuracy.Balanced,
-    // ~15-second cadence — keeps the distance feeling live while the couple
-    // feature is active WITHOUT the 5 s firehose that drained the battery for
-    // an always-on linked session (QA M3). distanceInterval:0 is retained on
-    // purpose: it makes a STATIONARY phone keep emitting (the owner's change
-    // 107 requirement — a couple sitting together at "4 m" must keep
-    // refreshing instead of freezing the way the old 30s/25m filter did). 15 s
-    // is the balance: ~3× less battery than 5 s, still refreshes when still.
-    // The OS throttles further under Doze when the screen is off, so the cost
-    // is bounded to active use.
-    timeInterval: 15_000,
+    // ~10-second cadence — the distance felt slow to refresh while the app was
+    // backgrounded (change 170), so we tightened 15 s → 10 s for fresher
+    // closed-app updates, still WELL above the 5 s firehose that drained the
+    // battery for an always-on linked session (QA M3). distanceInterval:0 is
+    // retained on purpose: it makes a STATIONARY phone keep emitting (the
+    // owner's change 107 requirement — a couple sitting together at "4 m" must
+    // keep refreshing instead of freezing the way the old 30s/25m filter did).
+    // The OS still Doze-throttles further when the screen is off, so this only
+    // speeds up the "backgrounded but device awake" case; the cost stays
+    // bounded to active use.
+    timeInterval: 10_000,
     distanceInterval: 0,
     // Persistent foreground-service notification (Android only). Lets
     // the OS keep delivering updates while the screen is off without
