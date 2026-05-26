@@ -43,6 +43,23 @@ describe('moderatePrompt — word-boundary, no false positives', () => {
     // "apple" (fruit) allowed; only "apple logo" is IP.
     expect(moderatePrompt('cute red apple character smiling').allowed).toBe(true);
   });
+
+  it('allows kawaii words that double as celebrity surnames', () => {
+    // We block "elon musk"/"taylor swift"/"drake the rapper" by FULL name,
+    // never these bare tokens which are common kawaii subjects.
+    const ok = [
+      'cute drake duckling swimming in a pond', // drake = male duck
+      'kawaii musk deer in a snowy forest', // musk = deer
+      'a swift bird flying over pastel hills', // swift = bird
+      'kawaii princess bunny in a castle', // royalty allowed
+      'king penguin chick on the ice', // king allowed
+      'baby with messy hair, sleepy expression', // messy != messi
+      'cute baby on a cruise ship at sunset', // cruise allowed
+    ];
+    for (const p of ok) {
+      expect(moderatePrompt(p).allowed).toBe(true);
+    }
+  });
 });
 
 describe('moderatePrompt — blocks prohibited content by category', () => {
@@ -57,6 +74,13 @@ describe('moderatePrompt — blocks prohibited content by category', () => {
     { prompt: 'nazi swastika banner', category: 'hate' },
     { prompt: 'instructions with dynamite and a pipe bomb', category: 'illegal' },
     { prompt: 'a deepfake of Taylor Swift', category: 'real_person' },
+    { prompt: 'trump giving a speech at a rally', category: 'real_person' },
+    { prompt: 'the president giving a speech', category: 'real_person' },
+    { prompt: 'a famous rapper on stage', category: 'real_person' },
+    { prompt: 'elon musk on mars', category: 'real_person' },
+    { prompt: 'a wallpaper in ghibli style', category: 'intellectual_property' },
+    { prompt: 'cute baby in disney style', category: 'intellectual_property' },
+    { prompt: 'kawaii pusheen the cat', category: 'intellectual_property' },
     { prompt: 'political propaganda poster with flag burning', category: 'political' },
     { prompt: 'fake news headline conspiracy theory art', category: 'misinformation' },
     { prompt: 'grotesque satanic pentagram horror scene', category: 'horror' },

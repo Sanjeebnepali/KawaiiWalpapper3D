@@ -118,16 +118,37 @@ export const ILLEGAL_TERMS: readonly string[] = [
 // Intent terms plus a curated (non-exhaustive) set of names users commonly
 // try. The provider filter and this list together raise the bar.
 export const REAL_PERSON_TERMS: readonly string[] = [
+  // Intent terms.
   'deepfake', 'deep fake', 'real person', 'real celebrity', 'celebrity face',
   'celebrity likeness', 'real politician', 'real athlete', 'without consent',
   'real child photo', 'real children photo', 'photo of a real',
-  // Curated public-figure names (not exhaustive).
-  'taylor swift', 'elon musk', 'donald trump', 'joe biden', 'kim kardashian',
-  'cristiano ronaldo', 'lionel messi', 'kanye west', 'billie eilish',
-  'beyonce', 'ariana grande', 'selena gomez', 'dwayne johnson', 'tom cruise',
-  'leonardo dicaprio', 'brad pitt', 'angelina jolie', 'barack obama',
-  'vladimir putin', 'narendra modi', 'pope francis', 'queen elizabeth',
-  'kim jong un',
+  // Curated public-figure FULL names (not exhaustive).
+  'taylor swift', 'elon musk', 'donald trump', 'joe biden', 'kamala harris',
+  'kim kardashian', 'kylie jenner', 'cristiano ronaldo', 'lionel messi',
+  'kanye west', 'kanye', 'billie eilish', 'ariana grande', 'selena gomez',
+  'dwayne johnson', 'tom cruise', 'leonardo dicaprio', 'brad pitt',
+  'angelina jolie', 'robert downey', 'will smith', 'johnny depp',
+  'barack obama', 'vladimir putin', 'narendra modi', 'volodymyr zelensky',
+  'benjamin netanyahu', 'emmanuel macron', 'justin trudeau', 'xi jinping',
+  'jeff bezos', 'mark zuckerberg', 'bill gates', 'mr beast', 'mrbeast',
+  'pope francis', 'queen elizabeth', 'king charles', 'kim jong un',
+  'lady gaga', 'justin bieber', 'nicki minaj', 'snoop dogg', 'lebron james',
+  'neymar', 'mbappe', 'virat kohli', 'messi',
+  // Unambiguous single-token names / mononyms — these are SAFE to match bare
+  // because they are not common English or kawaii words. (Deliberately
+  // EXCLUDED as bare tokens: drake=duck, musk=deer, swift=bird, west,
+  // cruise, gates, jordan, madonna — matched only via full names above.)
+  'trump', 'biden', 'obama', 'putin', 'zelensky', 'netanyahu', 'macron',
+  'merkel', 'modi', 'bolsonaro', 'erdogan', 'beyonce', 'rihanna', 'shakira',
+  'zendaya', 'eminem', 'ronaldo', 'bezos', 'zuckerberg', 'kardashian',
+  // Public-figure CONTEXT heuristic — role words that signal a real public
+  // figure even when no name is typed (catches "the president giving a
+  // speech"). Royalty words (king/queen/prince/princess) are intentionally
+  // NOT here — "kawaii princess" / "king penguin" are valid prompts.
+  'president', 'vice president', 'prime minister', 'senator', 'congressman',
+  'dictator', 'politician', 'celebrity', 'rapper', 'pop star', 'popstar',
+  'influencer', 'youtuber', 'tiktoker', 'famous actor', 'famous actress',
+  'famous singer', 'footballer',
 ];
 
 // ─── Political / propaganda / civic incitement ────────────────────────────
@@ -209,6 +230,16 @@ export const IP_TERMS: readonly string[] = [
   'balenciaga', 'rolex', 'ferrari', 'lamborghini', 'starbucks', 'mcdonalds',
   'coca cola', 'pepsi', 'apple logo', 'nike logo', 'playstation logo',
   'xbox logo', 'nintendo logo', 'disney logo', 'marvel logo', 'nasa logo',
+  // Studios / IP holders / art styles by name — "in ghibli style",
+  // "disney style", "pixar style" are common copy requests; block the name.
+  'disney', 'pixar', 'dreamworks', 'marvel', 'dc comics', 'nintendo',
+  'sega', 'sanrio', 'studio ghibli', 'ghibli', 'hoyoverse', 'vocaloid',
+  // Modern characters / franchises / games the original list missed.
+  'pusheen', 'rilakkuma', 'molang', 'sumikko gurashi', 'gabbys dollhouse',
+  'huggy wuggy', 'poppy playtime', 'rainbow friends', 'skibidi toilet',
+  'hatsune miku', 'genshin impact', 'league of legends', 'valorant',
+  'overwatch', 'fall guys', 'subway surfers', 'angry birds',
+  'plants vs zombies', 'undertale', 'sonic',
   // Famous artwork (artist / unambiguous titles).
   'mona lisa', 'van gogh', 'the scream painting', 'girl with a pearl earring',
   'the last supper', 'american gothic', 'birth of venus',
