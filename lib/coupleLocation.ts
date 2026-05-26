@@ -62,10 +62,11 @@ if (!TaskManager.isTaskDefined(COUPLE_LOCATION_TASK)) {
       if (!link || link.status !== 'linked') return;
       if (useCoupleStore.getState().paused) return;
 
-      const { latitude, longitude, accuracy } = loc.coords;
+      const { latitude, longitude, accuracy, speed } = loc.coords;
       // Smooth (Kalman) + store + push via the shared funnel. The smoothed
-      // accuracy still feeds the dynamic buffer band in the store.
-      await recordMyFix(link.code, latitude, longitude, accuracy ?? null);
+      // accuracy still feeds the dynamic buffer band in the store; `speed`
+      // adapts the smoothing so a moving phone tracks with little lag.
+      await recordMyFix(link.code, latitude, longitude, accuracy ?? null, speed ?? null);
       // Re-arm the geofence on every local tick so its radius tracks the
       // LATEST accuracy band. The bootstrap subscriber only re-arms when the
       // PARTNER's pin moves; if OUR accuracy degrades (e.g. walking indoors)
@@ -202,8 +203,8 @@ export async function startCoupleLocation(): Promise<boolean> {
       if (!pos) return;
       const cur = useCoupleStore.getState().link;
       if (!cur || cur.status !== 'linked') return;
-      const { latitude, longitude, accuracy } = pos.coords;
-      await recordMyFix(cur.code, latitude, longitude, accuracy ?? null);
+      const { latitude, longitude, accuracy, speed } = pos.coords;
+      await recordMyFix(cur.code, latitude, longitude, accuracy ?? null, speed ?? null);
       await applyProximityWallpaper();
     } catch {
       /* best-effort seed — the stream + geofence still drive updates */

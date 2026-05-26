@@ -21,6 +21,41 @@
  * k = var / (var + accuracy²). Lat and lng share one scalar variance — fine at
  * the metre scale this feature works at.
  */
+
+/**
+ * Map a GPS-reported ground speed (m/s) to the Kalman process noise Q.
+ *
+ * WHY adaptive: a single fixed Q is a bad compromise. Q=2 (the old constant)
+ * killed the stationary jitter but left the estimate lagging several fixes
+ * behind a walk — at ~10 m accuracy and a 1.5 s tick its steady-state gain is
+ * only ~0.22, so each fix nudged the position barely a fifth of the way toward
+ * reality (the "slow to update while walking" feel). Deriving Q from the
+ * (Doppler-based, far more reliable than differencing two noisy positions over
+ * ~2 m of walking) speed lets us smooth hard when still and lightly when moving:
+ *
+ *   still   (≈0 m/s)    → Q_MIN  → rock-steady number
+ *   walking (~1.4 m/s)  → Q≈4.8  → tracks within ~2 fixes (gain ~0.44 @1.5 s)
+ *   running (≥~2.5 m/s) → Q_MAX  → minimal lag
+ *
+ * Speed is unavailable on some devices/fixes (null, or −1 on iOS when invalid)
+ * → fall back to the caller's default Q, so behaviour is never worse than the
+ * old fixed-Q filter. Because high Q is only ever picked WHEN actually moving,
+ * the stationary-stability property is preserved (improved, even — Q_MIN < 2).
+ */
+const Q_MIN = 0.6;
+const Q_MAX = 8;
+const Q_SLOPE = 3; // each 1 m/s of ground speed adds 3 to Q
+
+function qForSpeed(
+  speedMps: number | null | undefined,
+  qDefault: number,
+): number {
+  if (speedMps == null || !Number.isFinite(speedMps) || speedMps < 0) {
+    return qDefault;
+  }
+  return Math.min(Q_MAX, Math.max(Q_MIN, Q_MIN + speedMps * Q_SLOPE));
+}
+
 export class GpsKalmanFilter {
   private timestampMs = 0;
   private lat = 0;
@@ -28,15 +63,24 @@ export class GpsKalmanFilter {
   /** Position-estimate variance in metres². < 0 means "not yet initialised". */
   private variance = -1;
 
-  /** @param qMetresPerSecond expected movement speed; higher = less smoothing. */
-  constructor(private readonly qMetresPerSecond: number) {}
+  /** @param qDefault fallback process noise (m/s) used when a fix has no speed. */
+  constructor(private readonly qDefault: number) {}
 
-  /** Feed one raw fix; returns the smoothed position + its 1σ accuracy (m). */
+  /**
+   * Feed one raw fix; returns the smoothed position + its 1σ accuracy (m).
+   *
+   * `speedMps` is the GPS-reported ground speed. It adapts the smoothing
+   * strength per fix (see `qForSpeed`): standing still → heavy smoothing (a
+   * rock-steady number), walking/running → light smoothing so the estimate
+   * keeps up instead of lagging behind. Omit it (or pass null) and the filter
+   * falls back to `qDefault`.
+   */
   process(
     lat: number,
     lng: number,
     accuracyM: number,
     timestampMs: number,
+    speedMps?: number | null,
   ): { lat: number; lng: number; accuracy: number } {
     const accuracy = Math.max(accuracyM, 1);
     if (this.variance < 0) {
@@ -48,7 +92,8 @@ export class GpsKalmanFilter {
     } else {
       const dtSec = (timestampMs - this.timestampMs) / 1000;
       if (dtSec > 0) {
-        this.variance += dtSec * this.qMetresPerSecond * this.qMetresPerSecond;
+        const q = qForSpeed(speedMps, this.qDefault);
+        this.variance += dtSec * q * q;
         this.timestampMs = timestampMs;
       }
       const k = this.variance / (this.variance + accuracy * accuracy);
@@ -128,9 +173,10 @@ export function smoothMyFix(
   lng: number,
   accuracyM: number | null,
   timestampMs: number,
+  speedMps?: number | null,
 ): { lat: number; lng: number; accuracy: number } {
   // Unknown accuracy → treat as poor (50 m) so an unrated fix is down-weighted.
-  return myFilter.process(lat, lng, accuracyM ?? 50, timestampMs);
+  return myFilter.process(lat, lng, accuracyM ?? 50, timestampMs, speedMps);
 }
 
 export function resetMyFix(): void {

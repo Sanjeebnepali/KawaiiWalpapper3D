@@ -19,11 +19,14 @@ export async function recordMyFix(
   lat: number,
   lng: number,
   accuracyM: number | null,
+  speedMps?: number | null,
 ): Promise<void> {
   const now = Date.now();
   // Drop teleport glitches / very-vague fixes before they corrupt the estimate.
   if (!acceptFix(lat, lng, accuracyM, now)) return;
-  const s = smoothMyFix(lat, lng, accuracyM, now);
+  // `speedMps` (GPS ground speed) adapts the Kalman smoothing: a still phone
+  // gets a steady number, a walking/running one tracks with little lag.
+  const s = smoothMyFix(lat, lng, accuracyM, now, speedMps);
   useCoupleStore.getState().setMyLocation(s.lat, s.lng, s.accuracy);
   await pushMyLocation(code, s.lat, s.lng, s.accuracy);
 }

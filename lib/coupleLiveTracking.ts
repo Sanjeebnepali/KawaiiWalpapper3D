@@ -53,9 +53,10 @@ async function liveTick(): Promise<void> {
           accuracy: Location.Accuracy.BestForNavigation,
         }).catch(() => null);
         if (!pos) return;
-        const { latitude, longitude, accuracy } = pos.coords;
+        const { latitude, longitude, accuracy, speed } = pos.coords;
         // Smooth + store + push through the shared funnel (Kalman-filtered).
-        await recordMyFix(code, latitude, longitude, accuracy ?? null);
+        // Pass GPS `speed` so a walk tracks with little lag (adaptive Q).
+        await recordMyFix(code, latitude, longitude, accuracy ?? null, speed ?? null);
       })(),
       // 2) Partner's latest position → store. Realtime also delivers this,
       //    but polling here guarantees freshness even if an event is missed.

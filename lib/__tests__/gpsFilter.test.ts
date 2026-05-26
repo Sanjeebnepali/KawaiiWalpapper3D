@@ -44,6 +44,42 @@ describe('GpsKalmanFilter', () => {
     expect(r.lat).toBe(50);
     expect(r.lng).toBe(50);
   });
+
+  it('tracks a walk faster when given a speed hint than with the default Q', () => {
+    // Identical walking track (~2.2 m north / 1.5 s ≈ 1.5 m/s) fed to two
+    // filters: one told the speed, one not. The speed-aware one should sit
+    // closer to the true latest point (less lag) — the whole goal of adaptive Q.
+    const adaptive = new GpsKalmanFilter(2);
+    const fixed = new GpsKalmanFilter(2);
+    adaptive.process(27.7, 85.3, 10, 0, 1.5);
+    fixed.process(27.7, 85.3, 10, 0);
+    let a = { lat: 27.7, lng: 85.3, accuracy: 0 };
+    let b = { lat: 27.7, lng: 85.3, accuracy: 0 };
+    for (let i = 1; i <= 6; i++) {
+      const lat = 27.7 + i * 0.00002; // ~2.2 m/step ≈ 1.5 m/s
+      a = adaptive.process(lat, 85.3, 10, i * 1500, 1.5);
+      b = fixed.process(lat, 85.3, 10, i * 1500);
+    }
+    const target = 27.7 + 6 * 0.00002;
+    expect(target - a.lat).toBeLessThan(target - b.lat); // both lag; adaptive less
+  });
+
+  it('smooths a stationary signal at least as hard with a zero-speed hint', () => {
+    // A still phone (speed 0) must be no jitterier than the old fixed Q — the
+    // adaptive floor Q_MIN (0.6) is below the default (2), so it deviates less.
+    const adaptive = new GpsKalmanFilter(2);
+    const fixed = new GpsKalmanFilter(2);
+    adaptive.process(27.7, 85.3, 10, 0, 0);
+    fixed.process(27.7, 85.3, 10, 0);
+    const noise = [0.0002, -0.0002, 0.00015, -0.00018, 0.0001, -0.00012];
+    let a = 27.7;
+    let b = 27.7;
+    noise.forEach((n, i) => {
+      a = adaptive.process(27.7 + n, 85.3, 10, (i + 1) * 1500, 0).lat;
+      b = fixed.process(27.7 + n, 85.3, 10, (i + 1) * 1500).lat;
+    });
+    expect(Math.abs(a - 27.7)).toBeLessThanOrEqual(Math.abs(b - 27.7));
+  });
 });
 
 describe('acceptFix (outlier gate)', () => {
