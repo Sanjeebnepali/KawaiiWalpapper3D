@@ -28,6 +28,12 @@ import { AnimatedButton } from '../AnimatedButton';
  * user which word to swap).
  */
 
+/** Playful encouragement shown on every blocked prompt — softens the "no"
+ *  and nudges the user toward an original idea. (Spelling auto-corrected from
+ *  the requested copy.) */
+const ENCOURAGEMENT =
+  'You are super talented. You are thinking beyond the universe — think like a human 😎🤣';
+
 type Presentation = {
   title: string;
   reason: string;
@@ -168,6 +174,10 @@ export function ModerationAlert({ verdict, onDismiss }: Props) {
                   </Text>
                   <Text style={styles.reason}>{p.reason}</Text>
 
+                  <Text style={[styles.encouragement, { color: p.accent }]}>
+                    {ENCOURAGEMENT}
+                  </Text>
+
                   <AnimatedButton
                     onPress={onDismiss}
                     style={[styles.button, { backgroundColor: p.accent }]}
@@ -221,6 +231,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
     color: Colors.textDim,
+    textAlign: 'center',
+  },
+  encouragement: {
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: '700',
+    fontStyle: 'italic',
     textAlign: 'center',
   },
   button: {
