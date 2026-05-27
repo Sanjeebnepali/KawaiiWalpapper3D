@@ -12,6 +12,8 @@
        user-grantable on 14+; the service degrades to setAndAllowWhileIdle when
        it isn't held, so this is not load-bearing for the build to run. -->
   <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+  <!-- Re-arm the wake/sleep alarm after a reboot (alarms are cleared on boot). -->
+  <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
   <application>
     <service
@@ -27,5 +29,15 @@
     <receiver
       android:name=".SleepWakeAlarmReceiver"
       android:exported="false" />
+    <!-- Receives BOOT_COMPLETED to re-arm after a reboot. exported=true because
+         BOOT_COMPLETED is a system (protected) broadcast delivered to the app. -->
+    <receiver
+      android:name=".SleepWakeBootReceiver"
+      android:exported="true">
+      <intent-filter>
+        <action android:name="android.intent.action.BOOT_COMPLETED" />
+        <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+      </intent-filter>
+    </receiver>
   </application>
 </manifest>

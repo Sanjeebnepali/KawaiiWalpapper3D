@@ -226,6 +226,35 @@ export async function runMoodBackgroundOnce(): Promise<boolean> {
   return true;
 }
 
+/**
+ * Mirror a context-mood tick into history + the store WITHOUT applying a
+ * wallpaper. The native foreground service is the source of truth for the
+ * apply while the app is closed (it already changed the wallpaper for this
+ * tick); when JS happens to be alive at tick time we only want the Mood Home +
+ * history badge to reflect it — applying again here would double-set what the
+ * native tick just changed. The mood is derived from the SAME time-of-day
+ * mapping the native side uses (`inferContextMoodNow`), so they agree.
+ */
+export async function recordBackgroundMoodTick(): Promise<void> {
+  await hydrateMoodStore();
+  const s = useMoodStore.getState();
+  if (!s.backgroundEnabled) return;
+  // recentSteps is null on Android (iOS-only API) → time-of-day mood, same as
+  // what the native service computed for its apply.
+  const ctx = inferContextMoodNow(await recentSteps(60));
+  const mood = ctx.mood as MoodId;
+  // De-dupe: nothing new to log when the mood hasn't changed.
+  if (mood === s.lastBgMood) return;
+  await s.setLastBgMood(mood);
+  const history = await recordMood(mood, 'background', ctx.confidence);
+  useMoodStore.setState({
+    currentMood: mood,
+    lastSource: 'background',
+    lastConfidence: ctx.confidence,
+    history,
+  });
+}
+
 // `localDayKey` lives in ./moodSleepWakeFallback now; re-exported here so
 // external importers (lib/moodNotifications.ts) keep their import path.
 export { localDayKey };

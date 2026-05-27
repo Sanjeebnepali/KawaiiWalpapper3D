@@ -25,7 +25,7 @@ import {
   stopSleepWakeForeground as nativeStop,
   isSleepWakeForegroundAvailable,
 } from '../modules/sleep-wake-foreground';
-import { downloadToCache } from './wallpaperActions';
+import { downloadToPersistent } from './wallpaperActions';
 
 export { isSleepWakeForegroundAvailable };
 
@@ -69,9 +69,13 @@ async function precachePair(
   idSeed: string,
 ): Promise<{ wakeUri: string; sleepUri: string } | null> {
   try {
+    // PERSISTENT dir, not cache: the service decodes these files at the
+    // scheduled wake/sleep hour — often many hours after this runs — and the
+    // OS evicts the cache dir while we're backgrounded (the "Sleep/Wake only
+    // fires if I open the app" bug). documentDirectory survives until uninstall.
     const [wakeUri, sleepUri] = await Promise.all([
-      downloadToCache(wakeRef, `${idSeed}-wake`),
-      downloadToCache(sleepRef, `${idSeed}-sleep`),
+      downloadToPersistent(wakeRef, `${idSeed}-wake`),
+      downloadToPersistent(sleepRef, `${idSeed}-sleep`),
     ]);
     if (!wakeUri || !sleepUri) return null;
     return { wakeUri, sleepUri };

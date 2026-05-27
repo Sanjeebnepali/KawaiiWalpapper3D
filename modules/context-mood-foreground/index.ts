@@ -16,18 +16,22 @@ import { type EventSubscription, type NativeModule } from 'expo-modules-core';
  * that survives them.
  *
  * Tick contract:
- *   - JS calls `start({ intervalMinutes })` (default 30 min). The
- *     service starts in the foreground with an ongoing low-priority
- *     notification and arms `Handler.postDelayed(intervalMinutes * 60_000)`.
- *   - On each tick the service emits an `onTick` event back to JS.
- *     JS's listener (`lib/moodBootstrap.ts`) calls
- *     `runMoodBackgroundOnce()` — the existing context-inference +
- *     silent wallpaper-apply path.
- *   - `stop()` cancels the runnable, clears the SharedPreferences
- *     cache, removes the notification, stops the service.
+ *   - JS calls `start(intervalMinutes, payloadJson)`. `payloadJson` is a
+ *     JSON-encoded `{ moodUris: { <mood>: string[] }, all: string[] }` map
+ *     of LOCAL file:// URIs (pre-resolved by `lib/contextMoodForeground.ts`).
+ *     The service starts in the foreground with an ongoing low-priority
+ *     notification and arms an exact AlarmManager alarm.
+ *   - On each tick the service APPLIES a wallpaper natively: it computes the
+ *     mood from the time of day, picks a URI from that mood's bucket (or the
+ *     `all` fallback), and calls `WallpaperManager.setBitmap`. It also emits
+ *     `onTick` so a live JS bundle can mirror the mood into history — but the
+ *     apply no longer depends on JS being alive.
+ *   - `stop()` cancels the alarm, clears the SharedPreferences cache, removes
+ *     the notification, stops the service.
  *
- * Cold-restart resilience: interval is persisted to
- * SharedPreferences; service is `START_STICKY`.
+ * Cold-restart resilience: interval + payload are persisted to
+ * SharedPreferences; service is `START_STICKY`; a static boot receiver re-arms
+ * after a reboot.
  */
 
 export type ContextMoodTickEvent = { at: number };
@@ -35,7 +39,7 @@ export type ContextMoodTickEvent = { at: number };
 type ContextMoodForegroundModule = NativeModule<{
   onTick: (ev: ContextMoodTickEvent) => void;
 }> & {
-  start(intervalMinutes: number): void;
+  start(intervalMinutes: number, payloadJson: string): void;
   stop(): void;
   isRunning(): boolean;
   addListener(
@@ -59,10 +63,14 @@ export function addContextMoodTickListener(
 
 export function startContextMoodForeground(opts: {
   intervalMinutes: number;
+  payloadJson: string;
 }): boolean {
   if (!native) return false;
+  // No payload = nothing to apply; refuse rather than starting an idle FGS
+  // that posts an ongoing notification but never changes the wallpaper.
+  if (!opts.payloadJson) return false;
   const n = Math.max(5, Math.min(1440, Math.floor(opts.intervalMinutes)));
-  native.start(n);
+  native.start(n, opts.payloadJson);
   return true;
 }
 

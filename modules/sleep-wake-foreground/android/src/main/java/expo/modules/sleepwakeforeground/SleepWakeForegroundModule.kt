@@ -42,6 +42,10 @@ class SleepWakeForegroundModule : Module() {
 
     Function("stop") {
       val context = appContext.reactContext ?: throw Exceptions.ReactContextLost()
+      // Cancel the alarm + wipe persisted config FIRST (so neither the alarm nor
+      // a START_STICKY restart resurrects the service), then stop it. onDestroy
+      // no longer does this, so the config survives an OEM kill for resurrection.
+      SleepWakeForegroundService.tearDown(context)
       context.stopService(Intent(context, SleepWakeForegroundService::class.java))
     }
 

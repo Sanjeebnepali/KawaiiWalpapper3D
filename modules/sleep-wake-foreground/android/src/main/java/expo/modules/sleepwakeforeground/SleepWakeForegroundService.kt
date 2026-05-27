@@ -60,7 +60,9 @@ class SleepWakeForegroundService : Service() {
 
     private const val CHANNEL_ID = "kawaii.sleepwake.fg"
     private const val NOTIF_ID = 0x5715 // arbitrary, stable
-    private const val PREFS = "kawaii.sleepwake.prefs"
+    // Public so SleepWakeBootReceiver (same package) can read the persisted
+    // config to decide whether to resume after a reboot.
+    const val PREFS = "kawaii.sleepwake.prefs"
     // Single request code: arm() schedules exactly one next-fire at a time, so
     // one PendingIntent slot is enough. Extras (the slot) don't affect
     // PendingIntent identity (Intent.filterEquals ignores extras), so
@@ -70,6 +72,23 @@ class SleepWakeForegroundService : Service() {
     // 0 = wake slot, 1 = sleep slot.
     private const val SLOT_WAKE = 0
     private const val SLOT_SLEEP = 1
+
+    /** Cancel the next-fire alarm and wipe persisted config. Called ONLY on an
+     *  explicit stop() from JS — never from onDestroy (see the comment there),
+     *  so an OEM/low-memory kill can't accidentally disarm Sleep/Wake. */
+    fun tearDown(context: Context) {
+      var flags = PendingIntent.FLAG_NO_CREATE
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        flags = flags or PendingIntent.FLAG_IMMUTABLE
+      }
+      val intent = Intent(context, SleepWakeAlarmReceiver::class.java).apply { action = ACTION_FIRE }
+      val pi = PendingIntent.getBroadcast(context, REQ_FIRE, intent, flags)
+      if (pi != null) {
+        (context.getSystemService(Context.ALARM_SERVICE) as AlarmManager).cancel(pi)
+        pi.cancel()
+      }
+      context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().clear().apply()
+    }
   }
 
   private var wakeUri: String = ""
@@ -132,11 +151,12 @@ class SleepWakeForegroundService : Service() {
   }
 
   override fun onDestroy() {
-    cancelAlarm()
+    // Intentionally does NOT cancel the alarm or clear config. A low-memory /
+    // OEM kill can run onDestroy, and wiping here would stop the alarm +
+    // START_STICKY + boot resurrection that lets Sleep/Wake fire while the app
+    // is closed — the root of "Sleep/Wake only works if I open the app first."
+    // Explicit stop wipes config via tearDown() from the JS module instead.
     isRunning = false
-    // Clear cache so a later cold START_STICKY restart doesn't resume the
-    // old config without an explicit start() from JS.
-    getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().clear().apply()
     super.onDestroy()
   }
 
@@ -235,19 +255,6 @@ class SleepWakeForegroundService : Service() {
     } catch (_: SecurityException) {
       // Some OEMs throw even when canScheduleExactAlarms() reported true.
       am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, fireAt, pi)
-    }
-  }
-
-  private fun cancelAlarm() {
-    var flags = PendingIntent.FLAG_NO_CREATE
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-      flags = flags or PendingIntent.FLAG_IMMUTABLE
-    }
-    val intent = Intent(this, SleepWakeAlarmReceiver::class.java).apply { action = ACTION_FIRE }
-    val pi = PendingIntent.getBroadcast(this, REQ_FIRE, intent, flags)
-    if (pi != null) {
-      (getSystemService(Context.ALARM_SERVICE) as AlarmManager).cancel(pi)
-      pi.cancel()
     }
   }
 

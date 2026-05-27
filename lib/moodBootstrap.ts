@@ -7,12 +7,12 @@
  * Imported by `app/_layout.tsx`. Idempotent.
  */
 
+import { addContextMoodTickListener } from '../modules/context-mood-foreground';
 import {
-  addContextMoodTickListener,
   isContextMoodForegroundAvailable,
-  startContextMoodForeground,
+  startContextMoodForegroundFromStore,
   stopContextMoodForeground,
-} from '../modules/context-mood-foreground';
+} from './contextMoodForeground';
 import {
   addFriendCheckinTickListener,
   isFriendCheckinForegroundAvailable,
@@ -30,12 +30,12 @@ import {
 } from './automationMode';
 import { maybePromptBackgroundAccess } from './backgroundAccess';
 import {
+  recordBackgroundMoodTick,
   registerMoodBackgroundTask,
   runMoodBackgroundOnce,
   unregisterMoodBackgroundTask,
 } from './moodBackgroundTask';
 import {
-  precacheCollection,
   startForegroundShuffleForCollection,
   stopForegroundShuffle,
 } from './shuffleActions';
@@ -108,20 +108,21 @@ export async function bootstrapMoodFeature(): Promise<void> {
   //    tree mounted — see `flushPendingNotificationResponse`.
   await flushPendingNotificationResponse();
 
-  // 2a) Install once-per-process tick listeners for the two new mood
-  //     foreground services. The native FGSes (Android-only) emit an
-  //     `onTick` event every N minutes on their own Handler — bypassing
-  //     the AlarmManager / WorkManager throttling that makes
-  //     `expo-notifications` / `expo-background-fetch` fire only in
-  //     bursts when the user unlocks the phone. Each tick reuses an
-  //     existing JS path:
-  //       - friend tick   → fireMoodPromptNotification()   (same 7-emoji
-  //         category + same tap-handling as the usage-monitor source)
-  //       - context tick  → runMoodBackgroundOnce()        (existing
-  //         context-inference + silent wallpaper apply + shuffle +
-  //         sleep/wake fallback, all gated by their own store flags)
-  //     Listeners survive Activity destruction because they're held by
-  //     this bootstrap singleton, not a React component tree.
+  // 2a) Install once-per-process tick listeners for the two mood foreground
+  //     services. The native FGSes (Android-only) emit an `onTick` event every
+  //     N minutes off an exact AlarmManager alarm — bypassing the
+  //     `expo-notifications` / `expo-background-fetch` throttling that fires
+  //     only in bursts when the user unlocks the phone. The two ticks differ in
+  //     how much they still depend on JS:
+  //       - friend tick   → fireMoodPromptNotification()   (JS posts the prompt;
+  //         needs the process alive — that's why the FGS keeps it alive)
+  //       - context tick  → the SERVICE already applied the wallpaper natively
+  //         (no JS needed — the fix for "footstep only changes when I open the
+  //         app"). The listener only mirrors the mood into history via
+  //         recordBackgroundMoodTick() when JS happens to be alive; it never
+  //         re-applies.
+  //     Listeners survive Activity destruction because they're held by this
+  //     bootstrap singleton, not a React component tree.
   addFriendCheckinTickListener(() => {
     // Gate inside the listener — between when the service first armed
     // its Handler and when this tick fired, the user may have disabled
@@ -133,11 +134,13 @@ export async function bootstrapMoodFeature(): Promise<void> {
     });
   });
   addContextMoodTickListener(() => {
-    // Same gate rationale as above. The bg-task itself also gates on
-    // `backgroundEnabled` inside runMoodBackgroundOnce, so this is
-    // belt + braces.
+    // The native service ALREADY applied the wallpaper for this tick (that's
+    // the fix — the apply no longer needs JS to be alive). When JS happens to
+    // be alive we only mirror the mood into history + the store so the Mood
+    // Home is in sync; re-applying here would double-set the wallpaper the
+    // native tick just changed. `recordBackgroundMoodTick` re-checks the gate.
     if (!useMoodStore.getState().backgroundEnabled) return;
-    void runMoodBackgroundOnce();
+    void recordBackgroundMoodTick();
   });
 
   // 3) Sync OS-level subscriptions with persisted gates.
@@ -204,23 +207,20 @@ export async function bootstrapMoodFeature(): Promise<void> {
       }
     }
   }
-  // Context-mood foreground service — same rationale as friend, but
-  // ticks at CONTEXT_MOOD_FGS_INTERVAL_MIN min (default 30) so the
-  // JS-side runMoodBackgroundOnce() can actually run while the app is
-  // closed. We keep the expo-background-fetch registration above (line
-  // ~95) as belt + braces — it's the iOS path AND it covers the rare
-  // case where the FGS gets killed by an aggressive OEM (the bg-fetch
-  // path eventually catches up via its own dedup checks).
+  // Context-mood foreground service — ticks every CONTEXT_MOOD_FGS_INTERVAL_MIN
+  // min (default 30) and APPLIES the wallpaper natively each tick, so it works
+  // with the app fully closed. We keep the expo-background-fetch registration
+  // above as belt + braces — it's the iOS path AND it covers the rare case
+  // where the FGS gets killed by an aggressive OEM (the bg-fetch path
+  // eventually catches up via its own dedup checks).
   if (s.backgroundEnabled && isContextMoodForegroundAvailable) {
-    startContextMoodForeground({
-      intervalMinutes: CONTEXT_MOOD_FGS_INTERVAL_MIN,
-    });
-    // Warm the cache for the active Mood Collection so the very first
-    // FGS tick on a locked screen has local file:// URIs to apply,
-    // even if Wi-Fi was suspended overnight. Fire-and-forget — the
-    // bg-tick path itself still does a cache-hit check inside
-    // downloadToCache, so a slow precache doesn't block the first apply.
-    void precacheMoodCollection();
+    // Resolve the active Mood Collection into a mood→local-URIs payload and
+    // start the native service with it. The service applies the wallpaper
+    // itself on each tick (no live JS needed) — the fix for "footstep only
+    // changes when I open the app." Fire-and-forget: the resolver pre-downloads
+    // into the persistent dir so the very first tick on a locked screen has a
+    // local file to decode even if Wi-Fi was suspended overnight.
+    void startContextMoodForegroundFromStore(CONTEXT_MOOD_FGS_INTERVAL_MIN);
   }
   if (s.sleepWakeEnabled && s.sleepWakePackId) {
     const isCustom = s.sleepWakePackId === CUSTOM_SLEEP_WAKE_ID;
@@ -312,15 +312,11 @@ export async function bootstrapMoodFeature(): Promise<void> {
     if (state.backgroundEnabled !== prev.backgroundEnabled) {
       if (state.backgroundEnabled) {
         if (isContextMoodForegroundAvailable) {
-          startContextMoodForeground({
-            intervalMinutes: CONTEXT_MOOD_FGS_INTERVAL_MIN,
-          });
-          // Same precache rationale as bootstrap step 3 — without this,
-          // a user who toggles Mood Based on, immediately locks the
-          // phone, and walks away gets the first apply only after the
-          // network wakes up again. Pre-warming the cache eliminates
-          // that gap.
-          void precacheMoodCollection();
+          // Resolve the collection + start the native service (which applies
+          // natively each tick). The resolver pre-downloads into the persistent
+          // dir, so a user who toggles Mood Based on, locks the phone, and walks
+          // away still gets the first native apply on schedule.
+          void startContextMoodForegroundFromStore(CONTEXT_MOOD_FGS_INTERVAL_MIN);
         }
         // Apply a mood wallpaper IMMEDIATELY on enable. Without this the
         // FGS / bg-fetch only fire after one full interval (~30 min), so the
@@ -335,15 +331,15 @@ export async function bootstrapMoodFeature(): Promise<void> {
         stopContextMoodForeground();
       }
     }
-    // Also precache when the user swaps the active Mood Collection
-    // while Mood Based is already on — otherwise the new collection's
-    // photos would only land in cache lazily through the apply path.
+    // Re-resolve + restart the native service when the user swaps the active
+    // Mood Collection while Mood Based is on — otherwise the service would
+    // keep applying the OLD collection's photos.
     if (
       state.backgroundEnabled &&
       state.moodCollectionId !== prev.moodCollectionId &&
       state.moodCollectionId != null
     ) {
-      void precacheMoodCollection();
+      void startContextMoodForegroundFromStore(CONTEXT_MOOD_FGS_INTERVAL_MIN);
     }
 
     if (
@@ -504,31 +500,4 @@ export async function bootstrapMoodFeature(): Promise<void> {
     if (anyNeedsBg) registerMoodBackgroundTask();
     else unregisterMoodBackgroundTask();
   });
-}
-
-/**
- * Pre-download every photo in the active Mood Collection so the FGS tick
- * path (`runMoodBackgroundOnce` → `applyMoodPhotoFromCollection` →
- * `setAsWallpaper` → `downloadToCache`) finds a local file:// URI and
- * skips the network round-trip entirely. Pairs with the cache-hit
- * short-circuit added to `downloadToCache` itself.
- *
- * Reuses the shuffle-side `precacheCollection` helper (same shape — it
- * resolves catalog ids + http URLs to local cache paths, drops failures
- * silently). Returns early when no collection is set so the helper is
- * cheap to call from any toggle handler without checking state first.
- */
-async function precacheMoodCollection(): Promise<void> {
-  const m = useMoodStore.getState();
-  if (!m.moodCollectionId) return;
-  const shuffle = useShuffleStore.getState();
-  const collection = shuffle.collections.find(
-    (c) => c.id === m.moodCollectionId,
-  );
-  if (!collection || collection.photoIds.length === 0) return;
-  try {
-    await precacheCollection(collection.photoIds);
-  } catch (e) {
-    if (__DEV__) console.warn('[moodBootstrap] precache failed:', e);
-  }
 }

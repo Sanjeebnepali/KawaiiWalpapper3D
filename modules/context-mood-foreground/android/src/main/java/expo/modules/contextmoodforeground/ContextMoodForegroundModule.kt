@@ -14,10 +14,14 @@ import expo.modules.kotlin.modules.ModuleDefinition
  * to JS; JS does the actual inference + silent wallpaper apply.
  *
  * JS contract (see ../../../../../index.ts):
- *   start(intervalMinutes: Int)  — clamp 5..1440
+ *   start(intervalMinutes: Int, payloadJson: String)  — clamp 5..1440
  *   stop()
  *   isRunning(): Boolean
  *   onTick event payload: { at: <epoch ms> }
+ *
+ * `payloadJson` is the resolved `{ moodUris: { <mood>: [file://…] }, all: [file://…] }`
+ * map the service applies from. The service does the apply natively, so the
+ * onTick event is now only a "JS, mirror this into history if you're alive" hint.
  */
 class ContextMoodForegroundModule : Module() {
   override fun definition() = ModuleDefinition {
@@ -35,16 +39,20 @@ class ContextMoodForegroundModule : Module() {
       }
     }
 
-    Function("start") { intervalMinutes: Int ->
+    Function("start") { intervalMinutes: Int, payloadJson: String ->
       val context = reactContext()
       val clamped = intervalMinutes.coerceIn(5, 1440)
       val intent = Intent(context, ContextMoodForegroundService::class.java)
-        .putExtra("intervalMinutes", clamped)
+        .putExtra(ContextMoodForegroundService.EXTRA_INTERVAL, clamped)
+        .putExtra(ContextMoodForegroundService.EXTRA_PAYLOAD, payloadJson)
       ContextCompat.startForegroundService(context, intent)
     }
 
     Function("stop") {
       val context = reactContext()
+      // Cancel the system alarm + wipe persisted config FIRST (so neither the
+      // alarm nor a START_STICKY restart resurrects the service), then stop it.
+      ContextMoodForegroundService.tearDown(context)
       context.stopService(Intent(context, ContextMoodForegroundService::class.java))
     }
 

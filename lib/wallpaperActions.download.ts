@@ -8,7 +8,9 @@ import * as FileSystem from 'expo-file-system/legacy';
 
 const sanitize = (s: string) => s.replace(/[^a-z0-9-]/gi, '_');
 
-/** Download a remote image into the cache dir; returns the local `file://` URI.
+/**
+ * Core download/copy into a caller-chosen base directory. Returns the local
+ * `file://` URI.
  *
  * URI handling:
  *   - `file://…` — already on disk, return unchanged.
@@ -16,21 +18,30 @@ const sanitize = (s: string) => s.replace(/[^a-z0-9-]/gi, '_');
  *     MediaLibrary.createAssetAsync silently fails on content:// in
  *     scoped-storage mode (Android 11+), surfacing as "Save to Gallery /
  *     Save wallpaper" failures on user-imported custom album photos. COPY
- *     to a real file:// path in cacheDirectory first so every downstream
- *     consumer (MediaLibrary, native WallpaperSetter, expo-sharing) sees
- *     a plain file path.
- *   - http(s):// — download into cache.
+ *     to a real file:// path first so every downstream consumer (MediaLibrary,
+ *     native WallpaperSetter, the FGS bitmap decode, expo-sharing) sees a
+ *     plain file path.
+ *   - http(s):// — download into `baseDir`.
+ *
+ * `baseDir` decides volatility: `cacheDirectory` is OS-evictable (fine for
+ * apply-immediately paths), `documentDirectory` persists until uninstall
+ * (required for images a scheduled FGS must still find hours later — see
+ * `downloadToPersistent`).
  */
-export async function downloadToCache(url: string, id: string): Promise<string> {
+async function downloadInto(
+  baseDir: string,
+  url: string,
+  id: string,
+): Promise<string> {
   if (url.startsWith('file://')) {
     return url;
   }
+  // Stable name derived from the id so repeated saves of the same wallpaper
+  // overwrite one file instead of accumulating copies.
+  const target = `${baseDir}kawaii-${sanitize(id)}.jpg`;
   if (url.startsWith('content://')) {
     // Copy through FileSystem so MediaLibrary / WallpaperManager get a
-    // canonical file path instead of a scoped content:// grant. The
-    // destination uses a stable name derived from the id so repeated
-    // saves of the same wallpaper don't accumulate cache files.
-    const target = `${FileSystem.cacheDirectory ?? ''}kawaii-${sanitize(id)}.jpg`;
+    // canonical file path instead of a scoped content:// grant.
     try {
       // Clear any prior copy first — copyAsync rejects when the dest
       // already exists on some Android versions.
@@ -51,8 +62,8 @@ export async function downloadToCache(url: string, id: string): Promise<string> 
     }
   }
   // picsum URLs have no extension; jpg is the actual served content type.
-  const target = `${FileSystem.cacheDirectory ?? ''}kawaii-${sanitize(id)}.jpg`;
-  // Cache-hit short-circuit. The target path is derived from `id`, which is
+  //
+  // Existing-file short-circuit. The target path is derived from `id`, which is
   // stable per photo (catalog ids never change; user-pasted URLs hash to the
   // same id), so a non-empty file at the target path is the same bytes we'd
   // re-download. Skipping the network round-trip is the difference between
@@ -78,6 +89,32 @@ export async function downloadToCache(url: string, id: string): Promise<string> 
     throw new Error(`Download failed (HTTP ${res.status})`);
   }
   return res.uri;
+}
+
+/** Download a remote image into the OS cache dir; returns the local `file://`
+ *  URI. Use for apply-NOW paths — the cache dir is evictable under storage
+ *  pressure, which is fine when the file is consumed within the same call. */
+export async function downloadToCache(url: string, id: string): Promise<string> {
+  return downloadInto(FileSystem.cacheDirectory ?? '', url, id);
+}
+
+/**
+ * Download a remote image into the app's PERSISTENT document dir; returns the
+ * local `file://` URI.
+ *
+ * Use when a native foreground service must still find the file at a scheduled
+ * time that can be many hours after the app was last open (Sleep/Wake hours,
+ * the context-mood tick). The cache dir (`downloadToCache`) is evicted by the
+ * OS/aggressive OEMs while the app is backgrounded — when the alarm fired the
+ * service hit `!File(path).exists()` and silently applied nothing, which read
+ * to the user as "Sleep/Wake only works if I open the app first." The document
+ * dir survives until uninstall, so the scheduled apply still has its bitmap.
+ */
+export async function downloadToPersistent(
+  url: string,
+  id: string,
+): Promise<string> {
+  return downloadInto(FileSystem.documentDirectory ?? '', url, id);
 }
 
 /**

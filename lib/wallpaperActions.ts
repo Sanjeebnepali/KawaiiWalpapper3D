@@ -29,6 +29,7 @@ export {
   clearAppCache,
   downloadInternetImage,
   downloadToCache,
+  downloadToPersistent,
 } from './wallpaperActions.download';
 
 export const FEATURED_ALBUM = 'Kawaii Baby';
