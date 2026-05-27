@@ -61,10 +61,29 @@ export type CouplePack = {
 const PINK = '#fab3ca';
 const PEACH = '#ffc7a8';
 const ROSE = '#f7889b';
+const LAVENDER = '#c9a7ff';
+const BLUE = '#7da6ff';
+const MINT = '#73f0c8';
+const GOLD = '#ffd27a';
+const CORAL = '#ff9d6e';
+const MAGENTA = '#ff7ac0';
+
+// The original 3 packs are BUNDLED (offline). The newer packs are HOSTED on
+// Supabase Storage (public `wallpapers` bucket, `couple/<id>/<slot>.png`) so
+// ~50 MB of triptych PNGs don't bloat the APK. `CoupleImageSource` accepts a
+// URL string directly: `resolveCoupleImageUri` + `downloadToCache` fetch and
+// cache it, and `precacheActiveCouplePack` pre-downloads the active pack on
+// link / pick so the proximity apply still works on a locked screen. Same URL
+// convention as constants/mockData.ts + premiumCatalog.ts (built from
+// EXPO_PUBLIC_SUPABASE_URL — no import, so this file stays dependency-free).
+const SB_URL = process.env.EXPO_PUBLIC_SUPABASE_URL ?? '';
+const hostedCouple = (id: string, slot: 'together' | 'boy' | 'girl'): string =>
+  `${SB_URL}/storage/v1/object/public/wallpapers/couple/${id}/${slot}.png`;
 
 /**
- * The three real couple packs, each a boy/girl/together triptych shot in
- * one scene. Boy = role 'a', Girl = role 'b'.
+ * The couple packs — each a boy/girl/together triptych shot in one scene.
+ * Boy = role 'a', Girl = role 'b'. The first three are bundled (offline); the
+ * rest are hosted on Supabase (see `hostedCouple` above).
  */
 export const couplePacks: CouplePack[] = [
   {
@@ -101,6 +120,124 @@ export const couplePacks: CouplePack[] = [
     togetherImage: require('../assets/couple/pack3-together.png'),
     roleAImage: require('../assets/couple/pack3-boy.png'),
     roleBImage: require('../assets/couple/pack3-girl.png'),
+    roleALabel: 'Boy',
+    roleBLabel: 'Girl',
+    roleAEmoji: '👦',
+    roleBEmoji: '👧',
+  },
+  // ─── Hosted packs (Supabase) ───────────────────────────────────────────
+  {
+    id: 'painting-date',
+    name: 'Painting Date',
+    blurb: 'An art-studio afternoon, painting side by side.',
+    accent: LAVENDER,
+    togetherImage: hostedCouple('painting-date', 'together'),
+    roleAImage: hostedCouple('painting-date', 'boy'),
+    roleBImage: hostedCouple('painting-date', 'girl'),
+    roleALabel: 'Boy',
+    roleBLabel: 'Girl',
+    roleAEmoji: '👦',
+    roleBEmoji: '👧',
+  },
+  {
+    id: 'station-reunion',
+    name: 'Station Reunion',
+    blurb: 'A long-awaited hug back at the station.',
+    accent: ROSE,
+    togetherImage: hostedCouple('station-reunion', 'together'),
+    roleAImage: hostedCouple('station-reunion', 'boy'),
+    roleBImage: hostedCouple('station-reunion', 'girl'),
+    roleALabel: 'Boy',
+    roleBLabel: 'Girl',
+    roleAEmoji: '👦',
+    roleBEmoji: '👧',
+  },
+  {
+    id: 'sing-together',
+    name: 'Sing Together',
+    blurb: 'A duet under the stage lights.',
+    accent: MAGENTA,
+    togetherImage: hostedCouple('sing-together', 'together'),
+    roleAImage: hostedCouple('sing-together', 'boy'),
+    roleBImage: hostedCouple('sing-together', 'girl'),
+    roleALabel: 'Boy',
+    roleBLabel: 'Girl',
+    roleAEmoji: '👦',
+    roleBEmoji: '👧',
+  },
+  {
+    id: 'bookshop-date',
+    name: 'Bookshop Date',
+    blurb: 'A quiet read in a sunlit bookshop.',
+    accent: PEACH,
+    togetherImage: hostedCouple('bookshop-date', 'together'),
+    roleAImage: hostedCouple('bookshop-date', 'boy'),
+    roleBImage: hostedCouple('bookshop-date', 'girl'),
+    roleALabel: 'Boy',
+    roleBLabel: 'Girl',
+    roleAEmoji: '👦',
+    roleBEmoji: '👧',
+  },
+  {
+    id: 'festival-fireworks',
+    name: 'Festival Fireworks',
+    blurb: 'Sparklers and fireworks on a summer night.',
+    accent: BLUE,
+    togetherImage: hostedCouple('festival-fireworks', 'together'),
+    roleAImage: hostedCouple('festival-fireworks', 'boy'),
+    roleBImage: hostedCouple('festival-fireworks', 'girl'),
+    roleALabel: 'Boy',
+    roleBLabel: 'Girl',
+    roleAEmoji: '👦',
+    roleBEmoji: '👧',
+  },
+  {
+    id: 'photo-booth',
+    name: 'Photo Booth',
+    blurb: 'Silly selfies in the photo booth.',
+    accent: MINT,
+    togetherImage: hostedCouple('photo-booth', 'together'),
+    roleAImage: hostedCouple('photo-booth', 'boy'),
+    roleBImage: hostedCouple('photo-booth', 'girl'),
+    roleALabel: 'Boy',
+    roleBLabel: 'Girl',
+    roleAEmoji: '👦',
+    roleBEmoji: '👧',
+  },
+  {
+    id: 'love-letters',
+    name: 'Love Letters',
+    blurb: 'Sealing a love note with a ribbon.',
+    accent: PINK,
+    togetherImage: hostedCouple('love-letters', 'together'),
+    roleAImage: hostedCouple('love-letters', 'boy'),
+    roleBImage: hostedCouple('love-letters', 'girl'),
+    roleALabel: 'Boy',
+    roleBLabel: 'Girl',
+    roleAEmoji: '👦',
+    roleBEmoji: '👧',
+  },
+  {
+    id: 'sunset-meadow',
+    name: 'Sunset Meadow',
+    blurb: 'A flower-basket picnic at golden hour.',
+    accent: GOLD,
+    togetherImage: hostedCouple('sunset-meadow', 'together'),
+    roleAImage: hostedCouple('sunset-meadow', 'boy'),
+    roleBImage: hostedCouple('sunset-meadow', 'girl'),
+    roleALabel: 'Boy',
+    roleBLabel: 'Girl',
+    roleAEmoji: '👦',
+    roleBEmoji: '👧',
+  },
+  {
+    id: 'golden-fields',
+    name: 'Golden Fields',
+    blurb: 'Bicycles and wildflowers at sunset.',
+    accent: CORAL,
+    togetherImage: hostedCouple('golden-fields', 'together'),
+    roleAImage: hostedCouple('golden-fields', 'boy'),
+    roleBImage: hostedCouple('golden-fields', 'girl'),
     roleALabel: 'Boy',
     roleBLabel: 'Girl',
     roleAEmoji: '👦',
