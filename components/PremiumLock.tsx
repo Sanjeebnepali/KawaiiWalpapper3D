@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { type Href, router } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
+import { SUBSCRIPTIONS_ENABLED } from '../constants/billing';
 import { Colors, Radius } from '../constants/theme';
 import { hasEntitlement, type PremiumFeature } from '../lib/billing';
 
@@ -8,8 +9,14 @@ import { hasEntitlement, type PremiumFeature } from '../lib/billing';
  * Small "💎 Premium" pill, used to mark locked rows/options in the shuffle,
  * mood and theme-pack screens. The actual gate is enforced in the parent's
  * `onPress` via `gateFeature()` — this is purely the visual lock badge.
+ *
+ * In free-launch mode (`SUBSCRIPTIONS_ENABLED = false`) nothing is locked, so
+ * the badge renders nothing. This single guard covers every badge — including
+ * the unconditional ones on the Couple tab and Mood camera — without each call
+ * site needing its own check; they reappear the moment monetization flips on.
  */
 export function PremiumLock({ size = 11 }: { size?: number }) {
+  if (!SUBSCRIPTIONS_ENABLED) return null;
   return (
     <View style={styles.pill}>
       <Ionicons name="diamond" size={size} color={Colors.gold} />

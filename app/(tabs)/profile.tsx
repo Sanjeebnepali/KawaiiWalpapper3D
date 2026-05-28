@@ -19,6 +19,7 @@ import {
   SettingsSection,
 } from '../../components/SettingsControls';
 import { ThemeModal } from '../../components/ThemeModal';
+import { SUBSCRIPTIONS_ENABLED } from '../../constants/billing';
 import { useTheme } from '../../contexts/ThemeContext';
 import { getProvider, PROVIDERS } from '../../lib/ai/registry';
 import { AI_TOKEN_CFG } from '../../lib/ai/tokens';
@@ -150,19 +151,22 @@ export default function Settings() {
 
         {/* Subscription — the single payment entry point (changes/158). Opens
             the subscription page where the four premium areas + All Access are
-            bought à la carte. Replaces the old "Couple Pairing" invite-code
-            section (couple pairing now lives entirely on the Couple tab). */}
-        <SettingsSection title="Subscription">
-          <SettingsRow
-            icon="diamond"
-            iconColor={theme.primary}
-            label="Manage Subscription"
-            subtitle="Unlock theme packs, mood, premium & couple"
-            right={<RowValue text={subStatus} />}
-            onPress={() => router.push('/subscription' as Href)}
-            divider={false}
-          />
-        </SettingsSection>
+            bought à la carte. Hidden during the free launch
+            (SUBSCRIPTIONS_ENABLED = false) since there is nothing to manage when
+            everything is free; reappears when monetization flips on. */}
+        {SUBSCRIPTIONS_ENABLED && (
+          <SettingsSection title="Subscription">
+            <SettingsRow
+              icon="diamond"
+              iconColor={theme.primary}
+              label="Manage Subscription"
+              subtitle="Unlock theme packs, mood, premium & couple"
+              right={<RowValue text={subStatus} />}
+              onPress={() => router.push('/subscription' as Href)}
+              divider={false}
+            />
+          </SettingsSection>
+        )}
 
         <LibraryAccessSections
           favCount={favIds.length}
