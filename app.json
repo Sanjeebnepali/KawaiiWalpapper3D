@@ -11,6 +11,14 @@
     "plugins": [
       "expo-router",
       "expo-font",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#b78fc8",
+          "image": "./assets/splash-transparent.png",
+          "imageWidth": 200
+        }
+      ],
       "expo-sharing",
       [
         "expo-media-library",
