@@ -1,9 +1,8 @@
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { DarkTheme, ThemeProvider as NavThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import {
@@ -14,6 +13,7 @@ import { enableFreeze, enableScreens } from 'react-native-screens';
 // Camera-based Mood Mode disabled in this build — see comment near the
 // commented-out <MoodEngineHost /> below.
 // import { MoodEngineHost } from '../components/MoodEngineHost';
+import { AnimatedSplash } from '../components/splash/AnimatedSplash';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { PremiumAlertHost } from '../components/PremiumAlert';
 import { ShuffleEngineHost } from '../components/ShuffleEngineHost';
@@ -35,16 +35,6 @@ enableScreens(true);
 // effects while inactive. Cuts JS thread cost during route push so the
 // incoming screen mounts faster (visible 1 s "freeze" on tap → ~150 ms).
 enableFreeze(true);
-
-// Hold the native splash (the app icon on black, configured via the
-// expo-splash-screen plugin in app.json) instead of letting it auto-hide the
-// instant the first React frame is ready — otherwise on a fast/warm launch it
-// flashes by and the user never sees the icon. RootLayout hides it after
-// SPLASH_HOLD_MS. No animation by design (owner wants a plain static splash).
-SplashScreen.preventAutoHideAsync().catch(() => {});
-
-// How long the static icon splash stays up before revealing the app.
-const SPLASH_HOLD_MS = 2000;
 
 /**
  * Inner stack — consumes the active theme so the navigation chrome and every
@@ -191,6 +181,10 @@ function RootStack() {
 }
 
 export default function RootLayout() {
+  // Animated splash overlay — shows on cold start, then fades away to reveal
+  // the app (already routed underneath). Unmounts itself via onFinish.
+  const [splashVisible, setSplashVisible] = useState(true);
+
   // Wire the background task + daily notification handler exactly once.
   // Idempotent — safe across Fast Refresh.
   useEffect(() => {
@@ -216,16 +210,6 @@ export default function RootLayout() {
     // flash and keeps theme/isPremium/isCouplePremium persisting even if mood
     // bootstrap is ever disabled.
     void hydrateSettingsStore();
-  }, []);
-
-  // Reveal the app after the static icon splash has been visible for a beat.
-  // Fixed hold (not "hide on ready") because hydration above is fire-and-forget
-  // and finishes in a few ms, which would hide the splash before it's seen.
-  useEffect(() => {
-    const t = setTimeout(() => {
-      SplashScreen.hideAsync().catch(() => {});
-    }, SPLASH_HOLD_MS);
-    return () => clearTimeout(t);
   }, []);
 
   return (
@@ -261,6 +245,10 @@ export default function RootLayout() {
           </BottomSheetModalProvider>
         </ThemeProvider>
       </SafeAreaProvider>
+      {/* Rendered LAST so it overlays the whole app until it fades out. */}
+      {splashVisible ? (
+        <AnimatedSplash onFinish={() => setSplashVisible(false)} />
+      ) : null}
     </GestureHandlerRootView>
   );
 }
