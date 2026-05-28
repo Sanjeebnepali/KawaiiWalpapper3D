@@ -2,7 +2,7 @@ import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { DarkTheme, ThemeProvider as NavThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import {
@@ -13,7 +13,6 @@ import { enableFreeze, enableScreens } from 'react-native-screens';
 // Camera-based Mood Mode disabled in this build — see comment near the
 // commented-out <MoodEngineHost /> below.
 // import { MoodEngineHost } from '../components/MoodEngineHost';
-import { AnimatedSplash } from '../components/splash/AnimatedSplash';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { PremiumAlertHost } from '../components/PremiumAlert';
 import { ShuffleEngineHost } from '../components/ShuffleEngineHost';
@@ -181,10 +180,6 @@ function RootStack() {
 }
 
 export default function RootLayout() {
-  // Animated splash overlay — shows on cold start, then fades away to reveal
-  // the app (already routed underneath). Unmounts itself via onFinish.
-  const [splashVisible, setSplashVisible] = useState(true);
-
   // Wire the background task + daily notification handler exactly once.
   // Idempotent — safe across Fast Refresh.
   useEffect(() => {
@@ -245,10 +240,6 @@ export default function RootLayout() {
           </BottomSheetModalProvider>
         </ThemeProvider>
       </SafeAreaProvider>
-      {/* Rendered LAST so it overlays the whole app until it fades out. */}
-      {splashVisible ? (
-        <AnimatedSplash onFinish={() => setSplashVisible(false)} />
-      ) : null}
     </GestureHandlerRootView>
   );
 }
