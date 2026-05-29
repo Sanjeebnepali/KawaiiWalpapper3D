@@ -6,6 +6,42 @@
 import type { ProximityState, State } from './couple.types';
 
 /**
+ * Minimum per-fix GPS uncertainty (metres) used by `correctedDistanceM`. The
+ * Kalman-smoothed `accuracy` we store damps NOISE but not the per-device BIAS,
+ * so when a phone is stationary it can under-report its true uncertainty. We
+ * floor each side at this value so the correction still fires when partners are
+ * close. ~10 m ≈ a good consumer-GPS fix; real fixes indoors are vaguer and
+ * their own (larger) reported accuracy is used instead.
+ */
+const MIN_FIX_UNCERTAINTY_M = 10;
+
+/**
+ * Honest separation = great-circle distance with the measurement uncertainty
+ * removed in quadrature. Two independent GPS fixes each carry error, so the raw
+ * distance between them OVER-states how far apart the phones really are — e.g.
+ * ~30 m shown when partners are in the same room. σ² = a² + b² is the variance
+ * of the DIFFERENCE of two independent fixes; subtracting it collapses that
+ * noise: when the raw distance is within GPS error the result falls toward 0
+ * ("together"); when it clearly exceeds the error the result ≈ the raw value,
+ * so genuine medium/long distances are essentially unchanged.
+ *
+ * Note: GPS cannot truly distinguish 4 m from ~30 m apart — below the combined
+ * error the reading is honestly just "close", and the meter reflects that.
+ */
+export function correctedDistanceM(
+  d: number,
+  myAccuracy: number | null,
+  partnerAccuracy: number | null,
+): number {
+  const a = Math.max(myAccuracy ?? MIN_FIX_UNCERTAINTY_M, MIN_FIX_UNCERTAINTY_M);
+  const b = Math.max(
+    partnerAccuracy ?? MIN_FIX_UNCERTAINTY_M,
+    MIN_FIX_UNCERTAINTY_M,
+  );
+  return Math.sqrt(Math.max(0, d * d - (a * a + b * b)));
+}
+
+/**
  * Re-compute distance + proximity from whatever lat/lngs are in state.
  * Called by every location-update path so callers never have to remember.
  * Cheap (constant time) — runs O(1) trig per location push.
@@ -33,7 +69,13 @@ export function recomputeDistance(
     set({ partnerDistanceM: null, proximity: 'unknown' });
     return;
   }
-  const d = haversineMeters(myLat, myLng, partnerLat, partnerLng);
+  // Raw great-circle distance, then strip the GPS measurement uncertainty so
+  // the metre we display is honest at close range. Two phones side by side
+  // still report positions tens of metres apart (GPS can't resolve that), so
+  // the raw value OVER-states how far apart partners are — the symptom of
+  // "3-4 m apart but it shows 30-40 m". See correctedDistanceM.
+  const dRaw = haversineMeters(myLat, myLng, partnerLat, partnerLng);
+  const d = correctedDistanceM(dRaw, myAccuracy, partnerAccuracy);
 
   // Paused → never report "near" so the wallpaper stays solo.
   if (paused) {
