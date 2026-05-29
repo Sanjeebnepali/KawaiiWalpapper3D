@@ -18,6 +18,7 @@ import {
   applyProximityWallpaper,
   precacheActiveCouplePack,
 } from './coupleWallpaper';
+import { maybePromptBackgroundAccess } from './backgroundAccess';
 
 /**
  * Couple feature bootstrap. Call once from `app/_layout.tsx` after auth
@@ -236,6 +237,14 @@ async function enterLinkedMode(
   // delivers fixes while the app is open).
   if (perm !== 'denied') {
     await startCoupleLocation();
+    // Couple tracking runs in the background via a foreground-service location
+    // stream; on Vivo/MIUI/ColorOS that's frozen unless the app is battery-
+    // whitelisted AND autostart-enabled. The mood flow nudges for this, but a
+    // couple-ONLY user never hits that path, so their tracking silently dies
+    // when the app is closed. Nudge here too. Self-limiting: the helper no-ops
+    // when already whitelisted, already shown this session, or previously
+    // dismissed (persisted bgAccessPrompted gate).
+    maybePromptBackgroundAccess();
   }
 
   // H4: low-frequency partner-location backstop. Realtime is the primary

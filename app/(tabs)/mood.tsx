@@ -100,7 +100,8 @@ const GAP = Spacing.sm + 2;
  * The three shipped tiers are:
  *   1. Daily mood prompt          (fixed time of day)
  *   2. Friend check-in            (recurring every N min, user-set)
- *   3. Auto-change in background  (OS-decided cadence, time + steps)
+ *   3. Auto-change in background  (~30-min cadence, time of day; steps are
+ *                                  iOS-only and unused on Android)
  */
 const CAMERA_FEATURE_ENABLED = false;
 
@@ -1465,7 +1466,7 @@ export default function MoodHome() {
                     {!hasMood ? <PremiumLock /> : null}
                   </View>
                   <Text style={styles.modeBody}>
-                    Time + motion guess + daily prompt — no camera needed
+                    Time of day + daily prompt — no camera needed
                   </Text>
                 </View>
               </View>
@@ -1481,7 +1482,7 @@ export default function MoodHome() {
                   Auto-change in background
                 </Text>
                 <Text style={styles.subRowBody}>
-                  Runs every ~30 min · time of day + step count
+                  Runs every ~30 min · changes with the time of day
                 </Text>
                 {backgroundEnabled ? (
                   <Text style={styles.statusLine}>
