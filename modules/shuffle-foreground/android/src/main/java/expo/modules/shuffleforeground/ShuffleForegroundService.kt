@@ -1,8 +1,10 @@
 package expo.modules.shuffleforeground
 
+import android.app.AlarmManager
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.app.Service
 import android.app.WallpaperManager
 import android.content.Context
@@ -12,29 +14,41 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
-import android.os.Handler
 import android.os.IBinder
-import android.os.Looper
 import android.util.DisplayMetrics
+import android.util.Log
 import android.view.WindowManager
 import java.util.Calendar
 import kotlin.random.Random
 
 /**
- * The ongoing foreground service. Arms a Handler.postDelayed loop that fires
- * every intervalMs and applies the next wallpaper NATIVELY via
- * WallpaperManager.setBitmap (same approach as wallpaper-setter), advancing
- * the index per `mode`. START_STICKY + SharedPreferences-persisted state makes
- * it survive process death / cold restart by the OS.
+ * The ongoing foreground service. Rotates the wallpaper every intervalMs and
+ * applies it NATIVELY via WallpaperManager.setBitmap (same approach as
+ * wallpaper-setter), advancing the index per `mode`.
+ *
+ * Timing model (changes/081, restored after the change-138 regression): each
+ * next rotation is scheduled with **`AlarmManager.setExactAndAllowWhileIdle`**
+ * (falls back to `setAndAllowWhileIdle` when exact alarms aren't permitted), NOT
+ * `Handler.postDelayed`. `postDelayed` runs off `uptimeMillis`, whose clock
+ * PAUSES while the CPU sleeps in Doze (screen off) — so the rotation stalled
+ * with the screen off and jumped in a burst when the user re-opened the app
+ * ("freezes, then catches up"). AlarmManager fires at the real wall-clock time
+ * even in Doze, so the interval holds.
+ *
+ * The alarm targets `ShuffleAlarmReceiver`, which re-launches THIS service with
+ * `EXTRA_FIRE`; the service rotates and re-arms the next alarm. So even if the
+ * OEM kills the service between fires, the system-held alarm resurrects it at
+ * the right time (provided the app is battery-whitelisted — see
+ * lib/backgroundAccess). START_STICKY + SharedPreferences-persisted state make
+ * it survive process death / cold restart; `tearDown()` (explicit stop only)
+ * cancels the alarm and wipes config, while onDestroy leaves it intact so an
+ * OEM kill stays resurrectable.
  */
 class ShuffleForegroundService : Service() {
-  private val handler = Handler(Looper.getMainLooper())
-
   private var uris: List<String> = emptyList()
   private var intervalMs = DEFAULT_INTERVAL_MS
   private var mode = "sequential"
   private var currentIndex = 0
-  private var tickRunnable: Runnable? = null
 
   override fun onBind(intent: Intent?): IBinder? = null
 
@@ -90,41 +104,67 @@ class ShuffleForegroundService : Service() {
     }
 
     isRunning = true
-    armTick(isFreshStart)
+
+    // Decide what to apply on THIS start:
+    //  - alarm fire  → rotate() (advance the index + apply the next wallpaper)
+    //  - fresh start → apply the START index immediately, so the very first
+    //    change is instant (changes/164 — otherwise the user saw nothing change
+    //    for a full interval). Images are precached to local files before
+    //    start(), so this is a fast on-disk decode, not a download.
+    //  - OS/boot restart (no extras, no fire) → apply nothing, so a sticky
+    //    restart or reboot-resume doesn't re-flash the current wallpaper.
+    if (uris.isNotEmpty()) {
+      val fired = intent?.getBooleanExtra(EXTRA_FIRE, false) == true
+      if (fired) {
+        rotate()
+      } else if (isFreshStart) {
+        applyWallpaper(currentIndex)
+      }
+    }
+
+    // Always (re-)arm the next exact alarm.
+    scheduleNext()
     return START_STICKY
   }
 
   override fun onDestroy() {
-    tickRunnable?.let { handler.removeCallbacks(it) }
-    tickRunnable = null
-    handler.removeCallbacksAndMessages(null)
+    // Intentionally does NOT cancel the alarm or clear config. A low-memory /
+    // OEM kill can run onDestroy, and wiping here would stop the alarm +
+    // START_STICKY + boot resurrection that lets shuffle rotate while the app
+    // is closed — the root of "shuffle freezes until I open the app." Explicit
+    // stop() wipes config via tearDown() from the JS module instead.
     isRunning = false
     super.onDestroy()
   }
 
-  /**
-   * Re-arm a self-reposting runnable that rotates the wallpaper every interval.
-   *
-   * When [applyNow] is true (a fresh JS-initiated start) we apply the START
-   * index IMMEDIATELY before scheduling the loop, so the very first change is
-   * instant. Previously the first `rotate()` was a full interval out, so a user
-   * who started a shuffle saw nothing change for 15–30 min unless the JS-side
-   * instant-apply happened to win — the "delay before first change" bug
-   * (changes/164). The images are already precached to local files before
-   * start(), so this immediate apply is a fast on-disk decode, not a download.
-   */
-  private fun armTick(applyNow: Boolean) {
-    tickRunnable?.let { handler.removeCallbacks(it) }
-    if (uris.isEmpty()) return
-    if (applyNow) applyWallpaper(currentIndex)
-    val runnable = object : Runnable {
-      override fun run() {
-        rotate()
-        handler.postDelayed(this, intervalMs)
+  /** Schedule the next rotation at `now + intervalMs`, Doze-proof. */
+  private fun scheduleNext() {
+    val fireAt = System.currentTimeMillis() + intervalMs
+    val am = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+    val pi = firePendingIntent()
+    val canExact =
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) am.canScheduleExactAlarms() else true
+    try {
+      if (canExact) {
+        am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, fireAt, pi)
+      } else {
+        am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, fireAt, pi)
       }
+    } catch (_: SecurityException) {
+      // Some OEMs throw even when canScheduleExactAlarms() reported true.
+      am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, fireAt, pi)
     }
-    tickRunnable = runnable
-    handler.postDelayed(runnable, intervalMs)
+  }
+
+  private fun firePendingIntent(): PendingIntent {
+    val intent = Intent(this, ShuffleAlarmReceiver::class.java).apply {
+      action = ACTION_FIRE
+    }
+    var flags = PendingIntent.FLAG_UPDATE_CURRENT
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+      flags = flags or PendingIntent.FLAG_IMMUTABLE
+    }
+    return PendingIntent.getBroadcast(this, REQ_FIRE, intent, flags)
   }
 
   /** Compute the next index per mode, apply the wallpaper, persist, advance. */
@@ -199,7 +239,10 @@ class ShuffleForegroundService : Service() {
         .putString(KEY_LAST_URI, uri)
         .apply()
     } catch (e: Throwable) {
-      // Swallow — a failed apply must not crash the service or stop the timer.
+      // Don't crash the service or stop the timer on a failed apply — but LOG it
+      // (tag ShuffleFG) so a blocked/failed background apply is diagnosable
+      // rather than a silent no-op.
+      Log.w(TAG, "setBitmap failed for index $index uri $uri", e)
     } finally {
       if (fitted !== bitmap) fitted.recycle()
       bitmap.recycle()
@@ -282,14 +325,41 @@ class ShuffleForegroundService : Service() {
     const val KEY_LAST_INDEX = "last_index"
     const val KEY_LAST_AT = "last_at"
     const val KEY_LAST_URI = "last_uri"
+    // Public so ShuffleBootReceiver (same package) can read the persisted URIs
+    // to decide whether to resume after a reboot.
+    const val KEY_URIS = "uris"
 
+    // Set by ShuffleAlarmReceiver when an alarm fires — tells onStartCommand to
+    // rotate now (vs a fresh/restart start, which doesn't advance the index).
+    const val EXTRA_FIRE = "fire"
+    const val ACTION_FIRE = "expo.modules.shuffleforeground.FIRE"
+
+    private const val TAG = "ShuffleFG"
     private const val CHANNEL_ID = "kawaii.shuffle.fg"
     private const val NOTIF_ID = 7422
-    private const val KEY_URIS = "uris"
+    // arm() schedules exactly one next-fire at a time, so one slot is enough.
+    private const val REQ_FIRE = 7423
     private const val KEY_INTERVAL = "intervalMs"
     private const val KEY_MODE = "mode"
     private const val KEY_START_INDEX = "start_index"
     private const val DEFAULT_INTERVAL_MS = 30 * 60_000L
     private const val MIN_INTERVAL_MS = 60_000L
+
+    /** Cancel the next-fire alarm and wipe persisted config. Called ONLY on an
+     *  explicit stop() from JS — never from onDestroy (see the comment there),
+     *  so an OEM/low-memory kill can't accidentally disarm shuffle. */
+    fun tearDown(context: Context) {
+      var flags = PendingIntent.FLAG_NO_CREATE
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        flags = flags or PendingIntent.FLAG_IMMUTABLE
+      }
+      val intent = Intent(context, ShuffleAlarmReceiver::class.java).apply { action = ACTION_FIRE }
+      val pi = PendingIntent.getBroadcast(context, REQ_FIRE, intent, flags)
+      if (pi != null) {
+        (context.getSystemService(Context.ALARM_SERVICE) as AlarmManager).cancel(pi)
+        pi.cancel()
+      }
+      context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().clear().apply()
+    }
   }
 }

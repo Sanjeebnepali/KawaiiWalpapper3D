@@ -10,7 +10,7 @@ features. Most "isn't this broken?" reports map to a known platform
 constraint rather than an actual app bug, and the workarounds are
 listed below.
 
-Last reviewed: 2026-05-20 (against changes through 082).
+Last reviewed: 2026-05-30 (against changes through 185).
 
 > **2026-05-20 update:** changes/080–082 closed several long-standing
 > items below — the Doze-suspended timers (Shuffle/Friend/Sleep-Wake all
@@ -18,6 +18,22 @@ Last reviewed: 2026-05-20 (against changes through 082).
 > (`BOOT_COMPLETED` receivers), and the "features fight each other"
 > problem (single-active-mode coordinator, changes/080). Resolved items
 > are struck through with a ✅ pointer to the change.
+
+> **2026-05-30 correction (changes/185):** a pre-publish audit found that
+> change 138 (which recreated the four FGS native modules from their JS
+> contracts after the Android source was lost) silently **regressed**
+> Shuffle and Friend check-in: both came back on a `Handler.postDelayed`
+> loop with NO `BOOT_COMPLETED` receiver, reverting the 081/082 fixes the
+> notes below claim. Friend's `onDestroy` additionally cancelled its own
+> alarm and wiped its interval, so any OEM/low-memory kill *permanently*
+> disarmed it. changes/185 restored both to the proven Sleep/Wake pattern:
+> `AlarmManager.setExactAndAllowWhileIdle` + a static alarm receiver +
+> `ShuffleBootReceiver` / `FriendCheckinBootReceiver` + a non-destructive
+> `onDestroy` (only an explicit JS `stop()` tears down). It also added the
+> `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` permission that `backgroundAccess.ts`
+> relies on but no manifest declared. The struck-through items below are now
+> accurate again; the correct receiver class names are `ShuffleBootReceiver`,
+> `FriendCheckinBootReceiver`, `SleepWakeBootReceiver` (not "FriendBootReceiver").
 
 ---
 

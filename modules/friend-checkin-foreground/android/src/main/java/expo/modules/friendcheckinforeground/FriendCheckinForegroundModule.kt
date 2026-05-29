@@ -11,11 +11,11 @@ import expo.modules.kotlin.modules.ModuleDefinition
  * JS bridge for the friend check-in foreground service. Android-only.
  *
  * Why a foreground service (not expo-notifications TIME_INTERVAL):
- *   AlarmManager-backed triggers get coalesced by Doze / app-standby / OEM
- *   battery savers, so prompts arrive in a burst when the user finally opens
- *   the app instead of on the requested cadence. A foreground service running
- *   `Handler.postDelayed` is exempt — the OS treats it as user-requested
- *   ongoing work and lets it tick reliably.
+ *   plain JS timers are killed when the app is closed. The service stays alive
+ *   with an ongoing notification and schedules each next tick with
+ *   `AlarmManager.setExactAndAllowWhileIdle` (changes/168), which fires at the
+ *   real wall-clock time even in Doze — so the cadence holds while the app is
+ *   closed and the screen is off. See FriendCheckinForegroundService for detail.
  *
  * JS contract (see ../../../../../../index.ts):
  *   start(intervalMinutes: Int)  -- clamped 5..1440
@@ -50,6 +50,10 @@ class FriendCheckinForegroundModule : Module() {
 
     Function("stop") {
       val context = appContext.reactContext ?: throw Exceptions.ReactContextLost()
+      // Cancel the alarm + wipe persisted config FIRST (so neither the alarm nor
+      // a START_STICKY restart resurrects the service), then stop it. onDestroy
+      // no longer does this, so the config survives an OEM kill for resurrection.
+      FriendCheckinForegroundService.tearDown(context)
       context.stopService(Intent(context, FriendCheckinForegroundService::class.java))
     }
 
@@ -58,7 +62,7 @@ class FriendCheckinForegroundModule : Module() {
     }
   }
 
-  /** Called by the service on every `Handler.postDelayed` tick. */
+  /** Called by the service on every alarm-driven tick. */
   fun emitTick() {
     sendEvent("onTick", bundleOf("at" to System.currentTimeMillis()))
   }

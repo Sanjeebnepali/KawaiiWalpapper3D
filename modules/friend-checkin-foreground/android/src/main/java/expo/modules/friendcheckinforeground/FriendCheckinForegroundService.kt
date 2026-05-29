@@ -124,19 +124,6 @@ class FriendCheckinForegroundService : Service() {
     return PendingIntent.getBroadcast(this, REQ_FIRE, intent, flags)
   }
 
-  private fun cancelAlarm() {
-    var flags = PendingIntent.FLAG_NO_CREATE
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-      flags = flags or PendingIntent.FLAG_IMMUTABLE
-    }
-    val intent = Intent(this, FriendCheckinAlarmReceiver::class.java).apply { action = ACTION_FIRE }
-    val pi = PendingIntent.getBroadcast(this, REQ_FIRE, intent, flags)
-    if (pi != null) {
-      (getSystemService(Context.ALARM_SERVICE) as AlarmManager).cancel(pi)
-      pi.cancel()
-    }
-  }
-
   private fun buildNotification(): Notification {
     return NotificationCompat.Builder(this, CHANNEL_ID)
       .setContentTitle("Check-in reminders active")
@@ -149,13 +136,13 @@ class FriendCheckinForegroundService : Service() {
   }
 
   override fun onDestroy() {
-    cancelAlarm()
+    // Intentionally does NOT cancel the alarm or clear the persisted interval. A
+    // low-memory / OEM kill can run onDestroy, and wiping here would stop the
+    // alarm + START_STICKY + boot resurrection that lets the check-in tick fire
+    // while the app is closed — the root of "check-ins stop and never come back
+    // after the phone kills the app." Explicit stop() wipes config via
+    // tearDown() from the JS module instead.
     isRunning = false
-    // Clear the persisted schedule so a stray START_STICKY restart doesn't
-    // silently revive a service the user (via JS) asked to stop.
-    getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit()
-      .remove(KEY_INTERVAL_MINUTES)
-      .apply()
     super.onDestroy()
   }
 
@@ -174,8 +161,27 @@ class FriendCheckinForegroundService : Service() {
     private const val NOTIF_ID = 0xF21D // arbitrary, stable per-service id
     // arm() schedules exactly one next-fire at a time, so one slot is enough.
     private const val REQ_FIRE = 0xF21E
-    private const val PREFS_NAME = "friend_checkin_foreground"
-    private const val KEY_INTERVAL_MINUTES = "intervalMinutes"
+    // Public so FriendCheckinBootReceiver (same package) can read the persisted
+    // interval to decide whether to resume after a reboot.
+    const val PREFS_NAME = "friend_checkin_foreground"
+    const val KEY_INTERVAL_MINUTES = "intervalMinutes"
     private const val DEFAULT_INTERVAL_MINUTES = 60
+
+    /** Cancel the next-fire alarm and wipe persisted config. Called ONLY on an
+     *  explicit stop() from JS — never from onDestroy (see the comment there),
+     *  so an OEM/low-memory kill can't accidentally disarm friend check-in. */
+    fun tearDown(context: Context) {
+      var flags = PendingIntent.FLAG_NO_CREATE
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        flags = flags or PendingIntent.FLAG_IMMUTABLE
+      }
+      val intent = Intent(context, FriendCheckinAlarmReceiver::class.java).apply { action = ACTION_FIRE }
+      val pi = PendingIntent.getBroadcast(context, REQ_FIRE, intent, flags)
+      if (pi != null) {
+        (context.getSystemService(Context.ALARM_SERVICE) as AlarmManager).cancel(pi)
+        pi.cancel()
+      }
+      context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().clear().apply()
+    }
   }
 }

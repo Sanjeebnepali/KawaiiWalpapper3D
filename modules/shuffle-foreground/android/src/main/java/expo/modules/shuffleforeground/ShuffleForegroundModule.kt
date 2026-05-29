@@ -26,7 +26,7 @@ class ShuffleForegroundModule : Module() {
     Name("ShuffleForeground")
 
     // intervalMs arrives from JS as a JS number — accept it as Double so the
-    // bridge coercion never fails, then narrow to Long for the Handler delay.
+    // bridge coercion never fails, then narrow to Long for the alarm interval.
     Function("start") { uris: List<String>, intervalMs: Double, mode: String, startIndex: Int ->
       val context = reactContext()
       val intent = Intent(context, ShuffleForegroundService::class.java).apply {
@@ -40,6 +40,10 @@ class ShuffleForegroundModule : Module() {
 
     Function("stop") {
       val context = reactContext()
+      // Cancel the alarm + wipe persisted config FIRST (so neither the alarm nor
+      // a START_STICKY restart resurrects the service), then stop it. onDestroy
+      // no longer does this, so the config survives an OEM kill for resurrection.
+      ShuffleForegroundService.tearDown(context)
       context.stopService(Intent(context, ShuffleForegroundService::class.java))
     }
 

@@ -9,6 +9,20 @@
   <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
   <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
   <uses-permission android:name="android.permission.SET_WALLPAPER" />
+  <!-- Fire each rotation at the real wall-clock time even in Doze (changes/081 —
+       Handler.postDelayed paused in deep sleep). Auto-granted on Android 12/13,
+       user-grantable on 14+; the service degrades to setAndAllowWhileIdle when
+       it isn't held, so it's not load-bearing for the build to run. -->
+  <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+  <!-- Re-arm the rotation alarm after a reboot (alarms are cleared on boot). -->
+  <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+  <!-- Lets lib/backgroundAccess.ts fire the one-tap "don't optimise battery"
+       system dialog (ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS). Without this
+       permission that intent is rejected and the user is dropped into the long
+       battery-settings list instead — the single biggest lever against OEM
+       freezing of the background services. Declared here (the shuffle module)
+       because backgroundAccess.ts documents it as living here. -->
+  <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
   <application>
     <service
@@ -19,5 +33,20 @@
         android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
         android:value="Periodic wallpaper rotation while app is closed" />
     </service>
+    <!-- Receives the exact alarm; re-launches the service to rotate + re-arm.
+         Static so it's deliverable even after the process is killed. -->
+    <receiver
+      android:name=".ShuffleAlarmReceiver"
+      android:exported="false" />
+    <!-- Receives BOOT_COMPLETED to re-arm after a reboot. exported=true because
+         BOOT_COMPLETED is a system (protected) broadcast delivered to the app. -->
+    <receiver
+      android:name=".ShuffleBootReceiver"
+      android:exported="true">
+      <intent-filter>
+        <action android:name="android.intent.action.BOOT_COMPLETED" />
+        <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+      </intent-filter>
+    </receiver>
   </application>
 </manifest>
