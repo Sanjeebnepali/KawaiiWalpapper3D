@@ -539,49 +539,55 @@ export default function MoodHome() {
         });
         return;
       }
-      // Mutual exclusivity: enabling Friend check-in stops every other
+      // Mutual exclusivity — enabling Friend check-in stops every other
       // continuous driver (Theme shuffle + Mood-based) via the bootstrap
-      // subscriber → `enforceSingleDriver`. Capture what's running BEFORE
-      // the flip so the toast can name what got paused.
-      const pausedOthers = otherActiveDriverLabels('friend');
-      await setFriendCheckInEnabled(true);
-      // Don't trust the bootstrap subscriber's silent reschedule — call
-      // the scheduler directly and toast its real result. If the host
-      // SDK is missing `SchedulableTriggerInputTypes.TIME_INTERVAL` (or
-      // `scheduleNotificationAsync` throws), the subscriber path
-      // returned false silently and the user got a "✓ I'll check in"
-      // toast that wasn't true. Confirmed root cause for the
-      // "friend notification not working" complaint.
-      const ok = await scheduleFriendCheckInNotification(friendCheckInMinutes);
-      if (ok) {
-        const base = `✓ I’ll check in every ${formatMinutes(friendCheckInMinutes)}`;
-        toast(
-          pausedOthers.length
-            ? `${base} · ${pausedOthers.join(' + ')} paused`
-            : base,
-        );
-      } else {
-        // Roll the toggle back so the UI doesn't lie.
-        await setFriendCheckInEnabled(false);
-        premiumAlert({
-          title: 'Couldn’t schedule check-in',
-          message:
-            'Your device blocked the recurring notification. Open Settings → Notifications and allow scheduled notifications for Kawaii Baby, then try again.',
-          icon: 'alert-circle-outline',
-          buttons: [
-            { text: 'Cancel', style: 'cancel' },
-            { text: 'Open Settings', onPress: () => Linking.openSettings() },
-          ],
-        });
-      }
+      // subscriber → `enforceSingleDriver`. Confirm BEFORE the flip so the
+      // pause is never silent (changes/189); the dialog names what gets paused.
+      // Runs immediately (no dialog) when nothing else is active.
+      confirmDriverSwitch({
+        keep: ‘friend’,
+        enablingLabel: ‘Friend check-in’,
+        onConfirm: () => void enableFriendCheckIn(),
+      });
     });
   }, [
     friendCheckInEnabled,
-    friendCheckInMinutes,
     moodCollectionId,
     setFriendCheckInEnabled,
     router,
   ]);
+
+  /** Flip Friend check-in on and schedule its notification. Split out of the
+   *  toggle so the exclusivity confirm can defer it. Reads the interval from the
+   *  store at call time so a memoized caller can’t schedule a stale value. */
+  const enableFriendCheckIn = useCallback(async () => {
+    const minutes = useMoodStore.getState().friendCheckInMinutes;
+    await setFriendCheckInEnabled(true);
+    // Don’t trust the bootstrap subscriber’s silent reschedule — call
+    // the scheduler directly and toast its real result. If the host
+    // SDK is missing `SchedulableTriggerInputTypes.TIME_INTERVAL` (or
+    // `scheduleNotificationAsync` throws), the subscriber path
+    // returned false silently and the user got a "✓ I’ll check in"
+    // toast that wasn’t true. Confirmed root cause for the
+    // "friend notification not working" complaint.
+    const ok = await scheduleFriendCheckInNotification(minutes);
+    if (ok) {
+      toast(`✓ I’ll check in every ${formatMinutes(minutes)}`);
+    } else {
+      // Roll the toggle back so the UI doesn’t lie.
+      await setFriendCheckInEnabled(false);
+      premiumAlert({
+        title: ‘Couldn’t schedule check-in’,
+        message:
+          ‘Your device blocked the recurring notification. Open Settings → Notifications and allow scheduled notifications for Kawaii Baby, then try again.’,
+        icon: ‘alert-circle-outline’,
+        buttons: [
+          { text: ‘Cancel’, style: ‘cancel’ },
+          { text: ‘Open Settings’, onPress: () => Linking.openSettings() },
+        ],
+      });
+    }
+  }, [setFriendCheckInEnabled]);
 
   const openCustomIntervalSheet = useCallback(() => {
     setCustomMinInput(String(friendCheckInMinutes));
