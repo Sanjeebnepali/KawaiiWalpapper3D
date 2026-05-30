@@ -76,7 +76,7 @@ import {
 import { pickGalleryImage, pickGalleryImages } from '../../lib/galleryPicker';
 import { ensureMotionPermission, getStepStatus } from '../../lib/stepCount';
 import { toast } from '../../lib/toast';
-import { otherActiveDriverLabels } from '../../lib/automationMode';
+import { confirmDriverSwitch } from '../../lib/confirmDriverSwitch';
 import {
   downloadInternetImage,
   setAsWallpaper,

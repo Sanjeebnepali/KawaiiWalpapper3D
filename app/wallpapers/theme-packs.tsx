@@ -30,7 +30,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { useDeferredMount } from '../../hooks/useDeferredMount';
 import { applyCollectionPhoto } from '../../lib/shuffleActions';
 import { toast } from '../../lib/toast';
-import { otherActiveDriverLabels } from '../../lib/automationMode';
+import { confirmDriverSwitch } from '../../lib/confirmDriverSwitch';
 import { confirmDeleteCollection } from '../../lib/themePackActions';
 import { PACK_ACCENTS, PACK_HEROES } from '../../lib/themePackHeroes';
 import { useEntitlement } from '../../lib/billing';
@@ -87,29 +87,28 @@ export default function ThemePacksScreen() {
 
   const onShufflePack = useCallback(
     async (pack: ThemePack) => {
-      // Mutual-exclusivity surfacing — activating a shuffle (the Theme
-      // driver) stops every other continuous driver (Mood-based + Friend
-      // check-in) via the bootstrap subscriber → `enforceSingleDriver`.
-      // Capture before activation so we can toast what was paused.
-      const pausedOthers = otherActiveDriverLabels('theme');
-      const photoIds = getThemePackPhotos(pack.id, COLLECTION_SIZE).map(
-        (p) => p.id,
-      );
-      const collectionId = activateBuiltinPack(pack.id, pack.title, photoIds);
+      // Mutual exclusivity — activating a shuffle (the Theme driver) stops
+      // every other continuous driver (Mood-based + Friend check-in) via the
+      // bootstrap subscriber → `enforceSingleDriver`. Confirm BEFORE switching
+      // so the pause is never silent (changes/189); `confirmDriverSwitch` runs
+      // the activation immediately when nothing else is active (no dialog).
+      confirmDriverSwitch({
+        keep: 'theme',
+        enablingLabel: `"${pack.title}" shuffle`,
+        onConfirm: () => {
+          const photoIds = getThemePackPhotos(pack.id, COLLECTION_SIZE).map(
+            (p) => p.id,
+          );
+          const collectionId = activateBuiltinPack(pack.id, pack.title, photoIds);
 
-      // Instant apply so the user sees their wallpaper change NOW, not
-      // 60 min later when the first tick fires.
-      const r = await applyCollectionPhoto(collectionId, photoIds, 0);
-      if (r.ok) {
-        toast(
-          pausedOthers.length
-            ? `▶ Shuffling "${pack.title}" · ${pausedOthers.join(' + ')} paused`
-            : `▶ Now shuffling "${pack.title}"`,
-        );
-      } else {
-        toast(r.message);
-      }
-      router.push('/shuffle/active');
+          // Instant apply so the user sees their wallpaper change NOW, not
+          // 60 min later when the first tick fires.
+          void applyCollectionPhoto(collectionId, photoIds, 0).then((r) => {
+            toast(r.ok ? `▶ Now shuffling "${pack.title}"` : r.message);
+          });
+          router.push('/shuffle/active');
+        },
+      });
     },
     [activateBuiltinPack, router],
   );

@@ -29,7 +29,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { pickGalleryImage } from '../../lib/galleryPicker';
 import { applyCollectionPhoto } from '../../lib/shuffleActions';
 import { toast } from '../../lib/toast';
-import { otherActiveDriverLabels } from '../../lib/automationMode';
+import { confirmDriverSwitch } from '../../lib/confirmDriverSwitch';
 import { downloadInternetImage } from '../../lib/wallpaperActions';
 import { useEntitlement } from '../../lib/billing';
 import {
@@ -293,16 +293,20 @@ export default function CollectionDetail() {
       setActive(null);
       return;
     }
-    // Mutual exclusivity surfacing — activating a shuffle (the Theme
-    // driver) stops every other continuous driver (Mood-based + Friend
-    // check-in) via the bootstrap subscriber → `enforceSingleDriver`.
-    // Capture what's running BEFORE setActive so we can name what got
-    // paused.
-    const pausedOthers = otherActiveDriverLabels('theme');
+    // Mutual exclusivity — activating a shuffle (the Theme driver) stops every
+    // other continuous driver (Mood-based + Friend check-in) via the bootstrap
+    // subscriber → `enforceSingleDriver`. Confirm BEFORE switching so the pause
+    // is never silent (changes/189). `confirmDriverSwitch` runs `proceed`
+    // immediately when nothing else is active (no dialog).
+    confirmDriverSwitch({
+      keep: 'theme',
+      enablingLabel: 'Theme shuffle',
+      onConfirm: () => void activateShuffle(),
+    });
+  };
+
+  const activateShuffle = async () => {
     setActive(collection.id);
-    if (pausedOthers.length) {
-      toast(`▶ Shuffle on · ${pausedOthers.join(' + ')} paused`);
-    }
     // Instant apply so the user sees the wallpaper change immediately
     // (without this, nothing happens until the first timer tick — which
     // is up to 60+ minutes away on the default interval).
