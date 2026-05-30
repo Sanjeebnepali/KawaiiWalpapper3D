@@ -30,6 +30,11 @@ export type SettingsState = {
   // deep-link them to the battery/autostart setting exactly once and
   // never nag again. See `lib/backgroundAccess.ts`.
   bgAccessPrompted: boolean;
+  // Same idea for the Android 12+ "Alarms & reminders" (exact-alarm) grant —
+  // a SEPARATE one-time prompt that gives to-the-minute timing. Tracked apart
+  // from `bgAccessPrompted` so the two prompts can be shown in different
+  // sessions (never stacked) and each is offered exactly once.
+  exactAlarmPrompted: boolean;
   // ─── Entitlements (à la carte premium — changes/158) ────────────────────
   // The app sells FOUR independently-purchasable premium areas plus an
   // "All Access" bundle that grants all four at once. Every premium gate
@@ -88,6 +93,7 @@ const DEFAULTS: SettingsState = {
   dailyRecommendation: true,
   vibrationOnDownload: false,
   bgAccessPrompted: false,
+  exactAlarmPrompted: false,
   allAccess: false,
   entThemePacks: false,
   entMood: false,

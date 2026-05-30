@@ -20,6 +20,7 @@ import { Alert, Linking, Platform } from 'react-native';
 import * as IntentLauncher from 'expo-intent-launcher';
 import Constants from 'expo-constants';
 import { isIgnoringBatteryOptimizations } from '../modules/shuffle-foreground';
+import { canScheduleSleepWakeExact } from '../modules/sleep-wake-foreground';
 import { useSettingsStore } from '../store/settings';
 
 function packageName(): string {
@@ -206,19 +207,75 @@ export function maybePromptBackgroundAccess(): void {
   // write-only; reading it here suppresses the re-nag. The manual triggers
   // (Settings → Background Access buttons → openBatteryOptimization /
   // openAutostartSettings) are unaffected — they don't route through here.
-  if (useSettingsStore.getState().bgAccessPrompted) return;
-  // Already exempt → nothing to nag about.
-  if (isBatteryWhitelisted()) return;
+  // Battery prompt already handled in a PRIOR session → don't re-nag for
+  // battery, but this is the right moment to offer the SEPARATE exact-alarm
+  // grant (so the two never appear stacked — they land in different sessions).
+  if (useSettingsStore.getState().bgAccessPrompted) {
+    maybePromptExactAlarm();
+    return;
+  }
+  // Already exempt from battery optimization → nothing to nag about for
+  // battery; chain to the exact-alarm prompt instead (it has its own gate).
+  if (isBatteryWhitelisted()) {
+    maybePromptExactAlarm();
+    return;
+  }
   promptedThisSession = true;
   useSettingsStore.getState().set('bgAccessPrompted', true);
 
   setTimeout(() => {
+    // Vivo/MIUI/ColorOS need TWO separate settings — battery "No restrictions"
+    // AND "Autostart / Allow background". Battery alone is NOT enough on these
+    // OEMs (the autostart manager is a separate gate that freezes the app and
+    // blocks the alarm-triggered foreground-service start), which is exactly
+    // why timed changes "only work when the app is open." Offer both.
     Alert.alert(
-      'One step to make it work',
-      'Your phone is set to stop Kawaii Baby in the background, so timed wallpaper changes won’t fire on time. Tap “Fix it” and choose Allow / “Don’t optimize” / “No restrictions”. You only do this once.',
+      'Two settings to keep it running',
+      'Phones like Vivo, Xiaomi and Oppo stop Kawaii Baby in the background, so timed wallpaper changes (Mood / Sleep-Wake) won’t fire while the app is closed. Turn ON both — you only do this once:\n\n1) Autostart / Allow background activity\n2) Battery → No restrictions',
       [
         { text: 'Later', style: 'cancel' },
-        { text: 'Fix it', onPress: () => void openBatteryOptimization() },
+        { text: 'Battery', onPress: () => void openBatteryOptimization() },
+        { text: 'Autostart', onPress: () => void openAutostartSettings() },
+      ],
+    );
+  }, 700);
+}
+
+/**
+ * Nudge the user to grant the Android 12+ "Alarms & reminders" (exact-alarm)
+ * permission, which is what makes timed wallpaper changes fire to the MINUTE
+ * instead of being deferred to a Doze maintenance window (the "I set 9 AM but it
+ * changed at 10 AM" / "mood only changes every few hours" symptoms).
+ *
+ * We deliberately use `SCHEDULE_EXACT_ALARM` (user-granted) rather than
+ * `USE_EXACT_ALARM` (auto-granted) because Google Play restricts the latter to
+ * alarm/clock/calendar apps — a wallpaper app would risk rejection (changes/188).
+ * The trade-off is this one-tap prompt.
+ *
+ * Gating mirrors `maybePromptBackgroundAccess`:
+ *   - Already grantable (`canScheduleSleepWakeExact()` true → Android < 12, or
+ *     already granted) → never prompts.
+ *   - Otherwise → at most once per session, once per install (persisted flag),
+ *     and NEVER in the same tick as the battery prompt (see the caller).
+ *   - No-op on iOS.
+ */
+let exactAlarmPromptedThisSession = false;
+export function maybePromptExactAlarm(): void {
+  if (Platform.OS !== 'android') return;
+  if (exactAlarmPromptedThisSession) return;
+  if (useSettingsStore.getState().exactAlarmPrompted) return;
+  // Already granted (or pre-Android-12 where it's implicit) → nothing to ask.
+  if (canScheduleSleepWakeExact()) return;
+  exactAlarmPromptedThisSession = true;
+  useSettingsStore.getState().set('exactAlarmPrompted', true);
+
+  setTimeout(() => {
+    Alert.alert(
+      'Make timed changes exact',
+      'To change your wallpaper at the exact time you set (instead of up to an hour late), allow “Alarms & reminders” for Kawaii Baby. You only do this once.',
+      [
+        { text: 'Later', style: 'cancel' },
+        { text: 'Allow', onPress: () => void openExactAlarmSettings() },
       ],
     );
   }, 700);

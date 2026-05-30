@@ -14,14 +14,6 @@
        Android 12/13, user-grantable on 14+; the service degrades to
        setAndAllowWhileIdle when it isn't held, so it's not load-bearing. -->
   <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
-  <!-- USE_EXACT_ALARM is AUTO-GRANTED on Android 13+ (no user step), so
-       AlarmManager.canScheduleExactAlarms() returns true and every re-arm takes
-       the setExactAndAllowWhileIdle path — firing to the minute even in Doze.
-       SCHEDULE_EXACT_ALARM ALONE is NOT granted by default on 13/14+, so without
-       this the service silently fell back to setAndAllowWhileIdle and Doze
-       deferred the next tick to a maintenance window — the root cause of "mood
-       only changes every 2-3h instead of every 30 min" (changes/187). -->
-  <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
   <!-- Re-arm the tick alarm after a reboot (alarms are cleared on boot). -->
   <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
