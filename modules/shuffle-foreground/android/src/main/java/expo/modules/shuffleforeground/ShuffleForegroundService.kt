@@ -287,7 +287,14 @@ class ShuffleForegroundService : Service() {
         val channel = NotificationChannel(
           CHANNEL_ID,
           "Wallpaper shuffle",
-          NotificationManager.IMPORTANCE_MIN,
+          // LOW, not MIN: aggressive OEMs (notably Vivo PEM) freeze the process
+          // of a MIN-importance foreground service the moment the screen turns
+          // off, so the rotation alarm never fires while locked. LOW is still
+          // silent + collapsed but is treated as a "real" ongoing service the
+          // OEM is less likely to freeze (changes/190). Channel ID is bumped
+          // (…fg.v2) because Android caches a channel's importance at creation —
+          // editing the existing MIN channel in place has no effect.
+          NotificationManager.IMPORTANCE_LOW,
         ).apply {
           description = "Keeps the wallpaper shuffle running while the app is closed"
           setSound(null, null)
@@ -335,7 +342,7 @@ class ShuffleForegroundService : Service() {
     const val ACTION_FIRE = "expo.modules.shuffleforeground.FIRE"
 
     private const val TAG = "ShuffleFG"
-    private const val CHANNEL_ID = "kawaii.shuffle.fg"
+    private const val CHANNEL_ID = "kawaii.shuffle.fg.v2"
     private const val NOTIF_ID = 7422
     // arm() schedules exactly one next-fire at a time, so one slot is enough.
     private const val REQ_FIRE = 7423

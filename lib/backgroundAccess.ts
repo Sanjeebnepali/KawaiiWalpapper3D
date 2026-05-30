@@ -108,7 +108,19 @@ export async function openAppDetails(): Promise<void> {
  * unknown OEM) we land the user on the app-info page.
  */
 const AUTOSTART_TARGETS: Array<{ packageName: string; className: string }> = [
-  // Vivo (Funtouch OS / OriginOS)
+  // Vivo "High background power consumption" (com.vivo.abe) — FIRST because on
+  // Vivo this is the screen that actually stops the screen-off process FREEZE
+  // (PEM / Power Energy Manager). The plain battery "No restrictions" toggle
+  // and the autostart list below do NOT cover it: verified on V2231 where an
+  // exact alarm fired fine with the screen ON but never fired once locked,
+  // even while charging (Doze off) and battery-whitelisted (changes/190). If
+  // this component resolves, the user lands exactly where the fix lives.
+  {
+    packageName: 'com.vivo.abe',
+    className:
+      'com.vivo.applicationbehaviorengine.ui.ExcessivePowerManagerActivity',
+  },
+  // Vivo (Funtouch OS / OriginOS) autostart / background-start manager.
   {
     packageName: 'com.vivo.permissionmanager',
     className: 'com.vivo.permissionmanager.activity.BgStartUpManagerActivity',
@@ -230,12 +242,12 @@ export function maybePromptBackgroundAccess(): void {
     // blocks the alarm-triggered foreground-service start), which is exactly
     // why timed changes "only work when the app is open." Offer both.
     Alert.alert(
-      'Two settings to keep it running',
-      'Phones like Vivo, Xiaomi and Oppo stop Kawaii Baby in the background, so timed wallpaper changes (Mood / Sleep-Wake) won’t fire while the app is closed. Turn ON both — you only do this once:\n\n1) Autostart / Allow background activity\n2) Battery → No restrictions',
+      'Keep wallpaper changes running',
+      'Phones like Vivo, Xiaomi and Oppo freeze Kawaii Baby once the screen is off, so timed changes (Shuffle / Mood / Sleep-Wake) stop while the phone is locked. Turn ON all of these — you only do this once:\n\n1) Allow background / Autostart\n2) Battery → No restrictions\n3) On Vivo: tap “Background power” and ALLOW high background power use (this is the one that stops the screen-off freeze)\n\nTip: also open Recent apps and LOCK the Kawaii Baby card so the system can’t clear it.',
       [
         { text: 'Later', style: 'cancel' },
         { text: 'Battery', onPress: () => void openBatteryOptimization() },
-        { text: 'Autostart', onPress: () => void openAutostartSettings() },
+        { text: 'Background power', onPress: () => void openAutostartSettings() },
       ],
     );
   }, 700);
