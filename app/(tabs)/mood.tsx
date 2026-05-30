@@ -545,8 +545,8 @@ export default function MoodHome() {
       // pause is never silent (changes/189); the dialog names what gets paused.
       // Runs immediately (no dialog) when nothing else is active.
       confirmDriverSwitch({
-        keep: ‘friend’,
-        enablingLabel: ‘Friend check-in’,
+        keep: 'friend',
+        enablingLabel: 'Friend check-in',
         onConfirm: () => void enableFriendCheckIn(),
       });
     });
