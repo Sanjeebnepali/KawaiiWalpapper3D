@@ -38,8 +38,8 @@ export function confirmDriverSwitch(opts: {
       `${paused.join(' + ')}. You can switch back anytime.`,
     icon: 'swap-horizontal-outline',
     buttons: [
-      { label: 'Cancel', style: 'default' },
-      { label: 'Turn on', style: 'primary', onPress: opts.onConfirm },
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Turn on', style: 'default', onPress: opts.onConfirm },
     ],
   });
 }

@@ -376,16 +376,26 @@ export default function MoodHome() {
       // on iOS it requests the permission the working step read needs.
       await ensureMotionPermission();
       const stepStatus = await getStepStatus();
-      // Mutual exclusivity surfacing: enabling Mood-based stops every
-      // other continuous driver (Theme shuffle + Friend check-in) via the
-      // bootstrap subscriber → `enforceSingleDriver`. Capture what's
-      // running BEFORE the flip so the toast can name what got paused and
-      // the disappearing feature isn't silent.
-      const pausedOthers = otherActiveDriverLabels('mood');
+      // Mutual exclusivity — enabling Mood-based stops every other continuous
+      // driver (Theme shuffle + Friend check-in) via the bootstrap subscriber →
+      // `enforceSingleDriver`. Confirm BEFORE the flip so the pause is never
+      // silent (changes/189); the dialog names what gets paused, so the toast
+      // no longer repeats it. Runs immediately (no dialog) when nothing else
+      // is active.
+      confirmDriverSwitch({
+        keep: 'mood',
+        enablingLabel: 'Mood-based',
+        onConfirm: () => void enableBackgroundMood(stepStatus),
+      });
+    });
+  }, [backgroundEnabled, moodCollectionId, setBackgroundEnabled, router]);
+
+  /** Flip Mood-based on and toast its step-tracking reality. Split out of
+   *  `onToggleBackground` so the exclusivity confirm can defer it. */
+  const enableBackgroundMood = useCallback(
+    async (stepStatus: Awaited<ReturnType<typeof getStepStatus>>) => {
       await setBackgroundEnabled(true);
-      const baseMsg = pausedOthers.length
-        ? `Background mood on · ${pausedOthers.join(' + ')} paused`
-        : 'Background mood on — runs every 30 min';
+      const baseMsg = 'Background mood on — runs every 30 min';
       switch (stepStatus) {
         case 'available':
           toast(`✓ ${baseMsg} · steps tracking`);
@@ -402,8 +412,9 @@ export default function MoodHome() {
           toast(`✓ ${baseMsg} · steps unavailable in this build`);
           break;
       }
-    });
-  }, [backgroundEnabled, moodCollectionId, setBackgroundEnabled, router]);
+    },
+    [setBackgroundEnabled],
+  );
 
   // ─── Toggle photo-variety (rotate within the same mood) ─────────────────
   const onToggleRotateWithinMood = useCallback(async () => {
