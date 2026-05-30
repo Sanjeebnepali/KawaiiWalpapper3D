@@ -12,6 +12,14 @@
        user-grantable on 14+; the service degrades to setAndAllowWhileIdle when
        it isn't held, so this is not load-bearing for the build to run. -->
   <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+  <!-- USE_EXACT_ALARM is AUTO-GRANTED on Android 13+ (no user step), so
+       AlarmManager.canScheduleExactAlarms() returns true and the wake/sleep
+       alarm takes the setExactAndAllowWhileIdle path — firing at the exact hour
+       even in Doze. SCHEDULE_EXACT_ALARM ALONE is NOT granted by default on
+       13/14+, so without this the alarm fell back to setAndAllowWhileIdle and
+       Doze deferred it to the next maintenance window — the root cause of "I set
+       9 AM but it changes at 10 AM" (NOT a picker/timezone bug; changes/187). -->
+  <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
   <!-- Re-arm the wake/sleep alarm after a reboot (alarms are cleared on boot). -->
   <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 

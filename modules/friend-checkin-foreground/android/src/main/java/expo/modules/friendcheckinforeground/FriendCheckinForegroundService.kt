@@ -56,6 +56,20 @@ class FriendCheckinForegroundService : Service() {
         setShowBadge(false)
       }
       manager.createNotificationChannel(channel)
+
+      // Separate HIGH-importance channel for the actual check-in PROMPT we post
+      // natively when the JS runtime is dead (see postPromptNotification). The
+      // ongoing FGS notification above must stay silent/MIN, but the prompt is a
+      // real "hey, how are you feeling?" alert the user should see.
+      val promptChannel = NotificationChannel(
+        PROMPT_CHANNEL_ID,
+        "Mood check-in",
+        NotificationManager.IMPORTANCE_HIGH,
+      ).apply {
+        description = "The periodic \"how are you feeling?\" prompt."
+        setShowBadge(true)
+      }
+      manager.createNotificationChannel(promptChannel)
     }
   }
 
@@ -83,10 +97,26 @@ class FriendCheckinForegroundService : Service() {
 
     isRunning = true
 
-    // If this start came from a fired alarm, emit the tick now. (A fresh start
-    // only arms — the first tick lands one interval out, as before.)
+    // If this start came from a fired alarm, deliver the check-in now. (A fresh
+    // start only arms — the first tick lands one interval out, as before.)
+    //
+    // The fix for "check-in never arrives": which path delivers depends on
+    // whether the JS runtime is alive.
+    //   - JS alive  → emitTick(), so JS posts the RICH prompt (7 mood action
+    //     buttons + offline apply via the expo-notifications response handler),
+    //     exactly as before. This is the in-app / recently-backgrounded case.
+    //   - JS dead   → the alarm cold-started this service with NO JS runtime
+    //     (the normal state once the app's been closed a while, and the default
+    //     on Vivo/MIUI/ColorOS). `instance` is null, so emitTick() would vanish
+    //     into the void — the actual bug. Post the prompt NATIVELY instead so it
+    //     reliably appears; tapping it opens the app to pick a mood. (changes/187)
     if (intent?.getBooleanExtra(EXTRA_FIRE, false) == true) {
-      FriendCheckinForegroundModule.instance?.emitTick()
+      val liveModule = FriendCheckinForegroundModule.instance
+      if (liveModule != null) {
+        liveModule.emitTick()
+      } else {
+        postPromptNotification()
+      }
     }
 
     // Always (re-)arm the next exact alarm.
@@ -135,6 +165,49 @@ class FriendCheckinForegroundService : Service() {
       .build()
   }
 
+  /**
+   * Post the "how are you feeling?" prompt natively. Called ONLY when the JS
+   * runtime is dead (see onStartCommand) — otherwise JS posts the richer
+   * action-button version. Tapping this opens the app so the user can pick a
+   * mood; that's one tap more than the in-app action buttons, but it's the
+   * difference between the prompt appearing and silently never firing.
+   */
+  private fun postPromptNotification() {
+    val (title, body) = PROMPT_OPENERS[nextOpenerIndex()]
+
+    // Content tap → relaunch the app's main activity. getLaunchIntentForPackage
+    // may return null on some OEM shells; degrade to a body-only notification.
+    val launch = packageManager.getLaunchIntentForPackage(packageName)?.apply {
+      addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+    }
+    var piFlags = PendingIntent.FLAG_UPDATE_CURRENT
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+      piFlags = piFlags or PendingIntent.FLAG_IMMUTABLE
+    }
+    val contentPi =
+      if (launch != null) PendingIntent.getActivity(this, REQ_PROMPT, launch, piFlags) else null
+
+    val builder = NotificationCompat.Builder(this, PROMPT_CHANNEL_ID)
+      .setContentTitle(title)
+      .setContentText(body)
+      .setSmallIcon(android.R.drawable.ic_popup_reminder)
+      .setAutoCancel(true)
+      .setPriority(NotificationCompat.PRIORITY_HIGH)
+    if (contentPi != null) builder.setContentIntent(contentPi)
+
+    val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+    manager.notify(PROMPT_NOTIF_ID, builder.build())
+  }
+
+  /** Rotate through the openers so consecutive prompts vary. Persisted so the
+   *  variety survives the cold-start-per-fire lifecycle. */
+  private fun nextOpenerIndex(): Int {
+    val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    val i = prefs.getInt(KEY_OPENER_INDEX, 0)
+    prefs.edit().putInt(KEY_OPENER_INDEX, i + 1).apply()
+    return ((i % PROMPT_OPENERS.size) + PROMPT_OPENERS.size) % PROMPT_OPENERS.size
+  }
+
   override fun onDestroy() {
     // Intentionally does NOT cancel the alarm or clear the persisted interval. A
     // low-memory / OEM kill can run onDestroy, and wiping here would stop the
@@ -161,6 +234,20 @@ class FriendCheckinForegroundService : Service() {
     private const val NOTIF_ID = 0xF21D // arbitrary, stable per-service id
     // arm() schedules exactly one next-fire at a time, so one slot is enough.
     private const val REQ_FIRE = 0xF21E
+
+    // HIGH-importance channel + id for the natively-posted prompt (JS-dead path).
+    private const val PROMPT_CHANNEL_ID = "kawaii.friendcheckin.prompt"
+    private const val PROMPT_NOTIF_ID = 0xF21F
+    private const val REQ_PROMPT = 0xF220
+    private const val KEY_OPENER_INDEX = "openerIndex"
+
+    // Title/body pairs for the native prompt. Literal emoji match the rest of
+    // the codebase (lib/moodNotifications.ts uses the same); the file is UTF-8.
+    private val PROMPT_OPENERS = arrayOf(
+      "Hey 👋 how are you feeling?" to "Tap to pick a mood and refresh your wallpaper.",
+      "Quick mood check 😊" to "Tap to choose how you feel right now.",
+      "Thinking of you 💜" to "Tap to set a wallpaper that matches your mood.",
+    )
     // Public so FriendCheckinBootReceiver (same package) can read the persisted
     // interval to decide whether to resume after a reboot.
     const val PREFS_NAME = "friend_checkin_foreground"
