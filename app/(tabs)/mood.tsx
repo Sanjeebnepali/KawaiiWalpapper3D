@@ -577,13 +577,13 @@ export default function MoodHome() {
       // Roll the toggle back so the UI doesn’t lie.
       await setFriendCheckInEnabled(false);
       premiumAlert({
-        title: ‘Couldn’t schedule check-in’,
+        title: 'Couldn’t schedule check-in',
         message:
-          ‘Your device blocked the recurring notification. Open Settings → Notifications and allow scheduled notifications for Kawaii Baby, then try again.’,
-        icon: ‘alert-circle-outline’,
+          'Your device blocked the recurring notification. Open Settings → Notifications and allow scheduled notifications for Kawaii Baby, then try again.',
+        icon: 'alert-circle-outline',
         buttons: [
-          { text: ‘Cancel’, style: ‘cancel’ },
-          { text: ‘Open Settings’, onPress: () => Linking.openSettings() },
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Open Settings', onPress: () => Linking.openSettings() },
         ],
       });
     }
