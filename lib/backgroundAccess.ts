@@ -16,7 +16,7 @@
  * and falls back gracefully, never throwing into the UI.
  */
 
-import { Alert, Linking, Platform } from 'react-native';
+import { Alert, AppState, Linking, Platform } from 'react-native';
 import * as IntentLauncher from 'expo-intent-launcher';
 import Constants from 'expo-constants';
 import { isIgnoringBatteryOptimizations } from '../modules/shuffle-foreground';
@@ -196,6 +196,56 @@ export function isBatteryWhitelisted(): boolean {
 }
 
 /**
+ * Open the battery-exemption setting AND verify it actually took effect when the
+ * user comes back. On Vivo (and some MIUI/ColorOS builds) the standard
+ * "Allow / Don't optimize" dialog can be tapped without the system actually
+ * recording the exemption — verified on a V2231 where `isBatteryWhitelisted()`
+ * stayed false after the user tapped Allow (changes/191). Tapping a button that
+ * silently does nothing is the worst UX, so we re-check on return and, if it
+ * still didn't take, show an explicit "it didn't save — here's exactly what to
+ * tap" follow-up that reopens the setting.
+ *
+ * One-shot: the AppState listener removes itself after the first foreground
+ * return (or after a 90s safety timeout) so it never leaks or re-fires on
+ * later app switches.
+ */
+function openBatteryThenVerify(): void {
+  void openBatteryOptimization();
+
+  let settled = false;
+  let timer: ReturnType<typeof setTimeout> | null = null;
+  const sub = AppState.addEventListener('change', (next) => {
+    // Only act on the return-to-foreground transition.
+    if (next !== 'active' || settled) return;
+    settled = true;
+    if (timer) clearTimeout(timer);
+    sub.remove();
+
+    // Small delay so the OS has committed the exemption before we read it back —
+    // the whitelist query can lag the settings write by a beat on some OEMs.
+    setTimeout(() => {
+      if (isBatteryWhitelisted()) return; // it took — nothing to do.
+      Alert.alert(
+        'That didn’t save — one more try',
+        'Your phone didn’t record the change, so timed wallpaper changes will still stop when the screen is off. On the next screen, set Kawaii Baby to “Don’t optimize” / “No restrictions” / “Allow”, then come back.',
+        [
+          { text: 'Later', style: 'cancel' },
+          { text: 'Open again', onPress: () => void openBatteryOptimization() },
+        ],
+      );
+    }, 600);
+  });
+
+  // Safety: if the user never returns (or AppState misses the event on an OEM),
+  // tear the listener down after 90s so it can't linger or fire stale.
+  timer = setTimeout(() => {
+    if (settled) return;
+    settled = true;
+    sub.remove();
+  }, 90_000);
+}
+
+/**
  * Nudge the user to the battery setting IF — and only if — the app is not
  * yet exempt from battery optimization. Called when a background feature
  * is enabled AND at launch when one is already active (so it catches the
@@ -246,7 +296,7 @@ export function maybePromptBackgroundAccess(): void {
       'Phones like Vivo, Xiaomi and Oppo freeze Kawaii Baby once the screen is off, so timed changes (Shuffle / Mood / Sleep-Wake) stop while the phone is locked. Turn ON all of these — you only do this once:\n\n1) Allow background / Autostart\n2) Battery → No restrictions\n3) On Vivo: tap “Background power” and ALLOW high background power use (this is the one that stops the screen-off freeze)\n\nTip: also open Recent apps and LOCK the Kawaii Baby card so the system can’t clear it.',
       [
         { text: 'Later', style: 'cancel' },
-        { text: 'Battery', onPress: () => void openBatteryOptimization() },
+        { text: 'Battery', onPress: () => openBatteryThenVerify() },
         { text: 'Background power', onPress: () => void openAutostartSettings() },
       ],
     );
